@@ -27,6 +27,9 @@ final class AppController {
     private let eventMonitors: [EventMonitor]
     private var monitorsRunning = false
 
+    private var doublePressInterval = 0.35
+    private var pendingPress: (action: HotKeyAction, work: DispatchWorkItem)?
+
     /// Set by the settings UI while a shortcut is being recorded.
     var isRecordingShortcut = false {
         didSet { isRecordingShortcut ? hotkeys.suspend() : hotkeys.resume() }
@@ -80,7 +83,7 @@ final class AppController {
         audioSwitch.speakVolume = data.audioDevices.speakVolume
         systemInfo.clipboardReadLimit = data.systemInfo.clipboardReadLimit
         systemInfo.browsableVolumesOnly = data.systemInfo.browsableVolumesOnly
-        menuExtras.action = data.menuExtras.action
+        doublePressInterval = data.general.doublePressInterval
 
         keyClicks.scope = data.keyClicks.scope
         keyClicks.playOnRepeat = data.keyClicks.playOnRepeat
@@ -160,7 +163,37 @@ final class AppController {
 
     // MARK: Hotkeys
 
+    /// Entry point for shortcuts. Actions with a double-press behaviour wait
+    /// briefly for a second press; everything else runs immediately.
     func perform(_ action: HotKeyAction) {
+        guard action.hasDoublePress else { performSingle(action); return }
+        if let pending = pendingPress, pending.action == action {
+            pending.work.cancel()
+            pendingPress = nil
+            performDouble(action)
+            return
+        }
+        pendingPress?.work.cancel()
+        let work = DispatchWorkItem { [weak self] in
+            self?.pendingPress = nil
+            self?.performSingle(action)
+        }
+        pendingPress = (action, work)
+        DispatchQueue.main.asyncAfter(deadline: .now() + doublePressInterval, execute: work)
+    }
+
+    private func performDouble(_ action: HotKeyAction) {
+        log.debug("Double press: \(action.rawValue)")
+        switch action {
+        case .cpuUsage: systemInfo.speakTopCPUProcesses()
+        case .memoryUsage: systemInfo.speakTopMemoryProcesses()
+        default:
+            if let index = action.menuExtraIndex { menuExtras.handle(index: index, action: .activate) }
+        }
+    }
+
+    private func performSingle(_ action: HotKeyAction) {
+        log.debug("Single press: \(action.rawValue)")
         switch action {
         case .previousOutputDevice: audioSwitch.step(.output, by: -1)
         case .nextOutputDevice: audioSwitch.step(.output, by: 1)
@@ -183,7 +216,7 @@ final class AppController {
         case .toggleKeyClicks: toggleKeyClicks()
         case .openSettings: SettingsWindowController.shared.show()
         default:
-            if let index = action.menuExtraIndex { menuExtras.handle(index: index) }
+            if let index = action.menuExtraIndex { menuExtras.handle(index: index, action: .speak) }
         }
     }
 

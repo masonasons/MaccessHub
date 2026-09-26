@@ -255,11 +255,16 @@ struct ToolsSettingsView: View {
             }
             Section("Menu Extras") {
                 Toggle("Enable menu extra shortcuts (Option-Shift-1 to 0)", isOn: $store.data.menuExtras.enabled)
-                Picker("When a shortcut is pressed", selection: $store.data.menuExtras.action) {
-                    ForEach(MenuExtraAction.allCases) { Text($0.title).tag($0) }
-                }
                 Button("Speak All Menu Extras Now") { AppController.shared.menuExtras.speakAll() }
-                Text("Items are numbered from left to right across the menu bar, hidden items excluded.")
+                Text("Items are numbered from left to right across the menu bar, hidden items excluded. Press a shortcut once to hear the item, twice to open it.")
+                    .font(.callout).foregroundStyle(.secondary)
+            }
+            Section("Double Press") {
+                Slider(value: $store.data.general.doublePressInterval, in: 0.2...0.8, step: 0.05) {
+                    Text("Time allowed between presses")
+                } minimumValueLabel: { Text("Fast") } maximumValueLabel: { Text("Slow") }
+                .accessibilityValue("\(Int(store.data.general.doublePressInterval * 1000)) milliseconds")
+                Text("CPU, memory and menu extra shortcuts wait this long for a second press. Pressing twice speaks the top processes or opens the menu extra.")
                     .font(.callout).foregroundStyle(.secondary)
             }
             Section("System Information") {

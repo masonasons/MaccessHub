@@ -53,8 +53,8 @@ enum HotKeyAction: String, CaseIterable, Codable, Identifiable {
         case .toggleInputMute: return "Mute or unmute microphone"
         case .listOutputDevices: return "Speak output devices"
         case .listInputDevices: return "Speak input devices"
-        case .cpuUsage: return "Speak CPU and GPU usage"
-        case .memoryUsage: return "Speak memory usage"
+        case .cpuUsage: return "Speak CPU and GPU usage (twice: top processes)"
+        case .memoryUsage: return "Speak memory usage (twice: top processes)"
         case .diskUsage: return "Speak disk usage"
         case .osVersion: return "Speak macOS version"
         case .uptime: return "Speak uptime"
@@ -63,16 +63,16 @@ enum HotKeyAction: String, CaseIterable, Codable, Identifiable {
         case .clipboard: return "Speak clipboard"
         case .appInfo: return "Speak frontmost application info"
         case .positionInfo: return "Speak position in list or text"
-        case .menuExtra1: return "Menu extra 1"
-        case .menuExtra2: return "Menu extra 2"
-        case .menuExtra3: return "Menu extra 3"
-        case .menuExtra4: return "Menu extra 4"
-        case .menuExtra5: return "Menu extra 5"
-        case .menuExtra6: return "Menu extra 6"
-        case .menuExtra7: return "Menu extra 7"
-        case .menuExtra8: return "Menu extra 8"
-        case .menuExtra9: return "Menu extra 9"
-        case .menuExtra10: return "Menu extra 10"
+        case .menuExtra1: return "Menu extra 1 (twice: open it)"
+        case .menuExtra2: return "Menu extra 2 (twice: open it)"
+        case .menuExtra3: return "Menu extra 3 (twice: open it)"
+        case .menuExtra4: return "Menu extra 4 (twice: open it)"
+        case .menuExtra5: return "Menu extra 5 (twice: open it)"
+        case .menuExtra6: return "Menu extra 6 (twice: open it)"
+        case .menuExtra7: return "Menu extra 7 (twice: open it)"
+        case .menuExtra8: return "Menu extra 8 (twice: open it)"
+        case .menuExtra9: return "Menu extra 9 (twice: open it)"
+        case .menuExtra10: return "Menu extra 10 (twice: open it)"
         case .toggleEventSounds: return "Toggle event sounds"
         case .toggleKeyClicks: return "Toggle key clicks"
         case .openSettings: return "Open MaccessHub settings"
@@ -114,6 +114,11 @@ enum HotKeyAction: String, CaseIterable, Codable, Identifiable {
         case .menuExtra10: return KeyCombo("0", os)
         case .toggleEventSounds, .toggleKeyClicks, .openSettings: return nil
         }
+    }
+
+    /// Actions with a second behaviour on a double press.
+    var hasDoublePress: Bool {
+        self == .cpuUsage || self == .memoryUsage || menuExtraIndex != nil
     }
 
     /// 1-based index for the menu extra actions.

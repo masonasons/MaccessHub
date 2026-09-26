@@ -22,6 +22,22 @@ final class SystemInfoFeature {
         }
     }
 
+    func speakTopCPUProcesses() {
+        ProcessStats.topCPU { [speaker] entries in
+            guard !entries.isEmpty else { speaker.speak("No processes are using noticeable CPU."); return }
+            let parts = entries.map { "\($0.name) \(Int($0.value.rounded())) percent" }
+            speaker.speak("Top CPU: " + parts.joined(separator: ", ") + ".")
+        }
+    }
+
+    func speakTopMemoryProcesses() {
+        ProcessStats.topMemory { [speaker] entries in
+            guard !entries.isEmpty else { speaker.speak("Process memory is unavailable."); return }
+            let parts = entries.map { "\($0.name) \(SystemStats.bytesToHuman(Int64($0.value)))" }
+            speaker.speak("Top memory: " + parts.joined(separator: ", ") + ".")
+        }
+    }
+
     func speakMemory() {
         guard let m = SystemStats.memoryUsage() else { speaker.speak("Memory usage is unavailable."); return }
         speaker.speak("Memory: \(SystemStats.bytesToHuman(m.used)) of \(SystemStats.bytesToHuman(m.total)) used, "

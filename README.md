@@ -15,10 +15,10 @@ VoiceOver it falls back to the system voice.
 | **Event sounds** – plays a sound when apps launch or quit, the Mac sleeps or wakes, volumes mount, USB and Bluetooth devices come and go, Wi-Fi and Ethernet connect, power source or battery state changes, spaces change, windows open, menus open and close, rows expand, and Music plays or pauses. | EventSounds | – |
 | **Key clicks** – a click for every key while typing in a text field, with different sounds for lowercase, uppercase, digits, punctuation, space, return, tab, delete, arrows and function keys. | KeyClicks | – |
 | **Audio devices** – cycle output and input devices, mute the microphone, list devices. | Audioswitch | ⌃⇧[ ⌃⇧] ⌃⌘⇧[ ⌃⌘⇧] ⌃⇧M ⌃⇧L ⌃⌘⇧L |
-| **System information** – CPU and GPU, memory, disks, macOS version, uptime, battery, current audio devices, clipboard. | recmon | ⌃⇧1 … ⌃⇧8 |
+| **System information** – CPU and GPU, memory, disks, macOS version, uptime, battery, current audio devices, clipboard. Press the CPU or memory shortcut twice for the top five processes. | recmon | ⌃⇧1 … ⌃⇧8 |
 | **Application info** – name, version, bundle ID and path of the frontmost app. | AppInfo | ⌃⇧V |
 | **Position info** – "42 percent, item 5 of 12" in tables, outlines and lists; character and line position in text. | PositionInfo | ⌃⇧P |
-| **Menu extras** – speak or open the Nth status item in the menu bar. Off by default. | MenuExt | ⌥⇧1 … ⌥⇧0 |
+| **Menu extras** – press once to hear the Nth status item in the menu bar, twice to open it. Off by default. | MenuExt | ⌥⇧1 … ⌥⇧0 |
 
 Every shortcut can be changed or removed in **Settings → Shortcuts**. There
 are also unbound shortcuts for toggling event sounds and key clicks and for
@@ -26,7 +26,8 @@ opening settings.
 
 ## Improvements over the spoons
 
-- Memory usage is implemented (it was a stub in recmon).
+- Memory usage is implemented (it was a stub in recmon), and a double press
+  of the CPU or memory shortcut names the top five processes.
 - Network, power, battery-level, Bluetooth, screen lock, window, menu, row and
   Music events are all wired up; the classic sound set already had files for
   most of them.

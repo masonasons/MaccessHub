@@ -20,17 +20,6 @@ enum KeyClickScope: String, Codable, CaseIterable, Identifiable {
     }
 }
 
-enum MenuExtraAction: String, Codable, CaseIterable, Identifiable {
-    case speak, activate
-    var id: String { rawValue }
-    var title: String {
-        switch self {
-        case .speak: return "Speak the item's name"
-        case .activate: return "Open the item"
-        }
-    }
-}
-
 struct GeneralSettings: Codable {
     var launchAtLogin = false
     var speechOutput: SpeechOutput = .automatic
@@ -38,6 +27,8 @@ struct GeneralSettings: Codable {
     var speechVolume = 1.0
     var speechVoice: String? = nil
     var hasSeenWelcome = false
+    /// Seconds within which a second press of the same shortcut counts as a double press.
+    var doublePressInterval = 0.35
 
     init() {}
     init(from decoder: Decoder) throws {
@@ -48,6 +39,7 @@ struct GeneralSettings: Codable {
         speechVolume = c.value(.speechVolume, default: 1.0)
         speechVoice = c.value(.speechVoice, default: nil)
         hasSeenWelcome = c.value(.hasSeenWelcome, default: false)
+        doublePressInterval = c.value(.doublePressInterval, default: 0.35)
     }
 }
 
@@ -119,13 +111,11 @@ struct AudioDeviceSettings: Codable {
 
 struct MenuExtraSettings: Codable {
     var enabled = false
-    var action: MenuExtraAction = .speak
 
     init() {}
     init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         enabled = c.value(.enabled, default: false)
-        action = c.value(.action, default: .speak)
     }
 }
 

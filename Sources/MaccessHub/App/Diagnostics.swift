@@ -24,7 +24,16 @@ enum Diagnostics {
         while group.wait(timeout: .now()) == .timedOut {
             RunLoop.main.run(mode: .default, before: Date(timeIntervalSinceNow: 0.05))
         }
+        func waitForSpeech(seconds: Double) {
+            group.enter()
+            DispatchQueue.main.asyncAfter(deadline: .now() + seconds) { group.leave() }
+            while group.wait(timeout: .now()) == .timedOut {
+                RunLoop.main.run(mode: .default, before: Date(timeIntervalSinceNow: 0.05))
+            }
+        }
+        print("[Top CPU processes]"); info.speakTopCPUProcesses(); waitForSpeech(seconds: 2.5)
         print("[Memory]"); info.speakMemory()
+        print("[Top memory processes]"); info.speakTopMemoryProcesses(); waitForSpeech(seconds: 1.5)
         print("[Disks]"); info.speakDisks()
         print("[macOS]"); info.speakOSVersion()
         print("[Uptime]"); info.speakUptime()

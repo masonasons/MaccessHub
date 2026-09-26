@@ -11,19 +11,19 @@ final class MenuExtrasFeature {
         let x: CGFloat
     }
 
+    enum Action { case speak, activate }
+
     let speaker: Speaker
-    var action: MenuExtraAction = .speak
     private let queue = DispatchQueue(label: "com.maccesshub.menuextras", qos: .userInitiated)
 
     init(speaker: Speaker) { self.speaker = speaker }
 
     /// Speaks or activates the `index`-th extra counted from the left (1-based).
-    func handle(index: Int) {
+    func handle(index: Int, action: Action) {
         guard AccessibilityPermission.isTrusted else {
             speaker.speak("MaccessHub needs the Accessibility permission to read the menu bar.")
             return
         }
-        let action = self.action
         queue.async { [speaker] in
             let extras = Self.visibleExtras()
             guard index >= 1, index <= extras.count else {
@@ -33,7 +33,7 @@ final class MenuExtrasFeature {
             let extra = extras[index - 1]
             switch action {
             case .speak:
-                speaker.speak("\(index): \(extra.label)")
+                speaker.speak(extra.label)
             case .activate:
                 if !extra.element.perform(kAXPressAction) {
                     speaker.speak("Could not open \(extra.label).")
