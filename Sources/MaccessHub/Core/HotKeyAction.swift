@@ -53,7 +53,7 @@ enum HotKeyAction: String, CaseIterable, Codable, Identifiable {
         case .toggleInputMute: return "Mute or unmute microphone"
         case .listOutputDevices: return "Speak output devices"
         case .listInputDevices: return "Speak input devices"
-        case .cpuUsage: return "Speak CPU usage"
+        case .cpuUsage: return "Speak CPU and GPU usage"
         case .memoryUsage: return "Speak memory usage"
         case .diskUsage: return "Speak disk usage"
         case .osVersion: return "Speak macOS version"

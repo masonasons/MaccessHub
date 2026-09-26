@@ -1,6 +1,7 @@
 import AppKit
 import Darwin
 import Foundation
+import IOKit
 
 /// Raw system measurements used by the resource-monitor feature.
 enum SystemStats {
@@ -43,6 +44,27 @@ enum SystemStats {
             let system = Double(second.system &- first.system) / total * 100
             DispatchQueue.main.async { completion(CPUUsage(overall: user + system, user: user, system: system)) }
         }
+    }
+
+    /// GPU utilisation in percent from the IOAccelerator driver's performance
+    /// statistics (Apple silicon and most AMD/Intel GPUs). Nil if unavailable.
+    static func gpuUsage() -> Int? {
+        var iterator: io_iterator_t = 0
+        guard IOServiceGetMatchingServices(kIOMainPortDefault, IOServiceMatching("IOAccelerator"), &iterator) == KERN_SUCCESS
+        else { return nil }
+        defer { IOObjectRelease(iterator) }
+        var best: Int?
+        var service = IOIteratorNext(iterator)
+        while service != 0 {
+            defer { IOObjectRelease(service); service = IOIteratorNext(iterator) }
+            var properties: Unmanaged<CFMutableDictionary>?
+            guard IORegistryEntryCreateCFProperties(service, &properties, kCFAllocatorDefault, 0) == KERN_SUCCESS,
+                  let dict = properties?.takeRetainedValue() as? [String: Any],
+                  let stats = dict["PerformanceStatistics"] as? [String: Any] else { continue }
+            let value = (stats["Device Utilization %"] ?? stats["GPU Activity(%)"]) as? Int
+            if let value { best = max(best ?? 0, value) }
+        }
+        return best
     }
 
     struct MemoryUsage {

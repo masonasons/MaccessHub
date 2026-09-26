@@ -14,9 +14,11 @@ final class SystemInfoFeature {
 
     func speakCPU() {
         SystemStats.cpuUsage { [speaker] usage in
-            guard let usage else { speaker.speak("CPU usage is unavailable."); return }
-            speaker.speak(String(format: "CPU %.0f percent. User %.0f percent, system %.0f percent.",
-                                 usage.overall, usage.user, usage.system))
+            var message = usage.map {
+                String(format: "CPU %.0f percent. User %.0f percent, system %.0f percent.", $0.overall, $0.user, $0.system)
+            } ?? "CPU usage is unavailable."
+            if let gpu = SystemStats.gpuUsage() { message += " GPU \(gpu) percent." }
+            speaker.speak(message)
         }
     }
 

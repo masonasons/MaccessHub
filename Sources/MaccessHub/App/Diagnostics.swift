@@ -16,14 +16,10 @@ enum Diagnostics {
         print("Soundpacks: " + library.packs.map { "\($0.name) (\($0.eventCount) sounds)" }.joined(separator: ", "))
         print("")
 
-        print("[CPU]"); let group = DispatchGroup(); group.enter()
-        SystemStats.cpuUsage { usage in
-            if let usage {
-                print(String(format: "CPU %.0f percent. User %.0f percent, system %.0f percent.",
-                             usage.overall, usage.user, usage.system))
-            } else { print("unavailable") }
-            group.leave()
-        }
+        print("[CPU and GPU]"); let group = DispatchGroup(); group.enter()
+        info.speakCPU()
+        // speakCPU samples asynchronously; wait for it before printing the rest.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) { group.leave() }
         // cpuUsage completes on the main queue; pump the run loop until it does.
         while group.wait(timeout: .now()) == .timedOut {
             RunLoop.main.run(mode: .default, before: Date(timeIntervalSinceNow: 0.05))
