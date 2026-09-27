@@ -1,0 +1,16 @@
+<?xml version="1.0" standalone="yes"?>
+<rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
+    <channel>
+        <title>MaccessHub</title>
+        <item>
+            <title>1.0.3</title>
+            <pubDate>Sat, 26 Sep 2026 19:53:51 -0500</pubDate>
+            <link>https://github.com/masonasons/MaccessHub</link>
+            <sparkle:version>11</sparkle:version>
+            <sparkle:shortVersionString>1.0.3</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <enclosure url="https://github.com/masonasons/MaccessHub/releases/download/v1.0.3/MaccessHub.dmg" length="5363789" type="application/octet-stream" sparkle:edSignature="hm+E2Qk1KiEQUQBQWtd/WOGd33h5neXRq8RlSX4P3+V0/BlqvzX8zX/oOF7eDHdEwQ9gJB7OrgjpLQBKLwiHCA=="/>
+        </item>
+    </channel>
+</rss>
