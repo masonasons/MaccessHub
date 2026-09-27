@@ -79,6 +79,11 @@ make run        # build and launch
 make install    # Release build copied to /Applications and launched
 ```
 
+`scripts/package.sh` builds a Developer ID-signed, notarized DMG in `dist/`
+(unsigned if no identity is present), and `scripts/release.sh vX.Y.Z` tags
+and publishes it as a GitHub release. Pre-built DMGs are on the
+[Releases](https://github.com/masonasons/MaccessHub/releases) page.
+
 Settings are stored as JSON in
 `~/Library/Application Support/MaccessHub/settings.json`.
 

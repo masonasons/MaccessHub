@@ -7,3 +7,6 @@ DerivedData/
 build/
 dist/
 .DS_Store
+
+# Signing material (Developer ID / ASC API keys) never goes in the repo.
+Signing/
