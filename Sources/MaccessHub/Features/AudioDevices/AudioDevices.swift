@@ -1,6 +1,7 @@
 import AudioToolbox
 import CoreAudio
 import Foundation
+import os
 
 /// CoreAudio device enumeration and default-device control.
 struct AudioDevice: Identifiable, Equatable {
@@ -30,8 +31,22 @@ struct AudioDevice: Identifiable, Equatable {
         var ids = [AudioDeviceID](repeating: 0, count: Int(size) / MemoryLayout<AudioDeviceID>.size)
         guard AudioObjectGetPropertyData(AudioObjectID(kAudioObjectSystemObject), &address, 0, nil, &size, &ids) == noErr
         else { return [] }
-        return ids.filter { streamCount($0, scope: direction.scope) > 0 }
+        // Only devices the user could pick in System Settings. This drops the
+        // private "CADefaultDeviceAggregate" CoreAudio creates for our own audio
+        // engine, which otherwise appears in the list and silently refuses to
+        // become the default, stalling the cycle before virtual devices.
+        return ids.filter { streamCount($0, scope: direction.scope) > 0 && canBeDefault($0, scope: direction.scope) }
             .map { AudioDevice(id: $0, name: name(of: $0)) }
+    }
+
+    private static func canBeDefault(_ id: AudioDeviceID, scope: AudioObjectPropertyScope) -> Bool {
+        var address = AudioObjectPropertyAddress(mSelector: kAudioDevicePropertyDeviceCanBeDefaultDevice, mScope: scope,
+                                                 mElement: kAudioObjectPropertyElementMain)
+        guard AudioObjectHasProperty(id, &address) else { return true }
+        var value: UInt32 = 0
+        var size = UInt32(MemoryLayout<UInt32>.size)
+        guard AudioObjectGetPropertyData(id, &address, 0, nil, &size, &value) == noErr else { return true }
+        return value != 0
     }
 
     private static func streamCount(_ id: AudioDeviceID, scope: AudioObjectPropertyScope) -> Int {
@@ -73,8 +88,12 @@ struct AudioDevice: Identifiable, Equatable {
                                                  mScope: kAudioObjectPropertyScopeGlobal,
                                                  mElement: kAudioObjectPropertyElementMain)
         var id = self.id
-        return AudioObjectSetPropertyData(AudioObjectID(kAudioObjectSystemObject), &address, 0, nil,
-                                          UInt32(MemoryLayout<AudioDeviceID>.size), &id) == noErr
+        let status = AudioObjectSetPropertyData(AudioObjectID(kAudioObjectSystemObject), &address, 0, nil,
+                                                UInt32(MemoryLayout<AudioDeviceID>.size), &id)
+        if status != noErr {
+            Logger(subsystem: "com.maccesshub.app", category: "audioswitch").error("Set default \(direction.noun) to \(self.id) failed: \(status)")
+        }
+        return status == noErr
     }
 
     // MARK: Volume & mute
@@ -125,6 +144,7 @@ struct AudioDevice: Identifiable, Equatable {
 
 /// The Audioswitch spoon: cycle and describe devices, toggle the mic.
 final class AudioSwitchFeature {
+    private let log = Logger(subsystem: "com.maccesshub.app", category: "audioswitch")
     let speaker: Speaker
     var wrapAround = true
     var speakVolume = false
@@ -147,7 +167,9 @@ final class AudioSwitchFeature {
             return
         }
         let device = devices[target]
+        log.debug("Switch \(direction.noun): current \(current?.id ?? 0) index \(index) of \(devices.count) -> target \(target) \(device.id) \(device.name)")
         guard device.makeDefault(direction) else {
+            log.error("makeDefault failed for \(device.id) \(device.name)")
             speaker.speak("Could not switch to \(device.name).")
             return
         }
