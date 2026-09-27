@@ -23,6 +23,12 @@ final class ShortcutRecorderView: NSView {
         }
     }
 
+    /// Virtual key codes for F1–F20. They are not contiguous, so no range here.
+    private static let functionKeyCodes: Set<UInt16> = Set([
+        kVK_F1, kVK_F2, kVK_F3, kVK_F4, kVK_F5, kVK_F6, kVK_F7, kVK_F8, kVK_F9, kVK_F10,
+        kVK_F11, kVK_F12, kVK_F13, kVK_F14, kVK_F15, kVK_F16, kVK_F17, kVK_F18, kVK_F19, kVK_F20,
+    ].map { UInt16($0) })
+
     override var acceptsFirstResponder: Bool { true }
     override var canBecomeKeyView: Bool { true }
     override var intrinsicContentSize: NSSize { NSSize(width: 150, height: 24) }
@@ -83,7 +89,7 @@ final class ShortcutRecorderView: NSView {
             return
         }
         // Function keys may stand alone; everything else needs a real modifier.
-        let isFunctionKey = (UInt16(kVK_F1)...UInt16(kVK_F20)).contains(code)
+        let isFunctionKey = Self.functionKeyCodes.contains(code)
         let hasModifier = !flags.intersection([.command, .option, .control]).isEmpty
         guard isFunctionKey || hasModifier else {
             NSSound.beep()
