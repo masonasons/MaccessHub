@@ -87,5 +87,11 @@ final class SystemInfoFeature {
 
     func speakAudioDevices() { speaker.speak(audio.describeCurrentDevices()) }
 
+    func speakDeviceBatteries() {
+        DeviceBatteries.connectedDevices { [speaker] devices in
+            speaker.speak(DeviceBatteries.describe(devices))
+        }
+    }
+
     func speakClipboard() { speaker.speak(SystemStats.clipboardDescription(readLimit: clipboardReadLimit)) }
 }

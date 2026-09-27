@@ -210,6 +210,7 @@ final class AppController {
         case .battery: systemInfo.speakBattery()
         case .audioDevices: systemInfo.speakAudioDevices()
         case .clipboard: systemInfo.speakClipboard()
+        case .deviceBatteries: systemInfo.speakDeviceBatteries()
         case .appInfo: appInfo.speakFrontmostApp()
         case .positionInfo: positionInfo.speakPosition()
         case .toggleEventSounds: toggleEventSounds()

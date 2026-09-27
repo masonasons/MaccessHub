@@ -41,6 +41,7 @@ enum Diagnostics {
         print("[Audio devices]"); info.speakAudioDevices()
         print("[Output devices]"); audio.list(.output)
         print("[Input devices]"); audio.list(.input)
+        print("[Connected devices]"); info.speakDeviceBatteries(); waitForSpeech(seconds: 3)
         print("[Clipboard]"); info.speakClipboard()
         print("[Frontmost app]")
         if let app = NSWorkspace.shared.frontmostApplication { print(AppInfoFeature.describe(app)) }
