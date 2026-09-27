@@ -68,6 +68,8 @@ struct SoundEvent: Identifiable, Hashable {
         SoundEvent("system.screenLocked", "Screen locked", .system, defaultEnabled: false),
         SoundEvent("system.screenUnlocked", "Screen unlocked", .system, defaultEnabled: false),
         SoundEvent("system.spaceChanged", "Desktop space changed", .system),
+        SoundEvent("display.connected", "Display connected", .system),
+        SoundEvent("display.disconnected", "Display disconnected", .system),
 
         // Power
         SoundEvent("power.acPower", "Switched to AC power", .power),
@@ -121,12 +123,13 @@ struct SoundEvent: Identifiable, Hashable {
         SoundEvent("media.playing", "Music started playing", .media),
         SoundEvent("media.paused", "Music paused", .media),
         SoundEvent("media.stopped", "Music stopped", .media),
+        SoundEvent("media.trackChanged", "Music track changed", .media, defaultEnabled: false),
 
         // Audio devices (played by the mute shortcut when mute feedback is set to sound)
         SoundEvent("audio.inputMuted", "Microphone muted", .audio,
-                   note: "Used by the mute shortcut when its feedback is set to a sound. Classic has no file; choose one."),
+                   note: "Used by the mute shortcut when its feedback is set to a sound."),
         SoundEvent("audio.inputUnmuted", "Microphone unmuted", .audio,
-                   note: "Used by the mute shortcut when its feedback is set to a sound. Classic has no file; choose one."),
+                   note: "Used by the mute shortcut when its feedback is set to a sound."),
 
         // Key clicks. Fallbacks let a six-sound pack (like Classic) cover every category.
         SoundEvent("key.lower", "Lowercase letter", .keys),
@@ -137,10 +140,8 @@ struct SoundEvent: Identifiable, Hashable {
         SoundEvent("key.enter", "Return", .keys),
         SoundEvent("key.tab", "Tab", .keys, fallbacks: ["key.other"]),
         SoundEvent("key.delete", "Delete", .keys),
-        SoundEvent("key.navigation", "Arrow and paging keys", .keys, defaultEnabled: false,
-                   note: "Silent unless the pack provides key.navigation."),
-        SoundEvent("key.function", "Escape and function keys", .keys, defaultEnabled: false,
-                   note: "Silent unless the pack provides key.function."),
+        SoundEvent("key.navigation", "Arrow and paging keys", .keys, defaultEnabled: false),
+        SoundEvent("key.function", "Escape and function keys", .keys, defaultEnabled: false),
         SoundEvent("key.other", "Other keys", .keys),
     ]
 

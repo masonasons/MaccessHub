@@ -10,6 +10,13 @@ final class WorkspaceMonitor: EventMonitor {
 
     private var tokens: [NSObjectProtocol] = []
     private var distributedTokens: [NSObjectProtocol] = []
+    private var displayIDs: Set<CGDirectDisplayID> = WorkspaceMonitor.currentDisplayIDs()
+    private var lastTrack: String?
+    private var lastPlayerState: String?
+
+    private static func currentDisplayIDs() -> Set<CGDirectDisplayID> {
+        Set(NSScreen.screens.compactMap { $0.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? CGDirectDisplayID })
+    }
 
     func start() {
         stop()
@@ -47,6 +54,18 @@ final class WorkspaceMonitor: EventMonitor {
         emit(NSWorkspace.didUnmountNotification, "storage.unmounted")
         emit(NSWorkspace.didRenameVolumeNotification, "storage.renamed")
 
+        // Displays: compare the set of screen IDs whenever screen parameters change.
+        displayIDs = Self.currentDisplayIDs()
+        tokens.append(NotificationCenter.default.addObserver(
+            forName: NSApplication.didChangeScreenParametersNotification, object: nil, queue: .main
+        ) { [weak self] _ in
+            guard let self else { return }
+            let now = Self.currentDisplayIDs()
+            if !now.subtracting(displayIDs).isEmpty { onEvent?("display.connected") }
+            else if !displayIDs.subtracting(now).isEmpty { onEvent?("display.disconnected") }
+            displayIDs = now
+        })
+
         let dc = DistributedNotificationCenter.default()
         func distributed(_ name: String, _ handler: @escaping (Notification) -> Void) {
             distributedTokens.append(dc.addObserver(forName: Notification.Name(name), object: nil,
@@ -57,11 +76,21 @@ final class WorkspaceMonitor: EventMonitor {
 
         // Music.app and Spotify both broadcast their player state.
         let playerHandler: (Notification) -> Void = { [weak self] note in
-            guard let state = note.userInfo?["Player State"] as? String else { return }
+            guard let self, let state = note.userInfo?["Player State"] as? String else { return }
+            let track = (note.userInfo?["Persistent ID"] as? NSObject)?.description
+                ?? (note.userInfo?["Track ID"] as? String)
+                ?? (note.userInfo?["Name"] as? String)
+            defer { lastPlayerState = state; lastTrack = track ?? lastTrack }
             switch state {
-            case "Playing": self?.onEvent?("media.playing")
-            case "Paused": self?.onEvent?("media.paused")
-            case "Stopped": self?.onEvent?("media.stopped")
+            case "Playing":
+                // A new track while already playing is a track change, not a fresh play.
+                if lastPlayerState == "Playing", let track, let lastTrack, track != lastTrack {
+                    onEvent?("media.trackChanged")
+                } else if lastPlayerState != "Playing" {
+                    onEvent?("media.playing")
+                }
+            case "Paused": onEvent?("media.paused")
+            case "Stopped": onEvent?("media.stopped")
             default: break
             }
         }
@@ -71,7 +100,7 @@ final class WorkspaceMonitor: EventMonitor {
     }
 
     func stop() {
-        tokens.forEach { NSWorkspace.shared.notificationCenter.removeObserver($0) }
+        tokens.forEach { NSWorkspace.shared.notificationCenter.removeObserver($0); NotificationCenter.default.removeObserver($0) }
         distributedTokens.forEach { DistributedNotificationCenter.default().removeObserver($0) }
         tokens.removeAll()
         distributedTokens.removeAll()

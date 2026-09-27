@@ -28,9 +28,10 @@ clicks.
 
 - Memory usage is implemented (it was a stub in recmon), and a double press
   of the CPU or memory shortcut names the top five processes.
-- Network, power, battery-level, Bluetooth, screen lock, window, menu, row and
-  Music events are all wired up; the classic sound set already had files for
-  most of them.
+- Network, power, battery-level, Bluetooth, screen lock, display, window,
+  menu, row and Music events are all wired up; the classic sound set already
+  had files for most of them, and `scripts/derive-sounds.py` derives the rest
+  from it so every event in Classic has a sound.
 - Key clicks classify keys by Unicode properties rather than ASCII, so accented
   and non-Latin letters click correctly. New categories for digits,
   punctuation, tab, navigation and function keys fall back to the classic
