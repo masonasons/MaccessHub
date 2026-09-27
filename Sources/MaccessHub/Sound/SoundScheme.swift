@@ -30,8 +30,21 @@ struct SoundScheme {
     }
 
     func pack(for event: SoundEvent) -> Soundpack? {
-        let id = event.isKeyClick ? settings.keyClicks.packID : settings.eventSounds.packID
+        let id: String
+        switch event.group {
+        case .keys: id = settings.keyClicks.packID
+        case .focus: id = settings.focusSounds.packID
+        default: id = settings.eventSounds.packID
+        }
         return library.resolvedPack(id: id)
+    }
+
+    private func fillsMissing(_ event: SoundEvent) -> Bool {
+        switch event.group {
+        case .keys: return settings.keyClicks.fillMissingFromClassic
+        case .focus: return settings.focusSounds.fillMissingFromClassic
+        default: return settings.eventSounds.fillMissingFromClassic
+        }
     }
 
     func source(for event: SoundEvent) -> Source? {
@@ -47,8 +60,7 @@ struct SoundScheme {
                 }
             }
         }
-        let fill = event.isKeyClick ? settings.keyClicks.fillMissingFromClassic : settings.eventSounds.fillMissingFromClassic
-        if fill, let classic = library.classic, classic.id != pack(for: event)?.id {
+        if fillsMissing(event), let classic = library.classic, classic.id != pack(for: event)?.id {
             for id in chain {
                 if let url = classic.url(for: id) { return .classic(url) }
             }

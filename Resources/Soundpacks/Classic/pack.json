@@ -1,6 +1,6 @@
 {
+  "author": "Arthur Pirika, pitermach, Unspoken contributors",
+  "description": "The original EventSounds and KeyClicks sound set from the Hammerspoon spoons, derived variants (scripts/derive-sounds.py), and the Unspoken-ng focus sounds (GPL-2, see CREDITS.txt).",
   "name": "Classic",
-  "author": "Arthur Pirika, pitermach",
-  "description": "The original EventSounds and KeyClicks sound set from the Hammerspoon spoons, plus derived variants (scripts/derive-sounds.py) so every event has a sound.",
   "version": "1.0"
 }

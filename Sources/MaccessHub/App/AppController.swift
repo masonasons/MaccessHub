@@ -22,6 +22,8 @@ final class AppController {
     let positionInfo: PositionInfoFeature
     let menuExtras: MenuExtrasFeature
     let keyClicks = KeyClickMonitor()
+    let focusMonitor = FocusMonitor()
+    private var focusMonitorRunning = false
 
     private let workspaceMonitor = WorkspaceMonitor()
     private let eventMonitors: [EventMonitor]
@@ -59,6 +61,7 @@ final class AppController {
         keyClicks.onKey = { [weak self] category in
             DispatchQueue.main.async { self?.handleKey(category) }
         }
+        focusMonitor.onFocus = { [weak self] slot, _ in self?.handleFocus(slot) }
         hotkeys.handler = { [weak self] action in self?.perform(action) }
         // Feedback sounds for the mute toggle bypass the event-sounds master switch.
         audioSwitch.playSound = { [weak self] id in
@@ -116,6 +119,17 @@ final class AppController {
             monitorsRunning = false
         }
 
+        focusMonitor.keyboardFocus = data.focusSounds.keyboardFocus
+        focusMonitor.menuItems = data.focusSounds.menuItems
+        focusMonitor.rows = data.focusSounds.rows
+        if data.focusSounds.enabled, !focusMonitorRunning {
+            focusMonitor.start()
+            focusMonitorRunning = true
+        } else if !data.focusSounds.enabled, focusMonitorRunning {
+            focusMonitor.stop()
+            focusMonitorRunning = false
+        }
+
         hotkeys.apply(bindings: data.activeHotkeys)
         applyLaunchAtLogin(data.general.launchAtLogin)
 
@@ -145,6 +159,13 @@ final class AppController {
         play(id, ignoreEnabledState: false)
     }
 
+    private func handleFocus(_ slot: String) {
+        let data = settings.data
+        guard data.focusSounds.enabled, let event = SoundEvent.byID["focus.\(slot)"],
+              data.focusSounds.isEnabled(event), let url = scheme.url(for: event) else { return }
+        engine.play(url, volume: Float(data.focusSounds.volume), exclusive: true)
+    }
+
     private func handleKey(_ category: KeyCategory) {
         let data = settings.data
         guard data.keyClicks.enabled, let event = SoundEvent.byID[category.eventID],
@@ -159,8 +180,13 @@ final class AppController {
         let data = settings.data
         if !ignoreEnabledState, !data.isEnabled(event) { return false }
         guard let url = scheme.url(for: event) else { return false }
-        let volume = event.isKeyClick ? data.keyClicks.volume : data.eventSounds.volume
-        engine.play(url, volume: Float(volume), exclusive: event.isKeyClick)
+        let volume: Double
+        switch event.group {
+        case .keys: volume = data.keyClicks.volume
+        case .focus: volume = data.focusSounds.volume
+        default: volume = data.eventSounds.volume
+        }
+        engine.play(url, volume: Float(volume), exclusive: event.isKeyClick || event.group == .focus)
         return true
     }
 
@@ -224,6 +250,7 @@ final class AppController {
         case .positionInfo: positionInfo.speakPosition()
         case .toggleEventSounds: toggleEventSounds()
         case .toggleKeyClicks: toggleKeyClicks()
+        case .toggleFocusSounds: toggleFocusSounds()
         case .openSettings: SettingsWindowController.shared.show()
         default:
             if let index = action.menuExtraIndex { menuExtras.handle(index: index, action: .speak) }
@@ -233,6 +260,11 @@ final class AppController {
     func toggleEventSounds() {
         settings.data.eventSounds.enabled.toggle()
         speaker.speak(settings.data.eventSounds.enabled ? "Event sounds on" : "Event sounds off")
+    }
+
+    func toggleFocusSounds() {
+        settings.data.focusSounds.enabled.toggle()
+        speaker.speak(settings.data.focusSounds.enabled ? "Focus sounds on" : "Focus sounds off")
     }
 
     func toggleKeyClicks() {

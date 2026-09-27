@@ -107,6 +107,32 @@ struct KeyClickSettings: Codable {
     func isEnabled(_ event: SoundEvent) -> Bool { eventStates[event.id] ?? event.defaultEnabled }
 }
 
+struct FocusSoundSettings: Codable {
+    var enabled = true
+    var volume = 0.8
+    var keyboardFocus = true
+    var menuItems = true
+    var rows = true
+    var packID = Soundpack.builtInClassicID
+    var fillMissingFromClassic = true
+    var eventStates: [String: Bool] = [:]
+
+    init() {}
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        enabled = c.value(.enabled, default: true)
+        volume = c.value(.volume, default: 0.8)
+        keyboardFocus = c.value(.keyboardFocus, default: true)
+        menuItems = c.value(.menuItems, default: true)
+        rows = c.value(.rows, default: true)
+        packID = c.value(.packID, default: Soundpack.builtInClassicID)
+        fillMissingFromClassic = c.value(.fillMissingFromClassic, default: true)
+        eventStates = c.value(.eventStates, default: [:])
+    }
+
+    func isEnabled(_ event: SoundEvent) -> Bool { eventStates[event.id] ?? event.defaultEnabled }
+}
+
 struct AudioDeviceSettings: Codable {
     /// Continue from the last device to the first instead of stopping.
     var wrapAround = true
@@ -158,6 +184,7 @@ struct SettingsData: Codable {
     var general = GeneralSettings()
     var eventSounds = EventSoundSettings()
     var keyClicks = KeyClickSettings()
+    var focusSounds = FocusSoundSettings()
     var audioDevices = AudioDeviceSettings()
     var menuExtras = MenuExtraSettings()
     var systemInfo = SystemInfoSettings()
@@ -173,6 +200,7 @@ struct SettingsData: Codable {
         general = c.value(.general, default: GeneralSettings())
         eventSounds = c.value(.eventSounds, default: EventSoundSettings())
         keyClicks = c.value(.keyClicks, default: KeyClickSettings())
+        focusSounds = c.value(.focusSounds, default: FocusSoundSettings())
         audioDevices = c.value(.audioDevices, default: AudioDeviceSettings())
         menuExtras = c.value(.menuExtras, default: MenuExtraSettings())
         systemInfo = c.value(.systemInfo, default: SystemInfoSettings())
@@ -216,11 +244,19 @@ struct SettingsData: Codable {
     // MARK: Sound state helpers
 
     func isEnabled(_ event: SoundEvent) -> Bool {
-        event.isKeyClick ? keyClicks.isEnabled(event) : eventSounds.isEnabled(event)
+        switch event.group {
+        case .keys: return keyClicks.isEnabled(event)
+        case .focus: return focusSounds.isEnabled(event)
+        default: return eventSounds.isEnabled(event)
+        }
     }
 
     mutating func setEnabled(_ enabled: Bool, for event: SoundEvent) {
-        if event.isKeyClick { keyClicks.eventStates[event.id] = enabled } else { eventSounds.eventStates[event.id] = enabled }
+        switch event.group {
+        case .keys: keyClicks.eventStates[event.id] = enabled
+        case .focus: focusSounds.eventStates[event.id] = enabled
+        default: eventSounds.eventStates[event.id] = enabled
+        }
     }
 }
 

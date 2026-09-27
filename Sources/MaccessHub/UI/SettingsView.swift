@@ -12,6 +12,8 @@ struct SettingsView: View {
                 .tabItem { Label("Event Sounds", systemImage: "bell") }
             KeyClicksSettingsView(store: store, library: library)
                 .tabItem { Label("Key Clicks", systemImage: "keyboard") }
+            FocusSoundsSettingsView(store: store, library: library)
+                .tabItem { Label("Focus", systemImage: "scope") }
             ToolsSettingsView(store: store)
                 .tabItem { Label("Tools", systemImage: "wrench.and.screwdriver") }
             ShortcutsSettingsView(store: store)
@@ -258,6 +260,38 @@ struct KeyClicksSettingsView: View {
             }
             Section("Key sounds") {
                 ForEach(SoundEvent.events(in: .keys)) { event in
+                    SoundEventRow(event: event, store: store, library: library)
+                }
+            }
+        }
+        .formStyle(.grouped)
+    }
+}
+
+// MARK: - Focus Sounds
+
+struct FocusSoundsSettingsView: View {
+    @Bindable var store: SettingsStore
+    var library: SoundpackLibrary
+
+    var body: some View {
+        Form {
+            Section {
+                Toggle("Play a sound when focus lands on a control", isOn: $store.data.focusSounds.enabled)
+                SoundpackPicker(title: "Soundpack", packID: $store.data.focusSounds.packID, library: library)
+                Slider(value: $store.data.focusSounds.volume, in: 0...1) { Text("Volume") }
+                    .accessibilityValue("\(Int(store.data.focusSounds.volume * 100)) percent")
+                Toggle("Use Classic sounds for controls the pack does not cover", isOn: $store.data.focusSounds.fillMissingFromClassic)
+                Text("Like the Unspoken add-on for NVDA: each kind of control has its own sound. macOS reports keyboard focus, menu highlighting and row selection, so with VoiceOver keep \"keyboard focus follows VoiceOver cursor\" on in VoiceOver Utility → Navigation.")
+                    .font(.callout).foregroundStyle(.secondary)
+            }
+            Section("Play for") {
+                Toggle("Keyboard focus changes", isOn: $store.data.focusSounds.keyboardFocus)
+                Toggle("Menu items", isOn: $store.data.focusSounds.menuItems)
+                Toggle("List, table and outline rows", isOn: $store.data.focusSounds.rows)
+            }
+            Section("Control sounds") {
+                ForEach(SoundEvent.events(in: .focus)) { event in
                     SoundEventRow(event: event, store: store, library: library)
                 }
             }

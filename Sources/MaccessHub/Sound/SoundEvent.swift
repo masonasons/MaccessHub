@@ -2,7 +2,7 @@ import Foundation
 
 /// A category of sounds in a soundpack. Every event belongs to exactly one group.
 enum SoundGroup: String, CaseIterable, Identifiable {
-    case application, system, power, storage, usb, bluetooth, network, window, ui, media, audio, keys
+    case application, system, power, storage, usb, bluetooth, network, window, ui, media, audio, focus, keys
 
     var id: String { rawValue }
 
@@ -19,12 +19,13 @@ enum SoundGroup: String, CaseIterable, Identifiable {
         case .ui: return "Menus & Lists"
         case .media: return "Music"
         case .audio: return "Audio Devices"
+        case .focus: return "Focus Sounds"
         case .keys: return "Key Clicks"
         }
     }
 
-    /// Groups that are driven by the event-sounds feature (everything but key clicks).
-    static var eventGroups: [SoundGroup] { allCases.filter { $0 != .keys } }
+    /// Groups that are driven by the event-sounds feature (everything but key clicks and focus).
+    static var eventGroups: [SoundGroup] { allCases.filter { $0 != .keys && $0 != .focus } }
 }
 
 /// One thing that can make a sound. The `id` doubles as the file name inside a
@@ -130,6 +131,22 @@ struct SoundEvent: Identifiable, Hashable {
                    note: "Used by the mute shortcut when its feedback is set to a sound."),
         SoundEvent("audio.inputUnmuted", "Microphone unmuted", .audio,
                    note: "Used by the mute shortcut when its feedback is set to a sound."),
+
+        // Focus sounds (Unspoken slots), played when focus lands on a control.
+        SoundEvent("focus.button", "Button", .focus),
+        SoundEvent("focus.checkbox", "Checkbox or switch", .focus),
+        SoundEvent("focus.radioButton", "Radio button", .focus),
+        SoundEvent("focus.comboBox", "Pop-up or combo box", .focus),
+        SoundEvent("focus.splitButton", "Menu button", .focus),
+        SoundEvent("focus.editableText", "Text field or text", .focus),
+        SoundEvent("focus.link", "Link", .focus),
+        SoundEvent("focus.listItem", "List or table row", .focus),
+        SoundEvent("focus.treeItem", "Outline row", .focus),
+        SoundEvent("focus.menuItem", "Menu item", .focus),
+        SoundEvent("focus.tab", "Tab", .focus),
+        SoundEvent("focus.slider", "Slider or stepper", .focus),
+        SoundEvent("focus.icon", "Image", .focus),
+        SoundEvent("focus.clock", "Progress or level indicator", .focus),
 
         // Key clicks. Fallbacks let a six-sound pack (like Classic) cover every category.
         SoundEvent("key.lower", "Lowercase letter", .keys),
