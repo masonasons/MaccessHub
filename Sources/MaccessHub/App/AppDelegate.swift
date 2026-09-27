@@ -5,6 +5,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
+        MainMenu.install()
         statusItem = StatusItemController()
         let controller = AppController.shared
         controller.start()
@@ -15,6 +16,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             SettingsWindowController.shared.show()
             controller.settings.data.general.hasSeenWelcome = true
         }
+    }
+
+    @MainActor @objc func showSettings(_ sender: Any?) {
+        SettingsWindowController.shared.show()
     }
 
     /// Reopening the app (e.g. double-clicking it in Finder) shows settings.
