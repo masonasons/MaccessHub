@@ -15,7 +15,7 @@ VoiceOver it falls back to the system voice.
 | **Event sounds** – plays a sound when apps launch or quit, the Mac sleeps or wakes, volumes mount, USB and Bluetooth devices come and go, Wi-Fi and Ethernet connect, power source or battery state changes, spaces change, windows open, menus open and close, rows expand, and Music plays or pauses. | EventSounds | – |
 | **Key clicks** – a click for every key while typing in a text field, with different sounds for lowercase, uppercase, digits, punctuation, space, return, tab, delete, arrows and function keys. | KeyClicks | – |
 | **Audio devices** – cycle output and input devices, mute the microphone, list devices. | Audioswitch | ⌃⇧[ ⌃⇧] ⌃⌘⇧[ ⌃⌘⇧] ⌃⇧M ⌃⇧L ⌃⌘⇧L |
-| **System information** – CPU and GPU, memory, disks, macOS version, uptime, battery, current audio devices, clipboard. Press the CPU or memory shortcut twice for the top five processes. Connected devices and their battery levels (AirPods report left, right and case). | recmon | ⌃⇧1 … ⌃⇧9 |
+| **System information** – CPU and GPU, memory, disks, macOS version, uptime, battery, current audio devices, clipboard. Press the CPU or memory shortcut twice for the top five processes. Connected devices and their battery levels (AirPods report left, right and case; Logitech Bluetooth devices are asked directly over HID++). | recmon | ⌃⇧1 … ⌃⇧9 |
 | **Application info** – name, version, bundle ID and path of the frontmost app. | AppInfo | ⌃⇧V |
 | **Position info** – "42 percent, item 5 of 12" in tables, outlines and lists; character and line position in text. | PositionInfo | ⌃⇧P |
 | **Menu extras** – press once to hear the Nth status item in the menu bar, twice to open it. Off by default. | MenuExt | ⌥⇧1 … ⌥⇧0 |
@@ -104,7 +104,7 @@ MaccessHub.app/Contents/MacOS/MaccessHub --report
 - **Accessibility** – key clicks (to know when a text field is focused),
   position info, menu extras, and window/menu sounds. Requested on first launch.
 - **Input Monitoring** – some macOS versions require this as well for the
-  key-click event tap.
+  key-click event tap, and it is needed to read Logitech device batteries.
 - **Automation → VoiceOver** – asked the first time MaccessHub speaks through
   VoiceOver.
 - **Bluetooth** – asked when Bluetooth sounds are active.

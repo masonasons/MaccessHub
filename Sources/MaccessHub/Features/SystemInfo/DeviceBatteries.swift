@@ -9,6 +9,9 @@ enum DeviceBatteries {
         var name: String
         /// Ordered label/percent pairs, e.g. [("left", 70), ("right", 72), ("case", 82)] or [("", 60)].
         var levels: [(label: String, percent: Int)]
+        var charging = false
+        /// Shown instead of "no battery information" when a reading was blocked.
+        var note: String? = nil
     }
 
     /// Calls back on the main thread.
@@ -18,16 +21,32 @@ enum DeviceBatteries {
             for source in powerSourceAccessories() where !devices.contains(where: { $0.name == source.name }) {
                 devices.append(source)
             }
-            DispatchQueue.main.async { completion(devices) }
+            // Logitech devices report to Logi software, not macOS; ask them ourselves.
+            LogitechHIDPP.query { result in
+                for reading in result.readings {
+                    if let i = devices.firstIndex(where: { $0.name == reading.name }) {
+                        if devices[i].levels.isEmpty { devices[i].levels = [("", reading.percent)] }
+                        devices[i].charging = reading.charging
+                    } else {
+                        devices.append(Device(name: reading.name, levels: [("", reading.percent)], charging: reading.charging))
+                    }
+                }
+                for failure in result.failures where failure.failure == .notPermitted {
+                    if let i = devices.firstIndex(where: { $0.name == failure.name }), devices[i].levels.isEmpty {
+                        devices[i].note = "battery needs the Input Monitoring permission"
+                    }
+                }
+                completion(devices)
+            }
         }
     }
 
     static func describe(_ devices: [Device]) -> String {
         guard !devices.isEmpty else { return "No connected devices." }
         let parts = devices.map { device -> String in
-            if device.levels.isEmpty { return "\(device.name): no battery information" }
+            if device.levels.isEmpty { return "\(device.name): \(device.note ?? "no battery information")" }
             let levels = device.levels.map { $0.label.isEmpty ? "\($0.percent) percent" : "\($0.label) \($0.percent) percent" }
-            return "\(device.name): " + levels.joined(separator: ", ")
+            return "\(device.name): " + levels.joined(separator: ", ") + (device.charging ? ", charging" : "")
         }
         let count = devices.count == 1 ? "1 device" : "\(devices.count) devices"
         return "\(count). " + parts.joined(separator: ". ") + "."
