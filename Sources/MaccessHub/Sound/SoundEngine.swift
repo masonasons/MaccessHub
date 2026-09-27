@@ -1,4 +1,5 @@
 import AVFoundation
+import CoreAudio
 import Foundation
 import os
 
@@ -52,6 +53,7 @@ final class SoundEngine {
         }
         setReverb(.smallRoom)
         engine.prepare()
+        startIfNeeded()
         // The engine stops when the default output device changes (exactly what
         // the audio-switch feature does). Restart it so the next sound plays.
         configObserver = NotificationCenter.default.addObserver(
@@ -66,13 +68,35 @@ final class SoundEngine {
         if let configObserver { NotificationCenter.default.removeObserver(configObserver) }
     }
 
+    /// Frames per IO cycle requested from the output device. 256 at 48 kHz is
+    /// about 5 ms; the macOS default of 512 is about 11 ms.
+    private let ioBufferFrames: UInt32 = 256
+
     private func startIfNeeded() {
-        guard !engine.isRunning else { return }
-        do {
-            try engine.start()
-        } catch {
-            log.error("Could not start audio engine: \(error.localizedDescription)")
+        if !engine.isRunning {
+            do {
+                try engine.start()
+                applyIOBufferSize()
+            } catch {
+                log.error("Could not start audio engine: \(error.localizedDescription)")
+                return
+            }
         }
+        // Player nodes stay running. Scheduling a buffer with `.interrupts`
+        // on a running node costs microseconds; `stop()` and `play()` each
+        // block for an IO cycle (5–12 ms measured), so they are avoided on the
+        // playback path.
+        for node in nodes + spatialNodes where !node.isPlaying { node.play() }
+    }
+
+    private func applyIOBufferSize() {
+        let device = engine.outputNode.auAudioUnit.deviceID
+        var address = AudioObjectPropertyAddress(mSelector: kAudioDevicePropertyBufferFrameSize,
+                                                 mScope: kAudioObjectPropertyScopeOutput,
+                                                 mElement: kAudioObjectPropertyElementMain)
+        var frames = ioBufferFrames
+        let status = AudioObjectSetPropertyData(device, &address, 0, nil, UInt32(MemoryLayout<UInt32>.size), &frames)
+        if status != noErr { log.error("Could not set IO buffer size: \(status)") }
     }
 
     /// Decodes the file (cached). Safe to call from any thread.
@@ -115,10 +139,8 @@ final class SoundEngine {
         lock.unlock()
 
         startIfNeeded()
-        node.stop()
         node.volume = max(0, min(1, volume))
-        node.scheduleBuffer(buffer, at: nil, options: [], completionHandler: nil)
-        node.play()
+        node.scheduleBuffer(buffer, at: nil, options: [.interrupts], completionHandler: nil)
         return Double(buffer.frameLength) / buffer.format.sampleRate
     }
 
@@ -166,11 +188,9 @@ final class SoundEngine {
         lock.unlock()
 
         startIfNeeded()
-        node.stop()
         node.position = position
         node.volume = max(0, min(1, volume))
-        node.scheduleBuffer(buffer, at: nil, options: [], completionHandler: nil)
-        node.play()
+        node.scheduleBuffer(buffer, at: nil, options: [.interrupts], completionHandler: nil)
         return Double(buffer.frameLength) / buffer.format.sampleRate
     }
 

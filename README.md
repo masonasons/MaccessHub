@@ -42,7 +42,10 @@ clicks.
   in text.
 - Clipboard reports describe files and images, and summarise long text.
 - All sounds are decoded once and played through a single AVAudioEngine for
-  minimal latency; the engine recovers when the output device changes.
+  minimal latency: player nodes stay running and new sounds are scheduled with
+  `.interrupts` (microseconds, versus 5–12 ms for stop/play), and the output
+  device runs a 256-frame IO buffer. The engine recovers when the output
+  device changes.
 - Every event has its own on/off switch, a preview button, and a per-event
   custom file.
 
