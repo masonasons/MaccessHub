@@ -3,6 +3,16 @@
     <channel>
         <title>MaccessHub</title>
         <item>
+            <title>1.0.5</title>
+            <pubDate>Sat, 26 Sep 2026 21:14:30 -0500</pubDate>
+            <link>https://github.com/masonasons/MaccessHub</link>
+            <sparkle:version>15</sparkle:version>
+            <sparkle:shortVersionString>1.0.5</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <enclosure url="https://github.com/masonasons/MaccessHub/releases/download/v1.0.5/MaccessHub.dmg" length="5391147" type="application/octet-stream" sparkle:edSignature="apJgRpJ4qDv2N+A7acVw5JAjNdYBQdSfX47oO4+1sdACajRM3xlbgFtJd/3ccuy6752Xb28yPesxSJOrxsPTCg=="/>
+        </item>
+        <item>
             <title>1.0.4</title>
             <pubDate>Sat, 26 Sep 2026 20:04:02 -0500</pubDate>
             <link>https://github.com/masonasons/MaccessHub</link>
