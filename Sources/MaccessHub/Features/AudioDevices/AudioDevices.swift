@@ -148,6 +148,9 @@ final class AudioSwitchFeature {
     let speaker: Speaker
     var wrapAround = true
     var speakVolume = false
+    var muteFeedback: MuteFeedback = .speech
+    /// Plays a sound event; returns false when no sound is available for it.
+    var playSound: ((String) -> Bool)?
 
     init(speaker: Speaker) { self.speaker = speaker }
 
@@ -188,7 +191,15 @@ final class AudioSwitchFeature {
             return
         }
         if device.setMuted(!muted, .input) {
-            speaker.speak(muted ? "Unmuted" : "Muted")
+            let nowMuted = !muted
+            var played = false
+            if muteFeedback != .speech {
+                played = playSound?(nowMuted ? "audio.inputMuted" : "audio.inputUnmuted") ?? false
+            }
+            // Speak when asked to, or when the sound mode has no sound to play.
+            if muteFeedback != .sound || !played {
+                speaker.speak(nowMuted ? "Muted" : "Unmuted")
+            }
         } else {
             speaker.speak("Could not change mute for \(device.name).")
         }

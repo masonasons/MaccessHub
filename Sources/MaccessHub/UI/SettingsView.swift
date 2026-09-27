@@ -276,6 +276,11 @@ struct ToolsSettingsView: View {
             Section("Audio Devices") {
                 Toggle("Wrap around from the last device to the first", isOn: $store.data.audioDevices.wrapAround)
                 Toggle("Speak the device's volume after switching", isOn: $store.data.audioDevices.speakVolume)
+                Picker("Microphone mute feedback", selection: $store.data.audioDevices.muteFeedback) {
+                    ForEach(MuteFeedback.allCases) { Text($0.title).tag($0) }
+                }
+                Text("Choose the sounds under Event Sounds → Audio Devices. If no sound is assigned, the mute shortcut speaks instead.")
+                    .font(.callout).foregroundStyle(.secondary)
             }
             Section("Menu Extras") {
                 Toggle("Enable menu extra shortcuts (Option-Shift-1 to 0)", isOn: $store.data.menuExtras.enabled)
@@ -296,6 +301,10 @@ struct ToolsSettingsView: View {
                     Text("Summarise clipboard text longer than \(store.data.systemInfo.clipboardReadLimit) characters")
                 }
                 Toggle("Only report volumes shown in Finder", isOn: $store.data.systemInfo.browsableVolumesOnly)
+                Stepper(value: $store.data.systemInfo.topProcessCount, in: 1...20) {
+                    Text("Processes named by a double press: \(store.data.systemInfo.topProcessCount)")
+                }
+                Toggle("Include the top GPU processes in the CPU double press", isOn: $store.data.systemInfo.includeGPUProcesses)
             }
         }
         .formStyle(.grouped)

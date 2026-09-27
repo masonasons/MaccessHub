@@ -2,7 +2,7 @@ import Foundation
 
 /// A category of sounds in a soundpack. Every event belongs to exactly one group.
 enum SoundGroup: String, CaseIterable, Identifiable {
-    case application, system, power, storage, usb, bluetooth, network, window, ui, media, keys
+    case application, system, power, storage, usb, bluetooth, network, window, ui, media, audio, keys
 
     var id: String { rawValue }
 
@@ -18,6 +18,7 @@ enum SoundGroup: String, CaseIterable, Identifiable {
         case .window: return "Windows"
         case .ui: return "Menus & Lists"
         case .media: return "Music"
+        case .audio: return "Audio Devices"
         case .keys: return "Key Clicks"
         }
     }
@@ -120,6 +121,12 @@ struct SoundEvent: Identifiable, Hashable {
         SoundEvent("media.playing", "Music started playing", .media),
         SoundEvent("media.paused", "Music paused", .media),
         SoundEvent("media.stopped", "Music stopped", .media),
+
+        // Audio devices (played by the mute shortcut when mute feedback is set to sound)
+        SoundEvent("audio.inputMuted", "Microphone muted", .audio,
+                   note: "Used by the mute shortcut when its feedback is set to a sound. Classic has no file; choose one."),
+        SoundEvent("audio.inputUnmuted", "Microphone unmuted", .audio,
+                   note: "Used by the mute shortcut when its feedback is set to a sound. Classic has no file; choose one."),
 
         // Key clicks. Fallbacks let a six-sound pack (like Classic) cover every category.
         SoundEvent("key.lower", "Lowercase letter", .keys),

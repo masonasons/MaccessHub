@@ -14,8 +14,8 @@ VoiceOver it falls back to the system voice.
 |---------|-------------------|-------------------|
 | **Event sounds** – plays a sound when apps launch or quit, the Mac sleeps or wakes, volumes mount, USB and Bluetooth devices come and go, Wi-Fi and Ethernet connect, power source or battery state changes, spaces change, windows open, menus open and close, rows expand, and Music plays or pauses. | EventSounds | – |
 | **Key clicks** – a click for every key while typing in a text field, with different sounds for lowercase, uppercase, digits, punctuation, space, return, tab, delete, arrows and function keys. | KeyClicks | – |
-| **Audio devices** – cycle output and input devices, mute the microphone, list devices. | Audioswitch | ⌃⇧[ ⌃⇧] ⌃⌘⇧[ ⌃⌘⇧] ⌃⇧M ⌃⇧L ⌃⌘⇧L |
-| **System information** – CPU and GPU, memory, disks, macOS version, uptime, battery, current audio devices, clipboard. Press the CPU or memory shortcut twice for the top five processes. Connected devices and their battery levels (AirPods report left, right and case; Logitech Bluetooth devices are asked directly over HID++). | recmon | ⌃⇧1 … ⌃⇧9 |
+| **Audio devices** – cycle output and input devices, mute the microphone (confirmed by speech, a sound, or both), list devices. | Audioswitch | ⌃⇧[ ⌃⇧] ⌃⌘⇧[ ⌃⌘⇧] ⌃⇧M ⌃⇧L ⌃⌘⇧L |
+| **System information** – CPU and GPU, memory, disks, macOS version, uptime, battery, current audio devices, clipboard. Press the CPU or memory shortcut twice for the top processes (count and GPU inclusion are settings). Connected devices and their battery levels (AirPods report left, right and case; Logitech Bluetooth devices are asked directly over HID++). | recmon | ⌃⇧1 … ⌃⇧9 |
 | **Application info** – name, version, bundle ID and path of the frontmost app. | AppInfo | ⌃⇧V |
 | **Position info** – "42 percent, item 5 of 12" in tables, outlines and lists; character and line position in text. | PositionInfo | ⌃⇧P |
 | **Menu extras** – press once to hear the Nth status item in the menu bar, twice to open it. Off by default. | MenuExt | ⌥⇧1 … ⌥⇧0 |

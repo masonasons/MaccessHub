@@ -6,6 +6,8 @@ final class SystemInfoFeature {
     let audio: AudioSwitchFeature
     var clipboardReadLimit = 2048
     var browsableVolumesOnly = true
+    var topProcessCount = 5
+    var includeGPUProcesses = true
 
     init(speaker: Speaker, audio: AudioSwitchFeature) {
         self.speaker = speaker
@@ -23,15 +25,31 @@ final class SystemInfoFeature {
     }
 
     func speakTopCPUProcesses() {
-        ProcessStats.topCPU { [speaker] entries in
-            guard !entries.isEmpty else { speaker.speak("No processes are using noticeable CPU."); return }
-            let parts = entries.map { "\($0.name) \(Int($0.value.rounded())) percent" }
-            speaker.speak("Top CPU: " + parts.joined(separator: ", ") + ".")
+        let limit = topProcessCount
+        let includeGPU = includeGPUProcesses
+        ProcessStats.topCPU(limit: limit) { [speaker] entries in
+            var message: String
+            if entries.isEmpty {
+                message = "No processes are using noticeable CPU."
+            } else {
+                let parts = entries.map { "\($0.name) \(Int($0.value.rounded())) percent" }
+                message = "Top CPU: " + parts.joined(separator: ", ") + "."
+            }
+            guard includeGPU else { speaker.speak(message); return }
+            ProcessStats.topGPU(limit: limit) { gpu in
+                if gpu.isEmpty {
+                    message += " GPU idle."
+                } else {
+                    let parts = gpu.map { "\($0.name) \(Int($0.value.rounded())) percent" }
+                    message += " Top GPU: " + parts.joined(separator: ", ") + "."
+                }
+                speaker.speak(message)
+            }
         }
     }
 
     func speakTopMemoryProcesses() {
-        ProcessStats.topMemory { [speaker] entries in
+        ProcessStats.topMemory(limit: topProcessCount) { [speaker] entries in
             guard !entries.isEmpty else { speaker.speak("Process memory is unavailable."); return }
             let parts = entries.map { "\($0.name) \(SystemStats.bytesToHuman(Int64($0.value)))" }
             speaker.speak("Top memory: " + parts.joined(separator: ", ") + ".")

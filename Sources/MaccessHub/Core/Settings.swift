@@ -9,6 +9,18 @@ extension KeyedDecodingContainer {
     }
 }
 
+enum MuteFeedback: String, Codable, CaseIterable, Identifiable {
+    case speech, sound, both
+    var id: String { rawValue }
+    var title: String {
+        switch self {
+        case .speech: return "Speak muted or unmuted"
+        case .sound: return "Play a sound"
+        case .both: return "Play a sound and speak"
+        }
+    }
+}
+
 enum KeyClickScope: String, Codable, CaseIterable, Identifiable {
     case textFieldsOnly, everywhere
     var id: String { rawValue }
@@ -100,12 +112,15 @@ struct AudioDeviceSettings: Codable {
     var wrapAround = true
     /// Include the device's volume when announcing a switch.
     var speakVolume = false
+    /// How the microphone mute toggle confirms itself.
+    var muteFeedback: MuteFeedback = .speech
 
     init() {}
     init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         wrapAround = c.value(.wrapAround, default: true)
         speakVolume = c.value(.speakVolume, default: false)
+        muteFeedback = c.value(.muteFeedback, default: .speech)
     }
 }
 
@@ -124,12 +139,18 @@ struct SystemInfoSettings: Codable {
     var clipboardReadLimit = 2048
     /// Skip hidden and non-browsable volumes in the disk report.
     var browsableVolumesOnly = true
+    /// How many processes a double press of the CPU or memory shortcut names.
+    var topProcessCount = 5
+    /// Whether the CPU double press also names the top GPU processes.
+    var includeGPUProcesses = true
 
     init() {}
     init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         clipboardReadLimit = c.value(.clipboardReadLimit, default: 2048)
         browsableVolumesOnly = c.value(.browsableVolumesOnly, default: true)
+        topProcessCount = c.value(.topProcessCount, default: 5)
+        includeGPUProcesses = c.value(.includeGPUProcesses, default: true)
     }
 }
 

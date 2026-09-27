@@ -1,5 +1,6 @@
 import Darwin
 import Foundation
+import IOKit
 
 /// Per-process CPU and memory figures, aggregated by process name so that a
 /// browser's dozen helper processes read as one entry.
@@ -11,6 +12,69 @@ enum ProcessStats {
     struct Entry {
         var name: String
         var value: Double
+    }
+
+    /// Processes using the most GPU time over `interval` seconds, as percent of
+    /// wall time, from the accelerator user clients' accumulated GPU time.
+    /// Calls back on the main thread.
+    static func topGPU(limit: Int = 5, interval: TimeInterval = 0.6, completion: @escaping ([Entry]) -> Void) {
+        DispatchQueue.global(qos: .userInitiated).async {
+            let first = gpuTimes()
+            let start = DispatchTime.now()
+            Thread.sleep(forTimeInterval: interval)
+            let second = gpuTimes()
+            let elapsed = Double(DispatchTime.now().uptimeNanoseconds - start.uptimeNanoseconds)
+            var byName: [String: Double] = [:]
+            for (pid, after) in second {
+                let before = first[pid]?.time ?? after.time
+                guard after.time >= before else { continue }
+                byName[after.name, default: 0] += Double(after.time - before) / elapsed * 100
+            }
+            let top = byName.map { Entry(name: $0.key, value: $0.value) }
+                .filter { $0.value >= 0.5 }
+                .sorted { $0.value > $1.value }
+                .prefix(limit)
+            DispatchQueue.main.async { completion(Array(top)) }
+        }
+    }
+
+    /// pid → (name, accumulated GPU nanoseconds) for every process with an accelerator client.
+    private static func gpuTimes() -> [pid_t: (name: String, time: UInt64)] {
+        var result: [pid_t: (String, UInt64)] = [:]
+        var iterator: io_iterator_t = 0
+        guard IOServiceGetMatchingServices(kIOMainPortDefault, IOServiceMatching("IOAccelerator"), &iterator) == KERN_SUCCESS
+        else { return [:] }
+        defer { IOObjectRelease(iterator) }
+        var accelerator = IOIteratorNext(iterator)
+        while accelerator != 0 {
+            defer { IOObjectRelease(accelerator); accelerator = IOIteratorNext(iterator) }
+            var children: io_iterator_t = 0
+            guard IORegistryEntryGetChildIterator(accelerator, kIOServicePlane, &children) == KERN_SUCCESS else { continue }
+            defer { IOObjectRelease(children) }
+            var client = IOIteratorNext(children)
+            while client != 0 {
+                defer { IOObjectRelease(client); client = IOIteratorNext(children) }
+                guard let creator = IORegistryEntryCreateCFProperty(client, "IOUserClientCreator" as CFString, kCFAllocatorDefault, 0)?
+                        .takeRetainedValue() as? String,
+                      let usage = IORegistryEntryCreateCFProperty(client, "AppUsage" as CFString, kCFAllocatorDefault, 0)?
+                        .takeRetainedValue() as? [[String: Any]] else { continue }
+                // "pid 179, WindowServer"
+                let parts = creator.split(separator: ",", maxSplits: 1).map { $0.trimmingCharacters(in: .whitespaces) }
+                guard parts.count == 2, let pid = pid_t(parts[0].replacingOccurrences(of: "pid ", with: "")) else { continue }
+                let time = usage.reduce(UInt64(0)) { $0 + (($1["accumulatedGPUTime"] as? NSNumber)?.uint64Value ?? 0) }
+                let name = fullName(pid: pid) ?? parts[1]
+                let existing = result[pid]?.1 ?? 0
+                result[pid] = (name, existing + time)
+            }
+        }
+        return result
+    }
+
+    private static func fullName(pid: pid_t) -> String? {
+        var buffer = [CChar](repeating: 0, count: 4 * Int(MAXPATHLEN))
+        guard proc_pidpath(pid, &buffer, UInt32(buffer.count)) > 0 else { return nil }
+        let component = (String(cString: buffer) as NSString).lastPathComponent
+        return component.isEmpty ? nil : component
     }
 
     private struct Row {

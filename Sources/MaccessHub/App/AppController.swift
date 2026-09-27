@@ -60,6 +60,12 @@ final class AppController {
             DispatchQueue.main.async { self?.handleKey(category) }
         }
         hotkeys.handler = { [weak self] action in self?.perform(action) }
+        // Feedback sounds for the mute toggle bypass the event-sounds master switch.
+        audioSwitch.playSound = { [weak self] id in
+            guard let self, let event = SoundEvent.byID[id], let url = scheme.url(for: event) else { return false }
+            engine.play(url, volume: Float(settings.data.eventSounds.volume))
+            return true
+        }
         settings.onChange = { [weak self] _ in self?.applySettings() }
     }
 
@@ -81,8 +87,11 @@ final class AppController {
 
         audioSwitch.wrapAround = data.audioDevices.wrapAround
         audioSwitch.speakVolume = data.audioDevices.speakVolume
+        audioSwitch.muteFeedback = data.audioDevices.muteFeedback
         systemInfo.clipboardReadLimit = data.systemInfo.clipboardReadLimit
         systemInfo.browsableVolumesOnly = data.systemInfo.browsableVolumesOnly
+        systemInfo.topProcessCount = data.systemInfo.topProcessCount
+        systemInfo.includeGPUProcesses = data.systemInfo.includeGPUProcesses
         doublePressInterval = data.general.doublePressInterval
 
         keyClicks.scope = data.keyClicks.scope
