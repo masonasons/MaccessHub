@@ -61,7 +61,7 @@ final class AppController {
         keyClicks.onKey = { [weak self] category in
             DispatchQueue.main.async { self?.handleKey(category) }
         }
-        focusMonitor.onFocus = { [weak self] slot, _ in self?.handleFocus(slot) }
+        focusMonitor.onFocus = { [weak self] slot, element in self?.handleFocus(slot, element: element) }
         hotkeys.handler = { [weak self] action in self?.perform(action) }
         // Feedback sounds for the mute toggle bypass the event-sounds master switch.
         audioSwitch.playSound = { [weak self] id in
@@ -122,6 +122,7 @@ final class AppController {
         focusMonitor.keyboardFocus = data.focusSounds.keyboardFocus
         focusMonitor.menuItems = data.focusSounds.menuItems
         focusMonitor.rows = data.focusSounds.rows
+        engine.setReverb(data.focusSounds.reverb)
         if data.focusSounds.enabled, !focusMonitorRunning {
             focusMonitor.start()
             focusMonitorRunning = true
@@ -159,11 +160,32 @@ final class AppController {
         play(id, ignoreEnabledState: false)
     }
 
-    private func handleFocus(_ slot: String) {
+    private func handleFocus(_ slot: String, element: AXElement?) {
         let data = settings.data
         guard data.focusSounds.enabled, let event = SoundEvent.byID["focus.\(slot)"],
               data.focusSounds.isEnabled(event), let url = scheme.url(for: event) else { return }
-        engine.play(url, volume: Float(data.focusSounds.volume), exclusive: true)
+        if data.focusSounds.spatial {
+            let position = element?.frame.map { SpatialMapper.position(for: $0) } ?? SpatialMapper.center
+            engine.playSpatial(url, volume: Float(data.focusSounds.volume), at: position)
+        } else {
+            engine.play(url, volume: Float(data.focusSounds.volume), exclusive: true)
+        }
+    }
+
+    /// Plays the button sound at the left, centre and right of the desktop so the
+    /// user can check that HRTF placement is audible.
+    func previewSpatialPositions() {
+        guard let event = SoundEvent.byID["focus.button"], let url = scheme.url(for: event) else { return }
+        let desktop = SpatialMapper.desktopBounds()
+        let volume = Float(settings.data.focusSounds.volume)
+        let spots: [(CGFloat, CGFloat)] = [(0.05, 0.9), (0.5, 0.5), (0.95, 0.1)]
+        for (i, spot) in spots.enumerated() {
+            DispatchQueue.main.asyncAfter(deadline: .now() + Double(i) * 0.5) { [engine] in
+                let frame = CGRect(x: desktop.minX + desktop.width * spot.0, y: desktop.minY + desktop.height * spot.1,
+                                   width: 1, height: 1)
+                engine.playSpatial(url, volume: volume, at: SpatialMapper.position(for: frame, in: desktop), exclusive: false)
+            }
+        }
     }
 
     private func handleKey(_ category: KeyCategory) {

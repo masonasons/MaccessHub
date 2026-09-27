@@ -113,6 +113,9 @@ struct FocusSoundSettings: Codable {
     var keyboardFocus = true
     var menuItems = true
     var rows = true
+    /// Render each sound from the control's on-screen position (HRTF).
+    var spatial = true
+    var reverb: SoundEngine.Reverb = .smallRoom
     var packID = Soundpack.builtInClassicID
     var fillMissingFromClassic = true
     var eventStates: [String: Bool] = [:]
@@ -125,6 +128,8 @@ struct FocusSoundSettings: Codable {
         keyboardFocus = c.value(.keyboardFocus, default: true)
         menuItems = c.value(.menuItems, default: true)
         rows = c.value(.rows, default: true)
+        spatial = c.value(.spatial, default: true)
+        reverb = c.value(.reverb, default: .smallRoom)
         packID = c.value(.packID, default: Soundpack.builtInClassicID)
         fillMissingFromClassic = c.value(.fillMissingFromClassic, default: true)
         eventStates = c.value(.eventStates, default: [:])

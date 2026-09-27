@@ -12,10 +12,17 @@ final class SoundEngine {
     private let log = Logger(subsystem: "com.maccesshub.app", category: "audio")
     private let engine = AVAudioEngine()
     private let format = AVAudioFormat(standardFormatWithSampleRate: 48_000, channels: 2)!
+    private let monoFormat = AVAudioFormat(standardFormatWithSampleRate: 48_000, channels: 1)!
     private var nodes: [AVAudioPlayerNode] = []
     private var nextNode = 0
     private var buffers: [URL: AVAudioPCMBuffer] = [:]
+    private var monoBuffers: [URL: AVAudioPCMBuffer] = [:]
     private var activeNode: [URL: AVAudioPlayerNode] = [:]
+    /// HRTF path: mono players feeding an environment node that renders binaurally.
+    private let environment = AVAudioEnvironmentNode()
+    private var spatialNodes: [AVAudioPlayerNode] = []
+    private var nextSpatialNode = 0
+    private var activeSpatialNode: [URL: AVAudioPlayerNode] = [:]
     private let lock = NSLock()
     private var configObserver: NSObjectProtocol?
 
@@ -26,6 +33,24 @@ final class SoundEngine {
             engine.connect(node, to: engine.mainMixerNode, format: format)
             nodes.append(node)
         }
+        // Spatial pool. The environment node only spatialises mono inputs.
+        engine.attach(environment)
+        engine.connect(environment, to: engine.mainMixerNode, format: format)
+        environment.listenerPosition = AVAudio3DPoint(x: 0, y: 0, z: 0)
+        environment.listenerVectorOrientation = AVAudio3DVectorOrientation(
+            forward: AVAudio3DVector(x: 0, y: 0, z: -1), up: AVAudio3DVector(x: 0, y: 1, z: 0))
+        environment.distanceAttenuationParameters.referenceDistance = 1
+        environment.distanceAttenuationParameters.maximumDistance = 100
+        environment.outputType = .headphones
+        for _ in 0..<6 {
+            let node = AVAudioPlayerNode()
+            engine.attach(node)
+            engine.connect(node, to: environment, format: monoFormat)
+            node.renderingAlgorithm = .HRTFHQ
+            node.sourceMode = .pointSource
+            spatialNodes.append(node)
+        }
+        setReverb(.smallRoom)
         engine.prepare()
         // The engine stops when the default output device changes (exactly what
         // the audio-switch feature does). Restart it so the next sound plays.
@@ -70,6 +95,7 @@ final class SoundEngine {
     func retainOnly(_ urls: Set<URL>) {
         lock.lock()
         buffers = buffers.filter { urls.contains($0.key) }
+        monoBuffers = monoBuffers.filter { urls.contains($0.key) }
         lock.unlock()
     }
 
@@ -96,8 +122,74 @@ final class SoundEngine {
         return Double(buffer.frameLength) / buffer.format.sampleRate
     }
 
+    enum Reverb: String, Codable, CaseIterable, Identifiable {
+        case none, smallRoom, mediumRoom, hall
+        var id: String { rawValue }
+        var title: String {
+            switch self {
+            case .none: return "None"
+            case .smallRoom: return "Small room"
+            case .mediumRoom: return "Medium room"
+            case .hall: return "Hall"
+            }
+        }
+    }
+
+    func setReverb(_ reverb: Reverb) {
+        let params = environment.reverbParameters
+        switch reverb {
+        case .none:
+            params.enable = false
+        case .smallRoom:
+            params.enable = true; params.loadFactoryReverbPreset(.smallRoom); params.level = -18
+        case .mediumRoom:
+            params.enable = true; params.loadFactoryReverbPreset(.mediumRoom); params.level = -15
+        case .hall:
+            params.enable = true; params.loadFactoryReverbPreset(.largeHall); params.level = -12
+        }
+    }
+
+    /// Plays the file binaurally at a position on the unit sphere around the
+    /// listener (+x right, +y up, -z forward).
+    @discardableResult
+    func playSpatial(_ url: URL, volume: Float, at position: AVAudio3DPoint, exclusive: Bool = true) -> TimeInterval {
+        guard let buffer = preloadMono(url) else { return 0 }
+        lock.lock()
+        let node: AVAudioPlayerNode
+        if exclusive, let previous = activeSpatialNode[url] {
+            node = previous
+        } else {
+            node = spatialNodes[nextSpatialNode]
+            nextSpatialNode = (nextSpatialNode + 1) % spatialNodes.count
+        }
+        activeSpatialNode[url] = node
+        lock.unlock()
+
+        startIfNeeded()
+        node.stop()
+        node.position = position
+        node.volume = max(0, min(1, volume))
+        node.scheduleBuffer(buffer, at: nil, options: [], completionHandler: nil)
+        node.play()
+        return Double(buffer.frameLength) / buffer.format.sampleRate
+    }
+
+    private func preloadMono(_ url: URL) -> AVAudioPCMBuffer? {
+        lock.lock()
+        if let cached = monoBuffers[url] { lock.unlock(); return cached }
+        lock.unlock()
+        guard let buffer = Self.decode(url, to: monoFormat) else {
+            log.error("Could not decode \(url.lastPathComponent) as mono")
+            return nil
+        }
+        lock.lock()
+        monoBuffers[url] = buffer
+        lock.unlock()
+        return buffer
+    }
+
     func stopAll() {
-        for node in nodes { node.stop() }
+        for node in nodes + spatialNodes { node.stop() }
     }
 
     private static func decode(_ url: URL, to format: AVAudioFormat) -> AVAudioPCMBuffer? {

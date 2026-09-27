@@ -70,6 +70,18 @@ struct AXElement {
         return AXValueGetValue(value as! AXValue, .cgPoint, &point) ? point : nil
     }
 
+    func size(_ attribute: String) -> CGSize? {
+        guard let value = raw(attribute), CFGetTypeID(value) == AXValueGetTypeID() else { return nil }
+        var size = CGSize.zero
+        return AXValueGetValue(value as! AXValue, .cgSize, &size) ? size : nil
+    }
+
+    /// The element's frame in global top-left screen coordinates (as AX reports it).
+    var frame: CGRect? {
+        guard let origin = point(kAXPositionAttribute), let size = size(kAXSizeAttribute) else { return nil }
+        return CGRect(origin: origin, size: size)
+    }
+
     func parameterizedInt(_ attribute: String, parameter: Int) -> Int? {
         var value: CFTypeRef?
         let status = AXUIElementCopyParameterizedAttributeValue(element, attribute as CFString,

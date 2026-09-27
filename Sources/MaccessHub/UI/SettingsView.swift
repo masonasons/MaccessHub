@@ -285,6 +285,17 @@ struct FocusSoundsSettingsView: View {
                 Text("Like the Unspoken add-on for NVDA: each kind of control has its own sound. macOS reports keyboard focus, menu highlighting and row selection, so with VoiceOver keep \"keyboard focus follows VoiceOver cursor\" on in VoiceOver Utility → Navigation.")
                     .font(.callout).foregroundStyle(.secondary)
             }
+            Section("Position") {
+                Toggle("Place each sound where the control is on screen (HRTF)", isOn: $store.data.focusSounds.spatial)
+                Picker("Room", selection: $store.data.focusSounds.reverb) {
+                    ForEach(SoundEngine.Reverb.allCases) { Text($0.title).tag($0) }
+                }
+                .disabled(!store.data.focusSounds.spatial)
+                Button("Test Left, Centre, Right") { AppController.shared.previewSpatialPositions() }
+                    .disabled(!store.data.focusSounds.spatial)
+                Text("Left to right follows the control's horizontal position across all displays; controls near the top of the screen sound slightly higher than those at the bottom. Headphones are needed to hear the placement.")
+                    .font(.callout).foregroundStyle(.secondary)
+            }
             Section("Play for") {
                 Toggle("Keyboard focus changes", isOn: $store.data.focusSounds.keyboardFocus)
                 Toggle("Menu items", isOn: $store.data.focusSounds.menuItems)
