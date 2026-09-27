@@ -6,6 +6,11 @@ options:
   createIntermediateGroups: true
   xcodeVersion: "16.0"
 
+packages:
+  Sparkle:
+    url: https://github.com/sparkle-project/Sparkle
+    from: 2.6.0
+
 settings:
   base:
     MARKETING_VERSION: "1.0"
@@ -26,6 +31,8 @@ targets:
       - path: Resources/Soundpacks
         type: folder
         buildPhase: resources
+    dependencies:
+      - package: Sparkle
     entitlements:
       path: Sources/MaccessHub/MaccessHub.entitlements
       properties:
@@ -47,6 +54,10 @@ targets:
         NSAppleEventsUsageDescription: MaccessHub asks VoiceOver to speak messages when VoiceOver is running.
         NSBluetoothAlwaysUsageDescription: MaccessHub plays a sound when Bluetooth devices connect or disconnect.
         NSPrincipalClass: NSApplication
+        # Sparkle auto-update. The public key pairs with the EdDSA private key
+        # in the release machine's keychain (scripts/package.sh signs with it).
+        SUFeedURL: https://raw.githubusercontent.com/masonasons/MaccessHub/main/appcast.xml
+        SUPublicEDKey: X8rfcN0/akF3SCG7x6hWOumCBirphh2QSfMecJecws4=
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.maccesshub.app

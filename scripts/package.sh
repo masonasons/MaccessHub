@@ -7,6 +7,9 @@
 # file is available — the DMG is notarized and stapled so it opens cleanly on
 # any Mac. Otherwise an unsigned DMG is produced.
 #
+# The version comes from VERSION (e.g. 1.0.3, set by release.sh from the tag);
+# the build number is the commit count so Sparkle always sees it increase.
+#
 # Optional overrides:
 #   DEVID_IDENTITY  "Developer ID Application: … (TEAMID)"   (auto-detected)
 #   ASC_ENV         path to a file exporting ASC_KEY_PATH, ASC_KEY_ID, ASC_ISSUER
@@ -36,14 +39,26 @@ if [ -z "$DEVID" ]; then
     | grep 'Developer ID Application' | head -1 | sed -E 's/.*"(.*)".*/\1/' || true)"
 fi
 
-echo "==> Building $APP (Release)"
+VERSION="${VERSION:-$(grep -m1 'MARKETING_VERSION:' project.yml | sed -E 's/.*"([^"]+)".*/\1/')}"
+BUILD_NUMBER="${BUILD_NUMBER:-$(git rev-list --count HEAD)}"
+echo "==> Building $APP $VERSION ($BUILD_NUMBER), Release"
 xcodebuild -project "$PROJ" -scheme "$APP" -configuration Release \
   -derivedDataPath build/pkg \
+  MARKETING_VERSION="$VERSION" CURRENT_PROJECT_VERSION="$BUILD_NUMBER" \
   CODE_SIGNING_ALLOWED=NO CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM="" build >/dev/null
 BUNDLE="build/pkg/Build/Products/Release/$APP.app"
 
 if [ -n "$DEVID" ]; then
   echo "==> Signing with Developer ID + hardened runtime ($DEVID)"
+  cs() { codesign --force --options runtime --timestamp --sign "$DEVID" "$@"; }
+  # Sparkle ships helper executables that must be signed inside-out before the app.
+  SPARKLE="$BUNDLE/Contents/Frameworks/Sparkle.framework"
+  if [ -d "$SPARKLE" ]; then
+    for x in "$SPARKLE"/Versions/B/XPCServices/*.xpc; do [ -e "$x" ] && cs "$x"; done
+    [ -e "$SPARKLE/Versions/B/Autoupdate" ] && cs "$SPARKLE/Versions/B/Autoupdate"
+    [ -e "$SPARKLE/Versions/B/Updater.app" ] && cs "$SPARKLE/Versions/B/Updater.app"
+    cs "$SPARKLE"
+  fi
   codesign --force --options runtime --timestamp --entitlements "$ENT" --sign "$DEVID" "$BUNDLE"
   codesign --verify --deep --strict --verbose=1 "$BUNDLE" 2>&1 | tail -1
 else

@@ -32,5 +32,9 @@
 	<string>MIT</string>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
+	<key>SUFeedURL</key>
+	<string>https://raw.githubusercontent.com/masonasons/MaccessHub/main/appcast.xml</string>
+	<key>SUPublicEDKey</key>
+	<string>X8rfcN0/akF3SCG7x6hWOumCBirphh2QSfMecJecws4=</string>
 </dict>
 </plist>

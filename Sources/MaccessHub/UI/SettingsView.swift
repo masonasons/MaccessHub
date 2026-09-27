@@ -27,6 +27,14 @@ struct SettingsView: View {
 
 struct GeneralSettingsView: View {
     @Bindable var store: SettingsStore
+
+    static var versionString: String {
+        let info = Bundle.main.infoDictionary
+        let short = info?["CFBundleShortVersionString"] as? String ?? "?"
+        let build = info?["CFBundleVersion"] as? String ?? "?"
+        return "\(short) (\(build))"
+    }
+
     @State private var accessibilityTrusted = AccessibilityPermission.isTrusted
     @State private var voices = SpeechVoices.available()
 
@@ -78,6 +86,22 @@ struct GeneralSettingsView: View {
                     Button("Open Accessibility Settings") { AccessibilityPermission.openSystemSettings() }
                     Button("Open Input Monitoring Settings") { AccessibilityPermission.openInputMonitoringSettings() }
                     Button("Open Automation Settings") { AccessibilityPermission.openAutomationSettings() }
+                }
+            }
+            Section("Updates") {
+                Toggle("Check for updates automatically", isOn: Binding(
+                    get: { Updater.shared.automaticallyChecks },
+                    set: { Updater.shared.automaticallyChecks = $0 }))
+                Toggle("Download and install updates automatically", isOn: Binding(
+                    get: { Updater.shared.automaticallyDownloads },
+                    set: { Updater.shared.automaticallyDownloads = $0 }))
+                LabeledContent("Installed version", value: Self.versionString)
+                HStack {
+                    Button("Check for Updates Now") { Updater.shared.checkForUpdates() }
+                    if let last = Updater.shared.lastCheck {
+                        Text("Last checked \(last.formatted(date: .abbreviated, time: .shortened))")
+                            .font(.callout).foregroundStyle(.secondary)
+                    }
                 }
             }
             Section("Settings File") {

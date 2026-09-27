@@ -84,6 +84,11 @@ make install    # Release build copied to /Applications and launched
 and publishes it as a GitHub release. Pre-built DMGs are on the
 [Releases](https://github.com/masonasons/MaccessHub/releases) page.
 
+Updates are delivered with [Sparkle](https://sparkle-project.org): the app
+checks `appcast.xml` in this repository, which `release.sh` regenerates and
+signs with the EdDSA key on the release machine. "Check for Updates…" is in
+the menu bar menu and in Settings → General.
+
 Settings are stored as JSON in
 `~/Library/Application Support/MaccessHub/settings.json`.
 

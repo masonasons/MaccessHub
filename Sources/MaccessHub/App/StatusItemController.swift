@@ -26,6 +26,7 @@ final class StatusItemController: NSObject, NSMenuDelegate {
         let settings = menu.addItem(withTitle: "Settings…", action: #selector(openSettings), keyEquivalent: ",")
         settings.target = self
         menu.addItem(withTitle: "Open Soundpacks Folder", action: #selector(openSoundpacksFolder), keyEquivalent: "").target = self
+        menu.addItem(withTitle: "Check for Updates…", action: #selector(checkForUpdates), keyEquivalent: "").target = self
         menu.addItem(.separator())
         menu.addItem(withTitle: "Quit MaccessHub", action: #selector(quit), keyEquivalent: "q").target = self
         item.menu = menu
@@ -44,5 +45,6 @@ final class StatusItemController: NSObject, NSMenuDelegate {
     @objc private func openSoundpacksFolder() {
         NSWorkspace.shared.activateFileViewerSelecting([SoundpackLibrary.userPacksDirectory])
     }
+    @objc private func checkForUpdates() { Updater.shared.checkForUpdates() }
     @objc private func quit() { NSApp.terminate(nil) }
 }
