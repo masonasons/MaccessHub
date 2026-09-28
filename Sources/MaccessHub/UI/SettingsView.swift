@@ -300,8 +300,8 @@ struct FocusSoundsSettingsView: View {
                 Toggle("Keyboard focus changes", isOn: $store.data.focusSounds.keyboardFocus)
                 Toggle("Menu items", isOn: $store.data.focusSounds.menuItems)
                 Toggle("List, table and outline rows", isOn: $store.data.focusSounds.rows)
-                Toggle("The VoiceOver cursor, even where it does not move keyboard focus", isOn: $store.data.focusSounds.followVoiceOverCursor)
-                Text("VoiceOver cursor tracking asks VoiceOver for its cursor position several times a second and identifies the item under it, so it also covers messages, web text and other items that never take keyboard focus.")
+                Toggle("The VoiceOver cursor (experimental, slows VoiceOver)", isOn: $store.data.focusSounds.followVoiceOverCursor)
+                Text("Asks VoiceOver for its cursor position a few times a second and sounds the item under it, covering items that never take keyboard focus. Each request costs VoiceOver time and can make it noticeably sluggish, so this is off by default.")
                     .font(.callout).foregroundStyle(.secondary)
             }
             Section("Control sounds") {

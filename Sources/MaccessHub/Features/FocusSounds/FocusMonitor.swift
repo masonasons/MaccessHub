@@ -24,7 +24,7 @@ final class FocusMonitor {
     var keyboardFocus = true
     /// Poll VoiceOver's cursor and hit-test the item under it (covers items
     /// that never take keyboard focus, such as messages and web text).
-    var followVoiceOverCursor = true {
+    var followVoiceOverCursor = false {
         didSet { if pollTimer != nil { followVoiceOverCursor ? voTracker.start() : voTracker.stop() } }
     }
     var menuItems = true

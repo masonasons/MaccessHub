@@ -14,8 +14,8 @@ final class VoiceOverCursorTracker {
     private let log = Logger(subsystem: "com.maccesshub.app", category: "vocursor")
     private var thread: Thread?
     private var running = false
-    private let activeInterval: TimeInterval = 0.15
-    private let idleInterval: TimeInterval = 0.4
+    private let activeInterval: TimeInterval = 0.3
+    private let idleInterval: TimeInterval = 0.8
     private let idleAfter: TimeInterval = 3
 
     func start() {
