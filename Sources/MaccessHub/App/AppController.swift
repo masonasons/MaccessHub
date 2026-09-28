@@ -123,7 +123,7 @@ final class AppController {
         focusMonitor.menuItems = data.focusSounds.menuItems
         focusMonitor.rows = data.focusSounds.rows
         focusMonitor.followVoiceOverCursor = data.focusSounds.followVoiceOverCursor
-        engine.setReverb(data.focusSounds.reverb)
+        engine.setReverb(data.focusSounds.reverb, amount: data.focusSounds.reverbAmount)
         if data.focusSounds.enabled, !focusMonitorRunning {
             focusMonitor.start()
             focusMonitorRunning = true

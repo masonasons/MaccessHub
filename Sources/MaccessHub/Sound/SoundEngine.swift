@@ -157,7 +157,8 @@ final class SoundEngine {
         }
     }
 
-    func setReverb(_ reverb: Reverb) {
+    /// `amount` is 0...1; 0.5 is the preset's natural level, 1 is twice as wet.
+    func setReverb(_ reverb: Reverb, amount: Double = 0.5) {
         // The environment node hosts the reverb, but each source decides how
         // much of itself it sends there (`reverbBlend`, 0 by default). Both are
         // needed, or the presets do nothing.
@@ -177,7 +178,8 @@ final class SoundEngine {
             params.enable = true; params.loadFactoryReverbPreset(.largeHall); params.level = -2
             blend = 0.55
         }
-        for node in spatialNodes { node.reverbBlend = blend }
+        let scaled = min(1, blend * Float(max(0, min(1, amount))) * 2)
+        for node in spatialNodes { node.reverbBlend = scaled }
     }
 
     /// Plays the file binaurally at a position on the unit sphere around the

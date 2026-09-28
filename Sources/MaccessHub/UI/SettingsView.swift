@@ -291,6 +291,11 @@ struct FocusSoundsSettingsView: View {
                     ForEach(SoundEngine.Reverb.allCases) { Text($0.title).tag($0) }
                 }
                 .disabled(!store.data.focusSounds.spatial)
+                Slider(value: $store.data.focusSounds.reverbAmount, in: 0...1) {
+                    Text("Reverb amount")
+                } minimumValueLabel: { Text("Dry") } maximumValueLabel: { Text("Wet") }
+                .accessibilityValue("\(Int(store.data.focusSounds.reverbAmount * 100)) percent")
+                .disabled(!store.data.focusSounds.spatial || store.data.focusSounds.reverb == .none)
                 Button("Test Left, Centre, Right") { AppController.shared.previewSpatialPositions() }
                     .disabled(!store.data.focusSounds.spatial)
                 Text("Left to right follows the control's horizontal position across all displays; controls near the top of the screen sound slightly higher than those at the bottom. Headphones are needed to hear the placement.")

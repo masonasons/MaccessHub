@@ -119,6 +119,8 @@ struct FocusSoundSettings: Codable {
     /// Render each sound from the control's on-screen position (HRTF).
     var spatial = true
     var reverb: SoundEngine.Reverb = .smallRoom
+    /// 0...1, how much of each sound goes to the reverb; 0.5 is the preset's own level.
+    var reverbAmount = 0.5
     var packID = Soundpack.builtInClassicID
     var fillMissingFromClassic = true
     var eventStates: [String: Bool] = [:]
@@ -134,6 +136,7 @@ struct FocusSoundSettings: Codable {
         followVoiceOverCursor = c.value(.followVoiceOverCursor, default: false)
         spatial = c.value(.spatial, default: true)
         reverb = c.value(.reverb, default: .smallRoom)
+        reverbAmount = c.value(.reverbAmount, default: 0.5)
         packID = c.value(.packID, default: Soundpack.builtInClassicID)
         fillMissingFromClassic = c.value(.fillMissingFromClassic, default: true)
         eventStates = c.value(.eventStates, default: [:])
