@@ -158,17 +158,26 @@ final class SoundEngine {
     }
 
     func setReverb(_ reverb: Reverb) {
+        // The environment node hosts the reverb, but each source decides how
+        // much of itself it sends there (`reverbBlend`, 0 by default). Both are
+        // needed, or the presets do nothing.
         let params = environment.reverbParameters
+        let blend: Float
         switch reverb {
         case .none:
             params.enable = false
+            blend = 0
         case .smallRoom:
-            params.enable = true; params.loadFactoryReverbPreset(.smallRoom); params.level = -18
+            params.enable = true; params.loadFactoryReverbPreset(.smallRoom); params.level = -6
+            blend = 0.35
         case .mediumRoom:
-            params.enable = true; params.loadFactoryReverbPreset(.mediumRoom); params.level = -15
+            params.enable = true; params.loadFactoryReverbPreset(.mediumRoom); params.level = -4
+            blend = 0.45
         case .hall:
-            params.enable = true; params.loadFactoryReverbPreset(.largeHall); params.level = -12
+            params.enable = true; params.loadFactoryReverbPreset(.largeHall); params.level = -2
+            blend = 0.55
         }
+        for node in spatialNodes { node.reverbBlend = blend }
     }
 
     /// Plays the file binaurally at a position on the unit sphere around the
