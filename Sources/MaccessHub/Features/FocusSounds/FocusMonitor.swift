@@ -18,9 +18,15 @@ import os
 /// follows keyboard focus; with "keyboard focus follows VoiceOver cursor" on
 /// (VoiceOver's default) that covers native controls.
 final class FocusMonitor {
-    /// Called on the main thread with the slot ("button", "listItem", …) and the element.
-    var onFocus: ((String, AXElement) -> Void)?
+    /// Called on the main thread with the slot ("button", "listItem", …), the
+    /// element, and the rectangle to place the sound at when known.
+    var onFocus: ((String, AXElement, CGRect?) -> Void)?
     var keyboardFocus = true
+    /// Poll VoiceOver's cursor and hit-test the item under it (covers items
+    /// that never take keyboard focus, such as messages and web text).
+    var followVoiceOverCursor = true {
+        didSet { if pollTimer != nil { followVoiceOverCursor ? voTracker.start() : voTracker.stop() } }
+    }
     var menuItems = true
     var rows = true
     /// Seconds between polls of the focused element; 0 disables polling.
@@ -43,8 +49,13 @@ final class FocusMonitor {
     private var primaryPID: pid_t = 0
     private var activationToken: NSObjectProtocol?
     private var pollTimer: Timer?
-    private var lastReportedElement: AXUIElement?
-    private var lastSignature: FocusSignature?
+    private let voTracker = VoiceOverCursorTracker()
+    /// Keyboard-focus path (notifications + poll): the last focused element we saw.
+    private var lastFocusElement: AXUIElement?
+    private var lastFocusSignature: FocusSignature?
+    /// VoiceOver-cursor path: the last item under the cursor.
+    private var lastCursorSignature: FocusSignature?
+    private var lastReport: (signature: FocusSignature, time: TimeInterval)?
     private var lastSlot: String?
     private var lastTime: TimeInterval = 0
     private let systemWide: AXUIElement = {
@@ -74,6 +85,8 @@ final class FocusMonitor {
             pollTimer = Timer.scheduledTimer(withTimeInterval: pollInterval, repeats: true) { [weak self] _ in self?.poll() }
             pollTimer?.tolerance = pollInterval / 4
         }
+        voTracker.onChange = { [weak self] rect in self?.handleVoiceOverCursor(rect) }
+        if followVoiceOverCursor { voTracker.start() }
     }
 
     func stop() {
@@ -81,9 +94,12 @@ final class FocusMonitor {
         activationToken = nil
         pollTimer?.invalidate()
         pollTimer = nil
+        voTracker.stop()
         for pid in Array(observations.keys) { detach(pid: pid) }
         primaryPID = 0
-        lastReportedElement = nil
+        lastFocusElement = nil
+        lastFocusSignature = nil
+        lastCursorSignature = nil
     }
 
     // MARK: Observers
@@ -184,6 +200,10 @@ final class FocusMonitor {
         default:
             return
         }
+        if notification == kAXFocusedUIElementChangedNotification {
+            lastFocusElement = target.element
+            lastFocusSignature = FocusSignature(target)
+        }
         report(target, source: "ax")
     }
 
@@ -193,31 +213,70 @@ final class FocusMonitor {
         guard AXUIElementCopyAttributeValue(systemWide, kAXFocusedUIElementAttribute as CFString, &value) == .success,
               let value, CFGetTypeID(value) == AXUIElementGetTypeID() else { return }
         let element = value as! AXUIElement
-        if let last = lastReportedElement, CFEqual(last, element) { return }
+        if let last = lastFocusElement, CFEqual(last, element) { return }
         let focused = AXElement(element)
         // Catalyst apps hand out a new token for the same control on every
         // query, so compare what the element is rather than which object it is.
         let signature = FocusSignature(focused)
-        if signature == lastSignature {
-            lastReportedElement = element
-            return
-        }
-        log.debug("poll: new focused element role=\(focused.role ?? "nil", privacy: .public) subrole=\(focused.subrole ?? "-", privacy: .public) pid=\(focused.pid ?? 0, privacy: .public)")
+        lastFocusElement = element
+        if signature == lastFocusSignature { return }
+        lastFocusSignature = signature
+        log.debug("poll: keyboard focus moved to \(focused.role ?? "nil", privacy: .public)/\(focused.subrole ?? "-", privacy: .public) pid=\(focused.pid ?? 0, privacy: .public)")
         if let pid = focused.pid { attachSecondaryIfNeeded(pid: pid) }
         report(focused, source: "poll")
     }
 
-    private func report(_ target: AXElement, source: String) {
-        lastReportedElement = target.element
-        lastSignature = FocusSignature(target)
-        guard let slot = FocusRoleMapper.slot(for: target) else { return }
-        // Collapse bursts (a table focusing and selecting its row fires twice).
+    /// The VoiceOver cursor moved: find the item under it.
+    private func handleVoiceOverCursor(_ rect: CGRect) {
+        guard rect.width > 0, rect.height > 0 else { return }
+        var value: AXUIElement?
+        var status = AXUIElementCopyElementAtPosition(systemWide, Float(rect.midX), Float(rect.midY), &value)
+        if status != .success || value == nil, primaryPID != 0 {
+            // Some apps (Catalyst) only answer hit-tests addressed to the app itself.
+            status = AXUIElementCopyElementAtPosition(AXUIElementCreateApplication(primaryPID),
+                                                      Float(rect.midX), Float(rect.midY), &value)
+        }
+        guard status == .success, let value else { return }
+        let hit = AXElement(value)
+        // The hit lands on the innermost item. VoiceOver's cursor rectangle is
+        // the frame of the item it is on, so prefer the ancestor that matches it.
+        var element = hit
+        var probe: AXElement? = hit
+        var hops = 0
+        while let e = probe, hops < 6 {
+            if let f = e.frame, Self.matches(f, rect) { element = e; break }
+            probe = e.element(kAXParentAttribute)
+            hops += 1
+        }
+        guard let slot = FocusRoleMapper.cursorSlot(for: element) else {
+            log.debug("vo cursor: no slot for \(element.role ?? "nil", privacy: .public)/\(element.string(kAXRoleDescriptionAttribute) ?? "-", privacy: .public)")
+            return
+        }
+        let signature = FocusSignature(element)
+        if signature == lastCursorSignature { return }
+        lastCursorSignature = signature
+        if let pid = element.pid { attachSecondaryIfNeeded(pid: pid) }
+        report(element, source: "vo", frame: rect, slot: slot)
+    }
+
+    private static func matches(_ a: CGRect, _ b: CGRect) -> Bool {
+        abs(a.minX - b.minX) < 4 && abs(a.minY - b.minY) < 4 && abs(a.width - b.width) < 4 && abs(a.height - b.height) < 4
+    }
+
+    private func report(_ target: AXElement, source: String, frame: CGRect? = nil, slot known: String? = nil) {
+        guard let slot = known ?? FocusRoleMapper.slot(for: target) else { return }
         let now = ProcessInfo.processInfo.systemUptime
+        // The same control reported by two sources in quick succession (a focus
+        // notification, then the VoiceOver cursor landing on it) sounds once.
+        let signature = FocusSignature(target)
+        if let last = lastReport, last.signature == signature, now - last.time < 0.4 { return }
+        lastReport = (signature, now)
+        // Collapse bursts (a table focusing and selecting its row fires twice).
         if slot == lastSlot, now - lastTime < 0.05 { return }
         lastSlot = slot
         lastTime = now
         log.debug("focus \(slot, privacy: .public) via \(source, privacy: .public) (\(target.role ?? "?", privacy: .public)/\(target.subrole ?? "-", privacy: .public))")
-        onFocus?(slot, target)
+        onFocus?(slot, target, frame)
     }
 }
 
@@ -286,6 +345,40 @@ enum FocusRoleMapper {
             if let dom = element.string("AXDOMClassList"), dom.contains("button") { return "button" }
             return nil
         }
+    }
+
+    /// Slot for the item under the VoiceOver cursor. Falls back to the role
+    /// description (Catalyst apps expose "button", "cell" and so on there), and
+    /// treats a child of a collection, list, table or outline as a row.
+    static func cursorSlot(for element: AXElement) -> String? {
+        if let slot = slot(for: element) { return slot }
+        if let slot = slotForRoleDescription(element.string(kAXRoleDescriptionAttribute)) { return slot }
+        if let parent = element.element(kAXParentAttribute) {
+            let parentRole = parent.role ?? ""
+            let parentDescription = (parent.string(kAXRoleDescriptionAttribute) ?? "").lowercased()
+            if parentRole == kAXOutlineRole || parentDescription.contains("outline") { return "treeItem" }
+            if parentRole == kAXListRole || parentRole == kAXTableRole
+                || ["collection", "list", "table", "grid"].contains(where: parentDescription.contains) {
+                return "listItem"
+            }
+        }
+        return nil
+    }
+
+    private static func slotForRoleDescription(_ description: String?) -> String? {
+        guard let d = description?.lowercased(), !d.isEmpty else { return nil }
+        let table: [(String, String)] = [
+            ("radio button", "radioButton"), ("check box", "checkbox"), ("checkbox", "checkbox"),
+            ("switch", "checkbox"), ("toggle", "checkbox"), ("pop up button", "comboBox"), ("popup button", "comboBox"),
+            ("combo box", "comboBox"), ("menu button", "splitButton"), ("menu item", "menuItem"), ("menu bar item", "menuItem"),
+            ("text field", "editableText"), ("text area", "editableText"), ("search field", "editableText"),
+            ("secure text field", "editableText"), ("link", "link"), ("tab", "tab"), ("slider", "slider"),
+            ("stepper", "slider"), ("incrementor", "slider"), ("image", "icon"), ("progress indicator", "clock"),
+            ("busy indicator", "clock"), ("level indicator", "clock"), ("cell", "listItem"), ("row", "listItem"),
+            ("list item", "listItem"), ("button", "button"),
+        ]
+        for (needle, slot) in table where d.contains(needle) { return slot }
+        return nil
     }
 
     private static func isInOutline(_ element: AXElement) -> Bool {

@@ -113,6 +113,8 @@ struct FocusSoundSettings: Codable {
     var keyboardFocus = true
     var menuItems = true
     var rows = true
+    /// Poll VoiceOver's cursor position and sound the item under it.
+    var followVoiceOverCursor = true
     /// Render each sound from the control's on-screen position (HRTF).
     var spatial = true
     var reverb: SoundEngine.Reverb = .smallRoom
@@ -128,6 +130,7 @@ struct FocusSoundSettings: Codable {
         keyboardFocus = c.value(.keyboardFocus, default: true)
         menuItems = c.value(.menuItems, default: true)
         rows = c.value(.rows, default: true)
+        followVoiceOverCursor = c.value(.followVoiceOverCursor, default: true)
         spatial = c.value(.spatial, default: true)
         reverb = c.value(.reverb, default: .smallRoom)
         packID = c.value(.packID, default: Soundpack.builtInClassicID)

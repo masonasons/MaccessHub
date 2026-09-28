@@ -61,7 +61,7 @@ final class AppController {
         keyClicks.onKey = { [weak self] category in
             DispatchQueue.main.async { self?.handleKey(category) }
         }
-        focusMonitor.onFocus = { [weak self] slot, element in self?.handleFocus(slot, element: element) }
+        focusMonitor.onFocus = { [weak self] slot, element, frame in self?.handleFocus(slot, element: element, frame: frame) }
         hotkeys.handler = { [weak self] action in self?.perform(action) }
         // Feedback sounds for the mute toggle bypass the event-sounds master switch.
         audioSwitch.playSound = { [weak self] id in
@@ -122,6 +122,7 @@ final class AppController {
         focusMonitor.keyboardFocus = data.focusSounds.keyboardFocus
         focusMonitor.menuItems = data.focusSounds.menuItems
         focusMonitor.rows = data.focusSounds.rows
+        focusMonitor.followVoiceOverCursor = data.focusSounds.followVoiceOverCursor
         engine.setReverb(data.focusSounds.reverb)
         if data.focusSounds.enabled, !focusMonitorRunning {
             focusMonitor.start()
@@ -160,12 +161,12 @@ final class AppController {
         play(id, ignoreEnabledState: false)
     }
 
-    private func handleFocus(_ slot: String, element: AXElement?) {
+    private func handleFocus(_ slot: String, element: AXElement?, frame: CGRect?) {
         let data = settings.data
         guard data.focusSounds.enabled, let event = SoundEvent.byID["focus.\(slot)"],
               data.focusSounds.isEnabled(event), let url = scheme.url(for: event) else { return }
         if data.focusSounds.spatial {
-            let position = element?.frame.map { SpatialMapper.position(for: $0) } ?? SpatialMapper.center
+            let position = (frame ?? element?.frame).map { SpatialMapper.position(for: $0) } ?? SpatialMapper.center
             engine.playSpatial(url, volume: Float(data.focusSounds.volume), at: position)
         } else {
             engine.play(url, volume: Float(data.focusSounds.volume), exclusive: true)

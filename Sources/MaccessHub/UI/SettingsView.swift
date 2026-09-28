@@ -282,7 +282,7 @@ struct FocusSoundsSettingsView: View {
                 Slider(value: $store.data.focusSounds.volume, in: 0...1) { Text("Volume") }
                     .accessibilityValue("\(Int(store.data.focusSounds.volume * 100)) percent")
                 Toggle("Use Classic sounds for controls the pack does not cover", isOn: $store.data.focusSounds.fillMissingFromClassic)
-                Text("Like the Unspoken add-on for NVDA: each kind of control has its own sound. macOS reports keyboard focus, menu highlighting and row selection, so with VoiceOver keep \"keyboard focus follows VoiceOver cursor\" on in VoiceOver Utility → Navigation.")
+                Text("Like the Unspoken add-on for NVDA: each kind of control has its own sound.")
                     .font(.callout).foregroundStyle(.secondary)
             }
             Section("Position") {
@@ -300,6 +300,9 @@ struct FocusSoundsSettingsView: View {
                 Toggle("Keyboard focus changes", isOn: $store.data.focusSounds.keyboardFocus)
                 Toggle("Menu items", isOn: $store.data.focusSounds.menuItems)
                 Toggle("List, table and outline rows", isOn: $store.data.focusSounds.rows)
+                Toggle("The VoiceOver cursor, even where it does not move keyboard focus", isOn: $store.data.focusSounds.followVoiceOverCursor)
+                Text("VoiceOver cursor tracking asks VoiceOver for its cursor position several times a second and identifies the item under it, so it also covers messages, web text and other items that never take keyboard focus.")
+                    .font(.callout).foregroundStyle(.secondary)
             }
             Section("Control sounds") {
                 ForEach(SoundEvent.events(in: .focus)) { event in
