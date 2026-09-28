@@ -44,6 +44,7 @@ final class FocusMonitor {
     private var activationToken: NSObjectProtocol?
     private var pollTimer: Timer?
     private var lastReportedElement: AXUIElement?
+    private var lastSignature: FocusSignature?
     private var lastSlot: String?
     private var lastTime: TimeInterval = 0
     private let systemWide: AXUIElement = {
@@ -194,6 +195,13 @@ final class FocusMonitor {
         let element = value as! AXUIElement
         if let last = lastReportedElement, CFEqual(last, element) { return }
         let focused = AXElement(element)
+        // Catalyst apps hand out a new token for the same control on every
+        // query, so compare what the element is rather than which object it is.
+        let signature = FocusSignature(focused)
+        if signature == lastSignature {
+            lastReportedElement = element
+            return
+        }
         log.debug("poll: new focused element role=\(focused.role ?? "nil", privacy: .public) subrole=\(focused.subrole ?? "-", privacy: .public) pid=\(focused.pid ?? 0, privacy: .public)")
         if let pid = focused.pid { attachSecondaryIfNeeded(pid: pid) }
         report(focused, source: "poll")
@@ -201,6 +209,7 @@ final class FocusMonitor {
 
     private func report(_ target: AXElement, source: String) {
         lastReportedElement = target.element
+        lastSignature = FocusSignature(target)
         guard let slot = FocusRoleMapper.slot(for: target) else { return }
         // Collapse bursts (a table focusing and selecting its row fires twice).
         let now = ProcessInfo.processInfo.systemUptime
@@ -209,6 +218,23 @@ final class FocusMonitor {
         lastTime = now
         log.debug("focus \(slot, privacy: .public) via \(source, privacy: .public) (\(target.role ?? "?", privacy: .public)/\(target.subrole ?? "-", privacy: .public))")
         onFocus?(slot, target)
+    }
+}
+
+/// What a focused element *is*, for telling "focus moved" from "same control, new token".
+struct FocusSignature: Equatable {
+    let pid: pid_t
+    let role: String
+    let subrole: String
+    let identifier: String
+    let frame: CGRect
+
+    init(_ element: AXElement) {
+        pid = element.pid ?? 0
+        role = element.role ?? ""
+        subrole = element.subrole ?? ""
+        identifier = element.string(kAXIdentifierAttribute) ?? ""
+        frame = (element.frame ?? .zero).integral
     }
 }
 
