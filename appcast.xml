@@ -3,6 +3,16 @@
     <channel>
         <title>MaccessHub</title>
         <item>
+            <title>1.2.5</title>
+            <pubDate>Mon, 28 Sep 2026 00:29:08 -0500</pubDate>
+            <link>https://github.com/masonasons/MaccessHub</link>
+            <sparkle:version>32</sparkle:version>
+            <sparkle:shortVersionString>1.2.5</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <enclosure url="https://github.com/masonasons/MaccessHub/releases/download/v1.2.5/MaccessHub.dmg" length="5925408" type="application/octet-stream" sparkle:edSignature="D++Q7ZfkDKQdKFiVenaggJf2y7C2qVCYQjqNcjl7ftBkGaR9pN/xMbCJ2SDIz7cJkyEYXxduZuZAOvDw4XCLDQ=="/>
+        </item>
+        <item>
             <title>1.2.4</title>
             <pubDate>Sun, 27 Sep 2026 23:23:16 -0500</pubDate>
             <link>https://github.com/masonasons/MaccessHub</link>
@@ -21,16 +31,6 @@
             <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
             <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
             <enclosure url="https://github.com/masonasons/MaccessHub/releases/download/v1.2.3/MaccessHub.dmg" length="5924973" type="application/octet-stream" sparkle:edSignature="8c6DLxvsGw3dbzB8Uuxlx5QeOgwhAkcm8vU1bC5nXaXOq3nUI0mORyRRaCtDawPgVeA1BBx6hR1EyhFqZeFqBA=="/>
-        </item>
-        <item>
-            <title>1.2.2</title>
-            <pubDate>Sun, 27 Sep 2026 20:55:54 -0500</pubDate>
-            <link>https://github.com/masonasons/MaccessHub</link>
-            <sparkle:version>25</sparkle:version>
-            <sparkle:shortVersionString>1.2.2</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <enclosure url="https://github.com/masonasons/MaccessHub/releases/download/v1.2.2/MaccessHub.dmg" length="5903362" type="application/octet-stream" sparkle:edSignature="MaqKwhkfx40NZ4mp9NE4SIvCxV2LibaxQryz2YLVsekKHnqeOi/TcIOlWd9LFp/JiDm/CNY13sbm2zRXRYbvDg=="/>
         </item>
     </channel>
 </rss>
