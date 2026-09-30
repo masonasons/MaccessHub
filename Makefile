@@ -11,9 +11,18 @@ all: build
 gen:
 	xcodegen generate
 
+# Sign local builds with the same Developer ID identity releases use. macOS
+# ties privacy grants (Accessibility, Input Monitoring, Automation) to the
+# signing identity, so a Sparkle update from a differently signed local build
+# would silently lose them.
+DEVID := $(shell security find-identity -v -p codesigning 2>/dev/null | grep 'Developer ID Application' | head -1 | sed -E 's/.*"(.*)".*/\1/')
+ifneq ($(DEVID),)
+SIGNING = CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY="$(DEVID)" OTHER_CODE_SIGN_FLAGS="--timestamp --options=runtime"
+endif
+
 build: gen
 	xcodebuild -project $(APP).xcodeproj -scheme $(APP) -configuration $(CONFIG) \
-	  -derivedDataPath $(BUILD) build | tail -20
+	  -derivedDataPath $(BUILD) $(SIGNING) build | tail -20
 
 # Wait for the old instance to exit; otherwise `open` sees it as still
 # running and the relaunch is silently dropped.

@@ -32,6 +32,9 @@ final class AppController {
     private var doublePressInterval = 0.35
     private var pendingPress: (action: HotKeyAction, work: DispatchWorkItem)?
 
+    private var healthTimer: Timer?
+    private var wasTrusted = AccessibilityPermission.isTrusted
+
     /// Set by the settings UI while a shortcut is being recorded.
     var isRecordingShortcut = false {
         didSet { isRecordingShortcut ? hotkeys.suspend() : hotkeys.resume() }
@@ -76,8 +79,30 @@ final class AppController {
 
     func start() {
         applySettings()
+        // Permissions can be granted (or re-granted after an update changes the
+        // signing identity) while the app is running. Re-check every few seconds
+        // and bring up anything that could not start earlier.
+        healthTimer = Timer.scheduledTimer(withTimeInterval: 3, repeats: true) { [weak self] _ in self?.checkHealth() }
+        healthTimer?.tolerance = 1
         if settings.data.eventSounds.enabled { play("system.login", ignoreEnabledState: false) }
         log.info("MaccessHub started")
+    }
+
+    private func checkHealth() {
+        let data = settings.data
+        let trusted = AccessibilityPermission.isTrusted
+        if trusted != wasTrusted {
+            log.info("Accessibility permission changed: \(trusted)")
+            wasTrusted = trusted
+            if trusted {
+                // Observers skipped attaching while untrusted; start them over.
+                if focusMonitorRunning { focusMonitor.stop(); focusMonitor.start() }
+                if monitorsRunning { eventMonitors.forEach { $0.stop(); $0.start() } }
+            }
+        }
+        if data.keyClicks.enabled, !keyClicks.isRunning, trusted {
+            if keyClicks.start() { log.info("Key click tap started after permission became available") }
+        }
     }
 
     func applySettings() {

@@ -1,7 +1,21 @@
 import AppKit
 import Foundation
+import IOKit.hid
 
 enum Diagnostics {
+    /// Whether this app may send Apple Events to `bundleID`, without prompting.
+    static func automationStatus(bundleID: String) -> String {
+        let target = NSAppleEventDescriptor(bundleIdentifier: bundleID)
+        let status = AEDeterminePermissionToAutomateTarget(target.aeDesc, typeWildCard, typeWildCard, false)
+        switch Int(status) {
+        case 0: return "granted"
+        case -1743: return "denied"
+        case -1744: return "not determined (will prompt)"
+        case -600: return "target not running"
+        default: return "status \(status)"
+        }
+    }
+
     static func printReports() {
         let speaker = Speaker()
         speaker.sink = { print($0) }
@@ -11,6 +25,9 @@ enum Diagnostics {
 
         print("MaccessHub \(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?")")
         print("Accessibility permission: \(AccessibilityPermission.isTrusted ? "granted" : "not granted")")
+        let listen = IOHIDCheckAccess(kIOHIDRequestTypeListenEvent)
+        print("Input Monitoring permission: \(listen == kIOHIDAccessTypeGranted ? "granted" : listen == kIOHIDAccessTypeDenied ? "denied" : "not determined")")
+        print("Automation (VoiceOver) permission: \(Self.automationStatus(bundleID: "com.apple.VoiceOver"))")
         print("VoiceOver running: \(Speaker.isVoiceOverRunning)")
         print("Settings file: \(SettingsStore.fileURL.path)")
         print("Soundpacks: " + library.packs.map { "\($0.name) (\($0.eventCount) sounds)" }.joined(separator: ", "))
