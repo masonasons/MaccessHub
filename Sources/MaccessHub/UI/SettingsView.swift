@@ -309,6 +309,24 @@ struct FocusSoundsSettingsView: View {
                 Text("Asks VoiceOver for its cursor position a few times a second and sounds the item under it, covering items that never take keyboard focus. Each request costs VoiceOver time and can make it noticeably sluggish, so this is off by default.")
                     .font(.callout).foregroundStyle(.secondary)
             }
+            Section("Progress bars") {
+                Picker("Progress bar output", selection: $store.data.progress.output) {
+                    ForEach(ProgressOutput.allCases) { Text($0.title).tag($0) }
+                }
+                Toggle("Report bars in other windows of the active app", isOn: $store.data.progress.backgroundWindows)
+                    .disabled(store.data.progress.output == .off)
+                Toggle("Report bars in background apps", isOn: $store.data.progress.backgroundApps)
+                    .disabled(store.data.progress.output == .off)
+                Stepper(value: $store.data.progress.speakEvery, in: 1...50) {
+                    Text("Speak every \(store.data.progress.speakEvery) percent")
+                }
+                .disabled(store.data.progress.output == .off || store.data.progress.output == .beep)
+                Slider(value: $store.data.progress.beepVolume, in: 0...1) { Text("Beep volume") }
+                    .accessibilityValue("\(Int(store.data.progress.beepVolume * 100)) percent")
+                    .disabled(store.data.progress.output == .off || store.data.progress.output == .speak)
+                Text("Like NVDA: beeps rise in pitch as a bar fills, from 110 Hz at 0 percent to 1760 Hz at 100 percent, and speech names each step. With HRTF on, beeps come from the bar's position on screen.")
+                    .font(.callout).foregroundStyle(.secondary)
+            }
             Section("Control sounds") {
                 ForEach(SoundEvent.events(in: .focus)) { event in
                     SoundEventRow(event: event, store: store, library: library)

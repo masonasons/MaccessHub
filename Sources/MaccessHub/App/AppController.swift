@@ -1,4 +1,5 @@
 import AppKit
+import AVFoundation
 import Foundation
 import os
 import ServiceManagement
@@ -24,6 +25,10 @@ final class AppController {
     let keyClicks = KeyClickMonitor()
     let focusMonitor = FocusMonitor()
     private var focusMonitorRunning = false
+    let progressMonitor = ProgressMonitor()
+    private var progressMonitorRunning = false
+    /// Last spoken bucket per bar identity, so speech fires once per step.
+    private var spokenProgress: [String: Int] = [:]
 
     private let workspaceMonitor = WorkspaceMonitor()
     private let eventMonitors: [EventMonitor]
@@ -66,6 +71,7 @@ final class AppController {
             DispatchQueue.main.async { self?.handleKey(category) }
         }
         focusMonitor.onFocus = { [weak self] slot, element, frame in self?.handleFocus(slot, element: element, frame: frame) }
+        progressMonitor.onUpdate = { [weak self] update in self?.handleProgress(update) }
         hotkeys.handler = { [weak self] action in self?.perform(action) }
         // Feedback sounds for the mute toggle bypass the event-sounds master switch.
         audioSwitch.playSound = { [weak self] id in
@@ -99,6 +105,7 @@ final class AppController {
                 // Observers skipped attaching while untrusted; start them over.
                 if focusMonitorRunning { focusMonitor.stop(); focusMonitor.start() }
                 if monitorsRunning { eventMonitors.forEach { $0.stop(); $0.start() } }
+                if progressMonitorRunning { progressMonitor.stop(); progressMonitor.start() }
             }
         }
         // A failed tap attempt can trigger the Input Monitoring prompt, so retry sparingly.
@@ -161,6 +168,15 @@ final class AppController {
             focusMonitorRunning = false
         }
 
+        progressMonitor.watchBackgroundApps = data.progress.backgroundApps
+        if data.progress.output != .off, !progressMonitorRunning {
+            progressMonitor.start()
+            progressMonitorRunning = true
+        } else if data.progress.output == .off, progressMonitorRunning {
+            progressMonitor.stop()
+            progressMonitorRunning = false
+        }
+
         hotkeys.apply(bindings: data.activeHotkeys)
         applyLaunchAtLogin(data.general.launchAtLogin)
 
@@ -214,6 +230,35 @@ final class AppController {
                 let frame = CGRect(x: desktop.minX + desktop.width * spot.0, y: desktop.minY + desktop.height * spot.1,
                                    width: 1, height: 1)
                 engine.playSpatial(url, volume: volume, at: SpatialMapper.position(for: frame, in: desktop), exclusive: false)
+            }
+        }
+    }
+
+    // MARK: Progress bars
+
+    private func handleProgress(_ update: ProgressMonitor.Update) {
+        let data = settings.data
+        let progress = data.progress
+        guard progress.output != .off else { return }
+        if !update.inFrontmostApp && !progress.backgroundApps { return }
+        if !update.inFocusedWindow && !progress.backgroundWindows && update.inFrontmostApp { return }
+        log.debug("progress \(update.percent, privacy: .public)% focusedWindow=\(update.inFocusedWindow, privacy: .public) frontmost=\(update.inFrontmostApp, privacy: .public)")
+
+        if progress.output == .beep || progress.output == .both {
+            // NVDA: 110 Hz at 0 %, doubling every 25 %, 40 ms.
+            let frequency = 110 * pow(2, Double(update.percent) / 25)
+            let position: AVAudio3DPoint? = data.focusSounds.spatial
+                ? (update.frame.map { SpatialMapper.position(for: $0) } ?? SpatialMapper.center) : nil
+            engine.playTone(frequency: frequency, volume: Float(progress.beepVolume), at: position)
+        }
+        if progress.output == .speak || progress.output == .both {
+            let step = max(1, progress.speakEvery)
+            let bucket = update.percent / step
+            let key = "\(update.element.pid ?? 0):\(Int(update.frame?.minX ?? 0)),\(Int(update.frame?.minY ?? 0))"
+            if spokenProgress[key] != bucket, update.percent % step == 0 || update.percent == 100 {
+                spokenProgress[key] = bucket
+                if spokenProgress.count > 64 { spokenProgress.removeAll() }
+                speaker.speak("\(update.percent) percent")
             }
         }
     }

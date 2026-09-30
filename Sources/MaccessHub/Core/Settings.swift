@@ -107,6 +107,41 @@ struct KeyClickSettings: Codable {
     func isEnabled(_ event: SoundEvent) -> Bool { eventStates[event.id] ?? event.defaultEnabled }
 }
 
+enum ProgressOutput: String, Codable, CaseIterable, Identifiable {
+    case off, beep, speak, both
+    var id: String { rawValue }
+    var title: String {
+        switch self {
+        case .off: return "Off"
+        case .beep: return "Beep"
+        case .speak: return "Speak"
+        case .both: return "Beep and speak"
+        }
+    }
+}
+
+/// NVDA-style progress bar reporting.
+struct ProgressSettings: Codable {
+    var output: ProgressOutput = .beep
+    /// Also report bars in windows of the active app other than the focused one.
+    var backgroundWindows = false
+    /// Also report bars in apps that are not frontmost.
+    var backgroundApps = false
+    /// Speak every N percent (NVDA speaks every 10).
+    var speakEvery = 10
+    var beepVolume = 0.5
+
+    init() {}
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        output = c.value(.output, default: .beep)
+        backgroundWindows = c.value(.backgroundWindows, default: false)
+        backgroundApps = c.value(.backgroundApps, default: false)
+        speakEvery = c.value(.speakEvery, default: 10)
+        beepVolume = c.value(.beepVolume, default: 0.5)
+    }
+}
+
 struct FocusSoundSettings: Codable {
     var enabled = true
     var volume = 0.8
@@ -197,6 +232,7 @@ struct SettingsData: Codable {
     var eventSounds = EventSoundSettings()
     var keyClicks = KeyClickSettings()
     var focusSounds = FocusSoundSettings()
+    var progress = ProgressSettings()
     var audioDevices = AudioDeviceSettings()
     var menuExtras = MenuExtraSettings()
     var systemInfo = SystemInfoSettings()
@@ -213,6 +249,7 @@ struct SettingsData: Codable {
         eventSounds = c.value(.eventSounds, default: EventSoundSettings())
         keyClicks = c.value(.keyClicks, default: KeyClickSettings())
         focusSounds = c.value(.focusSounds, default: FocusSoundSettings())
+        progress = c.value(.progress, default: ProgressSettings())
         audioDevices = c.value(.audioDevices, default: AudioDeviceSettings())
         menuExtras = c.value(.menuExtras, default: MenuExtraSettings())
         systemInfo = c.value(.systemInfo, default: SystemInfoSettings())

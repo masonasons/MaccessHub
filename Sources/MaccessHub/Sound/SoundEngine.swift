@@ -219,6 +219,49 @@ final class SoundEngine {
         return buffer
     }
 
+    private var toneBuffers: [String: AVAudioPCMBuffer] = [:]
+
+    /// A short sine beep (NVDA-style progress tone), in the format of the node
+    /// pool that will play it. Cached per whole hertz and channel count.
+    private func toneBuffer(frequency: Double, duration: TimeInterval, format: AVAudioFormat) -> AVAudioPCMBuffer? {
+        let key = "\(Int(frequency.rounded()))/\(format.channelCount)"
+        lock.lock(); if let cached = toneBuffers[key] { lock.unlock(); return cached }; lock.unlock()
+        let rate = format.sampleRate
+        let frames = AVAudioFrameCount(rate * duration)
+        guard let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: frames) else { return nil }
+        buffer.frameLength = frames
+        let attack = Int(rate * 0.004)
+        for i in 0..<Int(frames) {
+            var env: Float = 1
+            if i < attack { env = Float(i) / Float(attack) }
+            if i > Int(frames) - attack { env = Float(Int(frames) - i) / Float(attack) }
+            let sample = Float(sin(2 * .pi * frequency * Double(i) / rate)) * env * 0.6
+            for channel in 0..<Int(format.channelCount) { buffer.floatChannelData![channel][i] = sample }
+        }
+        lock.lock(); toneBuffers[key] = buffer; lock.unlock()
+        return buffer
+    }
+
+    /// Plays a beep, binaurally at `position` when given, otherwise through the plain mixer.
+    func playTone(frequency: Double, duration: TimeInterval = 0.04, volume: Float, at position: AVAudio3DPoint?) {
+        guard let buffer = toneBuffer(frequency: frequency, duration: duration,
+                                      format: position == nil ? format : monoFormat) else { return }
+        startIfNeeded()
+        lock.lock()
+        let node: AVAudioPlayerNode
+        if let position {
+            node = spatialNodes[nextSpatialNode]
+            nextSpatialNode = (nextSpatialNode + 1) % spatialNodes.count
+            node.position = position
+        } else {
+            node = nodes[nextNode]
+            nextNode = (nextNode + 1) % nodes.count
+        }
+        lock.unlock()
+        node.volume = max(0, min(1, volume))
+        node.scheduleBuffer(buffer, at: nil, options: [.interrupts], completionHandler: nil)
+    }
+
     func stopAll() {
         for node in nodes + spatialNodes { node.stop() }
     }
