@@ -129,6 +129,11 @@ struct ProgressSettings: Codable {
     var backgroundApps = false
     /// Speak every N percent (NVDA speaks every 10).
     var speakEvery = 10
+    /// Beep every N percent (NVDA beeps every 1).
+    var beepEvery = 1
+    /// Pitch at 0 percent; NVDA's default is 110 Hz.
+    var beepMinHz = 110
+    /// 0.5 matches NVDA's default beep level.
     var beepVolume = 0.5
 
     init() {}
@@ -138,6 +143,8 @@ struct ProgressSettings: Codable {
         backgroundWindows = c.value(.backgroundWindows, default: false)
         backgroundApps = c.value(.backgroundApps, default: false)
         speakEvery = c.value(.speakEvery, default: 10)
+        beepEvery = c.value(.beepEvery, default: 1)
+        beepMinHz = c.value(.beepMinHz, default: 110)
         beepVolume = c.value(.beepVolume, default: 0.5)
     }
 }

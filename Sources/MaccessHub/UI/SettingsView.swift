@@ -321,10 +321,20 @@ struct FocusSoundsSettingsView: View {
                     Text("Speak every \(store.data.progress.speakEvery) percent")
                 }
                 .disabled(store.data.progress.output == .off || store.data.progress.output == .beep)
+                Stepper(value: $store.data.progress.beepEvery, in: 1...25) {
+                    Text("Beep every \(store.data.progress.beepEvery) percent")
+                }
+                .disabled(store.data.progress.output == .off || store.data.progress.output == .speak)
+                Stepper(value: $store.data.progress.beepMinHz, in: 55...880, step: 5) {
+                    Text("Beep pitch at 0 percent: \(store.data.progress.beepMinHz) Hz")
+                }
+                .disabled(store.data.progress.output == .off || store.data.progress.output == .speak)
                 Slider(value: $store.data.progress.beepVolume, in: 0...1) { Text("Beep volume") }
                     .accessibilityValue("\(Int(store.data.progress.beepVolume * 100)) percent")
                     .disabled(store.data.progress.output == .off || store.data.progress.output == .speak)
-                Text("Like NVDA: beeps rise in pitch as a bar fills, from 110 Hz at 0 percent to 1760 Hz at 100 percent, and speech names each step. With HRTF on, beeps come from the bar's position on screen.")
+                Button("Test Beeps") { AppController.shared.previewProgressBeeps() }
+                    .disabled(store.data.progress.output == .off || store.data.progress.output == .speak)
+                Text("NVDA's progress beeps, sample for sample: 40 ms, pitch doubling every 25 percent, and speech at each interval. With HRTF on, beeps come from the bar's position on screen. Defaults match NVDA's.")
                     .font(.callout).foregroundStyle(.secondary)
             }
             Section("Control sounds") {

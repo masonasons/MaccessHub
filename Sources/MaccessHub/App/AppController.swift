@@ -27,8 +27,9 @@ final class AppController {
     private var focusMonitorRunning = false
     let progressMonitor = ProgressMonitor()
     private var progressMonitorRunning = false
-    /// Last spoken bucket per bar identity, so speech fires once per step.
+    /// Last reported percent per bar identity, for beeps and speech separately.
     private var spokenProgress: [String: Int] = [:]
+    private var lastBeepProgress: [String: Int] = [:]
 
     private let workspaceMonitor = WorkspaceMonitor()
     private let eventMonitors: [EventMonitor]
@@ -218,6 +219,17 @@ final class AppController {
         }
     }
 
+    /// Sweeps the progress beep from 0 to 100 percent in steps of 10, like a bar filling.
+    func previewProgressBeeps() {
+        let progress = settings.data.progress
+        for (i, percent) in stride(from: 0, through: 100, by: 10).enumerated() {
+            DispatchQueue.main.asyncAfter(deadline: .now() + Double(i) * 0.12) { [engine] in
+                let frequency = Double(progress.beepMinHz) * pow(2, Double(percent) / 25)
+                engine.playTone(frequency: frequency, duration: 0.04, volume: Float(progress.beepVolume), at: nil)
+            }
+        }
+    }
+
     /// Plays the button sound at the left, centre and right of the desktop so the
     /// user can check that HRTF placement is audible.
     func previewSpatialPositions() {
@@ -244,23 +256,29 @@ final class AppController {
         if !update.inFocusedWindow && !progress.backgroundWindows && update.inFrontmostApp { return }
         log.debug("progress \(update.percent, privacy: .public)% focusedWindow=\(update.inFocusedWindow, privacy: .public) frontmost=\(update.inFrontmostApp, privacy: .public)")
 
+        // NVDA reports when the change since the last report reaches the interval,
+        // tracking beeps and speech separately per bar (keyed by position).
+        let key = "\(update.element.pid ?? 0):\(Int(update.frame?.minX ?? 0)),\(Int(update.frame?.minY ?? 0))"
         if progress.output == .beep || progress.output == .both {
-            // NVDA: 110 Hz at 0 %, doubling every 25 %, 40 ms.
-            let frequency = 110 * pow(2, Double(update.percent) / 25)
-            let position: AVAudio3DPoint? = data.focusSounds.spatial
-                ? (update.frame.map { SpatialMapper.position(for: $0) } ?? SpatialMapper.center) : nil
-            engine.playTone(frequency: frequency, volume: Float(progress.beepVolume), at: position)
+            let last = lastBeepProgress[key]
+            if last == nil || abs(update.percent - last!) >= max(1, progress.beepEvery) {
+                lastBeepProgress[key] = update.percent
+                // NVDA: beepMinHZ * 2 ** (percentage / 25), 40 ms.
+                let frequency = Double(progress.beepMinHz) * pow(2, Double(update.percent) / 25)
+                let position: AVAudio3DPoint? = data.focusSounds.spatial
+                    ? (update.frame.map { SpatialMapper.position(for: $0) } ?? SpatialMapper.center) : nil
+                engine.playTone(frequency: frequency, duration: 0.04, volume: Float(progress.beepVolume), at: position)
+            }
         }
         if progress.output == .speak || progress.output == .both {
-            let step = max(1, progress.speakEvery)
-            let bucket = update.percent / step
-            let key = "\(update.element.pid ?? 0):\(Int(update.frame?.minX ?? 0)),\(Int(update.frame?.minY ?? 0))"
-            if spokenProgress[key] != bucket, update.percent % step == 0 || update.percent == 100 {
-                spokenProgress[key] = bucket
-                if spokenProgress.count > 64 { spokenProgress.removeAll() }
+            let last = spokenProgress[key]
+            if last == nil || abs(update.percent - last!) >= max(1, progress.speakEvery) {
+                spokenProgress[key] = update.percent
                 speaker.speak("\(update.percent) percent")
             }
         }
+        if lastBeepProgress.count > 64 { lastBeepProgress.removeAll() }
+        if spokenProgress.count > 64 { spokenProgress.removeAll() }
     }
 
     private func handleKey(_ category: KeyCategory) {

@@ -221,21 +221,24 @@ final class SoundEngine {
 
     private var toneBuffers: [String: AVAudioPCMBuffer] = [:]
 
-    /// A short sine beep (NVDA-style progress tone), in the format of the node
-    /// pool that will play it. Cached per whole hertz and channel count.
+    /// NVDA's beep, ported from nvdaHelper/local/beeps.cpp: a sine doubled and
+    /// hard-clipped (the source of its slightly buzzy timbre), no envelope, and
+    /// the length rounded up to a whole number of cycles so it ends at a zero
+    /// crossing. Amplitude 14000/32767 at full pan; NVDA's default pan of 50
+    /// corresponds to a volume of 0.5 here.
     private func toneBuffer(frequency: Double, duration: TimeInterval, format: AVAudioFormat) -> AVAudioPCMBuffer? {
-        let key = "\(Int(frequency.rounded()))/\(format.channelCount)"
+        let key = "\(Int(frequency.rounded()))/\(Int(duration * 1000))/\(format.channelCount)"
         lock.lock(); if let cached = toneBuffers[key] { lock.unlock(); return cached }; lock.unlock()
         let rate = format.sampleRate
-        let frames = AVAudioFrameCount(rate * duration)
-        guard let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: frames) else { return nil }
-        buffer.frameLength = frames
-        let attack = Int(rate * 0.004)
-        for i in 0..<Int(frames) {
-            var env: Float = 1
-            if i < attack { env = Float(i) / Float(attack) }
-            if i > Int(frames) - attack { env = Float(Int(frames) - i) / Float(attack) }
-            let sample = Float(sin(2 * .pi * frequency * Double(i) / rate)) * env * 0.6
+        let samplesPerCycle = max(1, Int(rate / frequency))
+        var totalSamples = Int(duration * rate)
+        totalSamples += samplesPerCycle - (totalSamples % samplesPerCycle)
+        guard let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: AVAudioFrameCount(totalSamples)) else { return nil }
+        buffer.frameLength = AVAudioFrameCount(totalSamples)
+        let sinFreq = (2.0 * Double.pi) / (rate / frequency)
+        let amplitude: Float = 14000.0 / 32767.0
+        for i in 0..<totalSamples {
+            let sample = Float(min(max(sin(Double(i % Int(rate)) * sinFreq) * 2.0, -1.0), 1.0)) * amplitude
             for channel in 0..<Int(format.channelCount) { buffer.floatChannelData![channel][i] = sample }
         }
         lock.lock(); toneBuffers[key] = buffer; lock.unlock()
