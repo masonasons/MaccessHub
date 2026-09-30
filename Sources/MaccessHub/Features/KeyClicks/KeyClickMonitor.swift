@@ -27,6 +27,7 @@ final class KeyClickMonitor {
     var onKey: ((KeyCategory) -> Void)?
 
     private(set) var isRunning = false
+    private static var requestedListenAccess = false
 
     /// True if a tap could be created; false usually means permission is missing.
     @discardableResult
@@ -42,7 +43,14 @@ final class KeyClickMonitor {
                                               monitor.handle(type: type, event: event)
                                               return Unmanaged.passUnretained(event)
                                           }, userInfo: refcon) else {
-            log.error("Could not create key event tap; check Accessibility / Input Monitoring permission")
+            let preflight = CGPreflightListenEventAccess()
+            log.error("Could not create key event tap (Input Monitoring preflight: \(preflight, privacy: .public), Accessibility: \(AXIsProcessTrusted(), privacy: .public))")
+            if !preflight, !Self.requestedListenAccess {
+                // Tap creation never prompts; this does, and adds the app to the Input Monitoring list.
+                Self.requestedListenAccess = true
+                let asked = CGRequestListenEventAccess()
+                log.info("Requested Input Monitoring access: \(asked, privacy: .public)")
+            }
             return false
         }
         self.tap = tap
@@ -50,6 +58,7 @@ final class KeyClickMonitor {
         CFRunLoopAddSource(CFRunLoopGetMain(), runLoopSource, .commonModes)
         CGEvent.tapEnable(tap: tap, enable: true)
         isRunning = true
+        log.info("Key event tap created (enabled: \(CGEvent.tapIsEnabled(tap: tap), privacy: .public))")
         return true
     }
 
@@ -79,7 +88,9 @@ final class KeyClickMonitor {
         let scope = self.scope
         queue.async { [weak self] in
             guard let self else { return }
-            if scope == .textFieldsOnly, !Self.isTypingInTextField() { return }
+            let inField = Self.isTypingInTextField()
+            self.log.debug("key \(category.rawValue, privacy: .public) scope=\(scope.rawValue, privacy: .public) inTextField=\(inField, privacy: .public)")
+            if scope == .textFieldsOnly, !inField { return }
             self.onKey?(category)
         }
     }

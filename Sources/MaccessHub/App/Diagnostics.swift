@@ -24,6 +24,7 @@ enum Diagnostics {
         let library = SoundpackLibrary()
 
         print("MaccessHub \(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?")")
+        print("Note: run from a terminal, these permission checks reflect the terminal's grants, not the app's.")
         print("Accessibility permission: \(AccessibilityPermission.isTrusted ? "granted" : "not granted")")
         let listen = IOHIDCheckAccess(kIOHIDRequestTypeListenEvent)
         print("Input Monitoring permission: \(listen == kIOHIDAccessTypeGranted ? "granted" : listen == kIOHIDAccessTypeDenied ? "denied" : "not determined")")

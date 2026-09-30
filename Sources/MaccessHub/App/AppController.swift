@@ -34,6 +34,7 @@ final class AppController {
 
     private var healthTimer: Timer?
     private var wasTrusted = AccessibilityPermission.isTrusted
+    private var lastTapAttempt: TimeInterval = 0
 
     /// Set by the settings UI while a shortcut is being recorded.
     var isRecordingShortcut = false {
@@ -100,7 +101,10 @@ final class AppController {
                 if monitorsRunning { eventMonitors.forEach { $0.stop(); $0.start() } }
             }
         }
-        if data.keyClicks.enabled, !keyClicks.isRunning, trusted {
+        // A failed tap attempt can trigger the Input Monitoring prompt, so retry sparingly.
+        let now = ProcessInfo.processInfo.systemUptime
+        if data.keyClicks.enabled, !keyClicks.isRunning, trusted, now - lastTapAttempt > 10 {
+            lastTapAttempt = now
             if keyClicks.start() { log.info("Key click tap started after permission became available") }
         }
     }
@@ -217,7 +221,11 @@ final class AppController {
     private func handleKey(_ category: KeyCategory) {
         let data = settings.data
         guard data.keyClicks.enabled, let event = SoundEvent.byID[category.eventID],
-              data.keyClicks.isEnabled(event), let url = scheme.url(for: event) else { return }
+              data.keyClicks.isEnabled(event), let url = scheme.url(for: event) else {
+            log.debug("key click skipped: enabled=\(data.keyClicks.enabled, privacy: .public) event=\(category.eventID, privacy: .public)")
+            return
+        }
+        log.debug("key click play \(url.lastPathComponent, privacy: .public)")
         engine.play(url, volume: Float(data.keyClicks.volume), exclusive: true)
     }
 
