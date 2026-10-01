@@ -234,6 +234,22 @@ struct SystemInfoSettings: Codable {
     }
 }
 
+struct SpeechHistorySettings: Codable {
+    var enabled = true
+    var maximumEntries = 500
+    var trimLeadingWhitespace = true
+    var trimTrailingWhitespace = true
+
+    init() {}
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        enabled = c.value(.enabled, default: true)
+        maximumEntries = c.value(.maximumEntries, default: 500)
+        trimLeadingWhitespace = c.value(.trimLeadingWhitespace, default: true)
+        trimTrailingWhitespace = c.value(.trimTrailingWhitespace, default: true)
+    }
+}
+
 struct SettingsData: Codable {
     var general = GeneralSettings()
     var eventSounds = EventSoundSettings()
@@ -243,6 +259,7 @@ struct SettingsData: Codable {
     var audioDevices = AudioDeviceSettings()
     var menuExtras = MenuExtraSettings()
     var systemInfo = SystemInfoSettings()
+    var speechHistory = SpeechHistorySettings()
     /// event ID → absolute file path chosen by the user; beats any pack.
     var soundOverrides: [String: String] = [:]
     /// action raw value → combo; absent means the default binding.
@@ -260,6 +277,7 @@ struct SettingsData: Codable {
         audioDevices = c.value(.audioDevices, default: AudioDeviceSettings())
         menuExtras = c.value(.menuExtras, default: MenuExtraSettings())
         systemInfo = c.value(.systemInfo, default: SystemInfoSettings())
+        speechHistory = c.value(.speechHistory, default: SpeechHistorySettings())
         soundOverrides = c.value(.soundOverrides, default: [:])
         hotkeys = c.value(.hotkeys, default: [:])
         disabledHotkeys = c.value(.disabledHotkeys, default: [])
@@ -292,6 +310,7 @@ struct SettingsData: Codable {
         var result: [HotKeyAction: KeyCombo] = [:]
         for action in HotKeyAction.allCases {
             if action.group == .menuExtras, !menuExtras.enabled { continue }
+            if action.group == .speechHistory, !speechHistory.enabled { continue }
             if let combo = combo(for: action) { result[action] = combo }
         }
         return result
