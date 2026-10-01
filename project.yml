@@ -51,7 +51,7 @@ targets:
         # Menu bar only: no Dock icon, no app menu.
         LSUIElement: true
         NSHumanReadableCopyright: MIT
-        NSAppleEventsUsageDescription: MaccessHub asks VoiceOver to speak messages when VoiceOver is running.
+        NSAppleEventsUsageDescription: MaccessHub asks VoiceOver to speak messages, and reads what VoiceOver last said to keep a speech history.
         NSBluetoothAlwaysUsageDescription: MaccessHub plays a sound when Bluetooth devices connect or disconnect.
         NSPrincipalClass: NSApplication
         # Sparkle auto-update. The public key pairs with the EdDSA private key

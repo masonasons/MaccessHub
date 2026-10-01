@@ -21,10 +21,40 @@ VoiceOver it falls back to the system voice.
 | **Application info** – name, version, bundle ID and path of the frontmost app. | AppInfo | ⌃⇧V |
 | **Position info** – "42 percent, item 5 of 12" in tables, outlines and lists; character and line position in text. | PositionInfo | ⌃⇧P |
 | **Menu extras** – press once to hear the Nth status item in the menu bar, twice to open it. Off by default. | MenuExt | ⌥⇧1 … ⌥⇧0 |
+| **Speech history** – like the Speech History add-on for NVDA: keeps the last 500 things VoiceOver said (adjustable), steps back and forth through them, copies the current one, and records a run of announcements to the clipboard. See [Speech history](#speech-history). | Speech History | ⇧F11 ⇧F12 F12 |
 
 Every shortcut can be changed or removed in **Settings → Shortcuts** (⌃⇧0
 opens it). There are also unbound shortcuts for toggling event sounds and key
 clicks.
+
+## Speech history
+
+MaccessHub reads VoiceOver's last spoken phrase ten times a second and keeps a
+history of it.
+
+- **⇧F11 / ⇧F12** – previous and next announcement. At either end the
+  announcement is repeated with "Oldest" or "Newest" in front. Any new speech
+  moves the review position back to the newest announcement.
+- **F12** – copy the current announcement.
+- **Start recording speech** / **Stop recording and copy speech** – everything
+  VoiceOver says in between is copied to the clipboard, one announcement per
+  line. Unbound by default; assign them in Settings → Shortcuts.
+- **Show speech history window** – the history as a list, newest first, with
+  Copy Selected (also ⌘C), Copy All (oldest first, one per line), Clear and
+  Close (Escape). Unbound by default; also in the menu bar menu. Nothing is
+  captured while the window is in front, so reading it does not add to it.
+- **Clear speech history** – unbound by default.
+
+Settings → Tools → Speech History turns it off, sets the maximum number of
+announcements, and controls whitespace trimming. Turning it off also releases
+its shortcuts, so F12 goes back to other apps.
+
+Anything MaccessHub itself says through VoiceOver while you review, copy or
+record is left out of the history.
+
+**Limitation:** VoiceOver only exposes the text of its last phrase, with no
+identifier or timestamp, so the same announcement spoken twice in a row (for
+example "Button", "Button") is stored once.
 
 ## Improvements over the spoons
 
@@ -112,7 +142,9 @@ MaccessHub.app/Contents/MacOS/MaccessHub --report
 - **Input Monitoring** – some macOS versions require this as well for the
   key-click event tap, and it is needed to read Logitech device batteries.
 - **Automation → VoiceOver** – asked the first time MaccessHub speaks through
-  VoiceOver.
+  VoiceOver or reads its speech for the history. The same permission covers
+  both; if speech history stays empty, check System Settings → Privacy &
+  Security → Automation → MaccessHub → VoiceOver.
 - **Bluetooth** – asked when Bluetooth sounds are active.
 
 The app is not sandboxed, because global shortcuts, the key-click event tap and
@@ -129,3 +161,7 @@ key press.
 Original spoons by Quin Marilyn (Audioswitch, recmon, AppInfo, PositionInfo,
 MenuExt), Arthur Pirika (EventSounds) and pitermach (KeyClicks). The Classic
 soundpack is their sound set. MIT licensed.
+
+Speech history is based on Mikołaj Hołysz's
+[SpeechHistory spoon](https://github.com/mikolysz/speech-history) (MIT), which
+introduced polling VoiceOver's last phrase to keep a history.
