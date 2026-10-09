@@ -15,17 +15,21 @@ final class SoundEngine {
     private let format = AVAudioFormat(standardFormatWithSampleRate: 48_000, channels: 2)!
     private let monoFormat = AVAudioFormat(standardFormatWithSampleRate: 48_000, channels: 1)!
     private var nodes: [AVAudioPlayerNode] = []
-    private var nextNode = 0
+    private var nextNode = 1
     private var buffers: [URL: AVAudioPCMBuffer] = [:]
     private var monoBuffers: [URL: AVAudioPCMBuffer] = [:]
     private var activeNode: [URL: AVAudioPlayerNode] = [:]
     /// HRTF path: mono players feeding an environment node that renders binaurally.
     private let environment = AVAudioEnvironmentNode()
     private var spatialNodes: [AVAudioPlayerNode] = []
-    private var nextSpatialNode = 0
+    private var nextSpatialNode = 1
     private var activeSpatialNode: [URL: AVAudioPlayerNode] = [:]
     private let lock = NSLock()
     private var configObserver: NSObjectProtocol?
+    private var defaultDeviceListener: AudioObjectPropertyListenerBlock?
+    /// Progress beeps go through one node per path so each beep cuts the previous.
+    private lazy var toneNode: AVAudioPlayerNode = nodes[0]
+    private lazy var spatialToneNode: AVAudioPlayerNode = spatialNodes[0]
 
     init(voices: Int = 12) {
         for _ in 0..<voices {
@@ -60,8 +64,41 @@ final class SoundEngine {
             forName: .AVAudioEngineConfigurationChange, object: engine, queue: .main
         ) { [weak self] _ in
             self?.log.info("Audio configuration changed, restarting engine")
-            self?.startIfNeeded()
+            self?.rebuild()
         }
+        // The engine does not always follow a change of default output device
+        // on its own (it can stay bound to a device that is gone or no longer
+        // default, and plays into silence). Rebind whenever the default changes.
+        var address = AudioObjectPropertyAddress(mSelector: kAudioHardwarePropertyDefaultOutputDevice,
+                                                 mScope: kAudioObjectPropertyScopeGlobal,
+                                                 mElement: kAudioObjectPropertyElementMain)
+        let listener: AudioObjectPropertyListenerBlock = { [weak self] _, _ in
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { self?.rebuild() }
+        }
+        defaultDeviceListener = listener
+        AudioObjectAddPropertyListenerBlock(AudioObjectID(kAudioObjectSystemObject), &address, DispatchQueue.main, listener)
+    }
+
+    /// Stops the engine, points its output at the current default device, and
+    /// starts it again. Connections and attached nodes survive a stop.
+    private func rebuild() {
+        engine.stop()
+        var address = AudioObjectPropertyAddress(mSelector: kAudioHardwarePropertyDefaultOutputDevice,
+                                                 mScope: kAudioObjectPropertyScopeGlobal,
+                                                 mElement: kAudioObjectPropertyElementMain)
+        var device: AudioDeviceID = 0
+        var size = UInt32(MemoryLayout<AudioDeviceID>.size)
+        if AudioObjectGetPropertyData(AudioObjectID(kAudioObjectSystemObject), &address, 0, nil, &size, &device) == noErr,
+           device != kAudioObjectUnknown, engine.outputNode.auAudioUnit.deviceID != device {
+            do {
+                try engine.outputNode.auAudioUnit.setDeviceID(device)
+                log.info("Audio output rebound to device \(device, privacy: .public)")
+            } catch {
+                log.error("Could not rebind audio output: \(error.localizedDescription, privacy: .public)")
+            }
+        }
+        engine.prepare()
+        startIfNeeded()
     }
 
     deinit {
@@ -133,7 +170,7 @@ final class SoundEngine {
             node = previous
         } else {
             node = nodes[nextNode]
-            nextNode = (nextNode + 1) % nodes.count
+            nextNode = nextNode % (nodes.count - 1) + 1 // skip index 0, the beep node
         }
         activeNode[url] = node
         lock.unlock()
@@ -193,7 +230,7 @@ final class SoundEngine {
             node = previous
         } else {
             node = spatialNodes[nextSpatialNode]
-            nextSpatialNode = (nextSpatialNode + 1) % spatialNodes.count
+            nextSpatialNode = nextSpatialNode % (spatialNodes.count - 1) + 1 // skip index 0, the beep node
         }
         activeSpatialNode[url] = node
         lock.unlock()
@@ -250,17 +287,9 @@ final class SoundEngine {
         guard let buffer = toneBuffer(frequency: frequency, duration: duration,
                                       format: position == nil ? format : monoFormat) else { return }
         startIfNeeded()
-        lock.lock()
-        let node: AVAudioPlayerNode
-        if let position {
-            node = spatialNodes[nextSpatialNode]
-            nextSpatialNode = (nextSpatialNode + 1) % spatialNodes.count
-            node.position = position
-        } else {
-            node = nodes[nextNode]
-            nextNode = (nextNode + 1) % nodes.count
-        }
-        lock.unlock()
+        // One node per path: scheduling with .interrupts on it cuts the previous beep.
+        let node = position == nil ? toneNode : spatialToneNode
+        if let position { node.position = position }
         node.volume = max(0, min(1, volume))
         node.scheduleBuffer(buffer, at: nil, options: [.interrupts], completionHandler: nil)
     }

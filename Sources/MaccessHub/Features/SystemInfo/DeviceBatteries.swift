@@ -1,4 +1,5 @@
 import Foundation
+import IOBluetooth
 import IOKit.ps
 
 /// Battery levels of connected accessories: Bluetooth devices via
@@ -7,6 +8,8 @@ import IOKit.ps
 enum DeviceBatteries {
     struct Device {
         var name: String
+        /// Normalised Bluetooth address (lowercase hex, no separators) when known.
+        var address: String? = nil
         /// Ordered label/percent pairs, e.g. [("left", 70), ("right", 72), ("case", 82)] or [("", 60)].
         var levels: [(label: String, percent: Int)]
         var charging = false
@@ -18,6 +21,15 @@ enum DeviceBatteries {
     static func connectedDevices(completion: @escaping ([Device]) -> Void) {
         DispatchQueue.global(qos: .userInitiated).async {
             var devices = bluetoothDevices()
+            // bluetoothd's own view, via IOBluetooth: knows levels the profiler
+            // has not published (AirPods Max, for one). Merge by address.
+            for reading in ioBluetoothLevels() {
+                if let i = devices.firstIndex(where: { $0.address == reading.address }) {
+                    if devices[i].levels.isEmpty { devices[i].levels = reading.levels }
+                } else if !devices.contains(where: { $0.name == reading.name }) {
+                    devices.append(reading)
+                }
+            }
             for source in powerSourceAccessories() where !devices.contains(where: { $0.name == source.name }) {
                 devices.append(source)
             }
@@ -76,10 +88,43 @@ enum DeviceBatteries {
                 for (key, label) in keys {
                     if let percent = percent(props[key]) { levels.append((label, percent)) }
                 }
-                devices.append(Device(name: name, levels: levels))
+                let address = normalisedAddress(props["device_address"] as? String)
+                devices.append(Device(name: name, address: address, levels: levels))
             }
         }
         return devices.sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
+    }
+
+    static func normalisedAddress(_ text: String?) -> String? {
+        guard let text else { return nil }
+        let cleaned = text.lowercased().filter { $0.isHexDigit }
+        return cleaned.count == 12 ? cleaned : nil
+    }
+
+    /// Battery levels from IOBluetoothDevice. The accessors are not in the
+    /// public headers but are present on every device object; each is checked
+    /// with responds(to:) before use, so a missing one is simply skipped.
+    private static func ioBluetoothLevels() -> [Device] {
+        var result: [Device] = []
+        let paired = IOBluetoothDevice.pairedDevices() as? [IOBluetoothDevice] ?? []
+        for device in paired where device.isConnected() {
+            func read(_ key: String) -> Int? {
+                guard device.responds(to: NSSelectorFromString(key)),
+                      let value = (device.value(forKey: key) as? NSNumber)?.intValue, value > 0, value <= 100 else { return nil }
+                return value
+            }
+            var levels: [(String, Int)] = []
+            if let left = read("batteryPercentLeft") { levels.append(("left", left)) }
+            if let right = read("batteryPercentRight") { levels.append(("right", right)) }
+            if let c = read("batteryPercentCase") { levels.append(("case", c)) }
+            if levels.isEmpty, let single = read("batteryPercentSingle") ?? read("batteryPercentCombined") {
+                levels.append(("", single))
+            }
+            guard !levels.isEmpty else { continue }
+            result.append(Device(name: device.name ?? "Bluetooth device",
+                                 address: normalisedAddress(device.addressString), levels: levels))
+        }
+        return result
     }
 
     private static func percent(_ value: Any?) -> Int? {
