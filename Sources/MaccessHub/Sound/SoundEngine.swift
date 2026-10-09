@@ -27,6 +27,11 @@ final class SoundEngine {
     private let lock = NSLock()
     private var configObserver: NSObjectProtocol?
     private var defaultDeviceListener: AudioObjectPropertyListenerBlock?
+    private var meterPeak: Float = 0
+    /// Peak that reached the mixer output during the last metered play (diagnostics).
+    private(set) var lastPeak: Float = -1
+    private var meterUntil: TimeInterval = 0
+    private var meterArmed = false
     /// Progress beeps go through one node per path so each beep cuts the previous.
     private lazy var toneNode: AVAudioPlayerNode = nodes[0]
     private lazy var spatialToneNode: AVAudioPlayerNode = spatialNodes[0]
@@ -56,6 +61,21 @@ final class SoundEngine {
             spatialNodes.append(node)
         }
         setReverb(.smallRoom)
+        // Self-check meter: after each play, log the peak that actually reached the output.
+        engine.mainMixerNode.installTap(onBus: 0, bufferSize: 2048, format: nil) { [weak self] buffer, _ in
+            guard let self, meterArmed, let data = buffer.floatChannelData else { return }
+            var peak: Float = 0
+            for ch in 0..<Int(buffer.format.channelCount) {
+                for i in 0..<Int(buffer.frameLength) { peak = max(peak, abs(data[ch][i])) }
+            }
+            meterPeak = max(meterPeak, peak)
+            if ProcessInfo.processInfo.systemUptime > meterUntil {
+                meterArmed = false
+                let p = meterPeak
+                lastPeak = p
+                DispatchQueue.main.async { self.log.debug("output peak after play: \(p, privacy: .public)") }
+            }
+        }
         engine.prepare()
         startIfNeeded()
         // The engine stops when the default output device changes (exactly what
@@ -98,7 +118,11 @@ final class SoundEngine {
             }
         }
         engine.prepare()
+        // Player nodes can report isPlaying after a restart while being idle;
+        // cycle them so the state is real.
+        for node in nodes + spatialNodes { node.stop() }
         startIfNeeded()
+        log.info("Engine rebuilt: running=\(self.engine.isRunning, privacy: .public) output \(self.engine.outputNode.outputFormat(forBus: 0).sampleRate, privacy: .public) Hz")
     }
 
     deinit {
@@ -158,6 +182,12 @@ final class SoundEngine {
         buffers = buffers.filter { urls.contains($0.key) }
         monoBuffers = monoBuffers.filter { urls.contains($0.key) }
         lock.unlock()
+    }
+
+    private func armMeter() {
+        meterPeak = 0
+        meterUntil = ProcessInfo.processInfo.systemUptime + 0.25
+        meterArmed = true
     }
 
     /// Plays the file. `volume` is 0...1. Returns the sound's duration in seconds.
