@@ -1,4 +1,5 @@
 import AppKit
+import Carbon
 
 /// Every global shortcut the app offers, with its default binding.
 enum HotKeyAction: String, CaseIterable, Codable, Identifiable {
@@ -12,6 +13,9 @@ enum HotKeyAction: String, CaseIterable, Codable, Identifiable {
     // Menu extras: item 1–9, and 0 for the tenth
     case menuExtra1, menuExtra2, menuExtra3, menuExtra4, menuExtra5
     case menuExtra6, menuExtra7, menuExtra8, menuExtra9, menuExtra10
+    // Speech history
+    case speechHistoryPrevious, speechHistoryNext, speechHistoryCopy
+    case speechHistoryStartRecording, speechHistoryStopRecording, speechHistoryShow, speechHistoryClear
     // App control
     case toggleEventSounds, toggleKeyClicks, toggleFocusSounds, openSettings
 
@@ -22,6 +26,7 @@ enum HotKeyAction: String, CaseIterable, Codable, Identifiable {
         case systemInfo = "System Information"
         case focus = "Application & Focus"
         case menuExtras = "Menu Extras"
+        case speechHistory = "Speech History"
         case app = "MaccessHub"
         var id: String { rawValue }
         var actions: [HotKeyAction] { HotKeyAction.allCases.filter { $0.group == self } }
@@ -39,6 +44,9 @@ enum HotKeyAction: String, CaseIterable, Codable, Identifiable {
         case .menuExtra1, .menuExtra2, .menuExtra3, .menuExtra4, .menuExtra5,
              .menuExtra6, .menuExtra7, .menuExtra8, .menuExtra9, .menuExtra10:
             return .menuExtras
+        case .speechHistoryPrevious, .speechHistoryNext, .speechHistoryCopy, .speechHistoryStartRecording,
+             .speechHistoryStopRecording, .speechHistoryShow, .speechHistoryClear:
+            return .speechHistory
         case .toggleEventSounds, .toggleKeyClicks, .toggleFocusSounds, .openSettings:
             return .app
         }
@@ -74,6 +82,13 @@ enum HotKeyAction: String, CaseIterable, Codable, Identifiable {
         case .menuExtra8: return "Menu extra 8 (twice: open it)"
         case .menuExtra9: return "Menu extra 9 (twice: open it)"
         case .menuExtra10: return "Menu extra 10 (twice: open it)"
+        case .speechHistoryPrevious: return "Previous announcement"
+        case .speechHistoryNext: return "Next announcement"
+        case .speechHistoryCopy: return "Copy current announcement"
+        case .speechHistoryStartRecording: return "Start recording speech"
+        case .speechHistoryStopRecording: return "Stop recording and copy speech"
+        case .speechHistoryShow: return "Show speech history window"
+        case .speechHistoryClear: return "Clear speech history"
         case .toggleEventSounds: return "Toggle event sounds"
         case .toggleKeyClicks: return "Toggle key clicks"
         case .toggleFocusSounds: return "Toggle focus sounds"
@@ -116,7 +131,13 @@ enum HotKeyAction: String, CaseIterable, Codable, Identifiable {
         case .menuExtra9: return KeyCombo("9", os)
         case .menuExtra10: return KeyCombo("0", os)
         case .openSettings: return KeyCombo("0", cs)
-        case .toggleEventSounds, .toggleKeyClicks, .toggleFocusSounds: return nil
+        // As in the NVDA add-on.
+        case .speechHistoryPrevious: return KeyCombo(keyCode: UInt16(kVK_F11), modifiers: .shift)
+        case .speechHistoryNext: return KeyCombo(keyCode: UInt16(kVK_F12), modifiers: .shift)
+        case .speechHistoryCopy: return KeyCombo(keyCode: UInt16(kVK_F12), modifiers: [])
+        case .toggleEventSounds, .toggleKeyClicks, .toggleFocusSounds,
+             .speechHistoryStartRecording, .speechHistoryStopRecording, .speechHistoryShow, .speechHistoryClear:
+            return nil
         }
     }
 

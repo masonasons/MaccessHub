@@ -4,7 +4,7 @@ BUILD    = build
 CONFIG  ?= Debug
 PRODUCT  = $(BUILD)/Build/Products/$(CONFIG)/$(APP).app
 
-.PHONY: all gen build run install clean
+.PHONY: all gen build run install clean check
 
 all: build
 
@@ -46,3 +46,9 @@ install: build
 
 clean:
 	rm -rf $(BUILD) $(APP).xcodeproj
+
+# Assertion checks for logic that has no UI. Builds only the files involved.
+check:
+	swiftc -Onone -parse-as-library -o $(BUILD)/speech-history-check Tests/SpeechHistoryCheck.swift \
+	  Sources/MaccessHub/Core/Speaker.swift Sources/MaccessHub/Features/SpeechHistory/SpeechHistoryFeature.swift
+	$(BUILD)/speech-history-check

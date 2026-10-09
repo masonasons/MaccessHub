@@ -22,6 +22,8 @@ final class AppController {
     let appInfo: AppInfoFeature
     let positionInfo: PositionInfoFeature
     let menuExtras: MenuExtrasFeature
+    let speechHistory: SpeechHistoryFeature
+    private let speechMonitor = VoiceOverSpeechMonitor()
     let keyClicks = KeyClickMonitor()
     let focusMonitor = FocusMonitor()
     private var focusMonitorRunning = false
@@ -55,6 +57,7 @@ final class AppController {
         appInfo = AppInfoFeature(speaker: speaker)
         positionInfo = PositionInfoFeature(speaker: speaker)
         menuExtras = MenuExtrasFeature(speaker: speaker)
+        speechHistory = SpeechHistoryFeature(speaker: speaker)
         eventMonitors = [workspaceMonitor, PowerMonitor(), NetworkMonitor(), USBMonitor(),
                          BluetoothMonitor(), UIEventMonitor()]
 
@@ -71,6 +74,8 @@ final class AppController {
         keyClicks.onKey = { [weak self] category in
             DispatchQueue.main.async { self?.handleKey(category) }
         }
+        speechMonitor.onPhrase = { [weak self] phrase in self?.speechHistory.capture(phrase) }
+        speechHistory.isPaused = { SpeechHistoryWindowController.isReading }
         focusMonitor.onFocus = { [weak self] slot, element, frame in self?.handleFocus(slot, element: element, frame: frame) }
         progressMonitor.onUpdate = { [weak self] update in self?.handleProgress(update) }
         hotkeys.handler = { [weak self] action in self?.perform(action) }
@@ -169,6 +174,10 @@ final class AppController {
             focusMonitorRunning = false
         }
 
+        speechHistory.maximumHistoryLength = data.speechHistory.maximumEntries
+        speechHistory.trimLeadingWhitespace = data.speechHistory.trimLeadingWhitespace
+        speechHistory.trimTrailingWhitespace = data.speechHistory.trimTrailingWhitespace
+        if data.speechHistory.enabled { speechMonitor.start() } else { speechMonitor.stop() }
         progressMonitor.watchBackgroundApps = data.progress.backgroundApps
         if data.progress.output != .off, !progressMonitorRunning {
             progressMonitor.start()
@@ -371,6 +380,13 @@ final class AppController {
         case .toggleKeyClicks: toggleKeyClicks()
         case .toggleFocusSounds: toggleFocusSounds()
         case .openSettings: SettingsWindowController.shared.show()
+        case .speechHistoryPrevious: speechHistory.previous()
+        case .speechHistoryNext: speechHistory.next()
+        case .speechHistoryCopy: speechHistory.copyCurrent()
+        case .speechHistoryStartRecording: speechHistory.startRecording()
+        case .speechHistoryStopRecording: speechHistory.stopRecording()
+        case .speechHistoryShow: SpeechHistoryWindowController.shared.show()
+        case .speechHistoryClear: speechHistory.clear()
         default:
             if let index = action.menuExtraIndex { menuExtras.handle(index: index, action: .speak) }
         }
