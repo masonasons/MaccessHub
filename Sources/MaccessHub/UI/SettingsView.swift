@@ -386,6 +386,19 @@ struct ToolsSettingsView: View {
                     Text("Processes named by a double press: \(store.data.systemInfo.topProcessCount)")
                 }
                 Toggle("Include the top GPU processes in the CPU double press", isOn: $store.data.systemInfo.includeGPUProcesses)
+                LabeledContent("Wi-Fi network name") {
+                    HStack {
+                        Text(AppController.shared.network.locationAuthorized ? "Available" : "Needs Location access")
+                        if !AppController.shared.network.locationAuthorized {
+                            Button("Allow Location Access") {
+                                AppController.shared.network.requestLocationIfNeeded()
+                                NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_LocationServices")!)
+                            }
+                        }
+                    }
+                }
+                Text("macOS only reveals the Wi-Fi network name to apps with Location access. The network shortcut still reports connection type, signal, link speed, IP address and transfer speed without it.")
+                    .font(.callout).foregroundStyle(.secondary)
             }
         }
         .formStyle(.grouped)

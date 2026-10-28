@@ -47,7 +47,7 @@ final class HotKeyCenter {
 
     private func fire(id: UInt32) {
         guard let action = actionsByID[id] else { return }
-        log.debug("Hotkey fired: \(action.rawValue)")
+        log.debug("Hotkey fired: \(action.rawValue, privacy: .public)")
         handler?(action)
     }
 

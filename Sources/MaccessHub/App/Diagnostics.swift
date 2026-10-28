@@ -60,6 +60,10 @@ enum Diagnostics {
         print("[Output devices]"); audio.list(.output)
         print("[Input devices]"); audio.list(.input)
         print("[Connected devices]"); info.speakDeviceBatteries(); waitForSpeech(seconds: 3)
+        print("[Network]"); print(NetworkInfoFeature(speaker: speaker).describeNetwork())
+        print("[Top network processes]")
+        let traffic = NetworkInfoFeature.topProcesses(limit: info.topProcessCount)
+        print(traffic.isEmpty ? "none" : traffic.map { "\($0.name): in \(NetworkInfoFeature.rate($0.received)), out \(NetworkInfoFeature.rate($0.sent))" }.joined(separator: "; "))
         print("[Clipboard]"); info.speakClipboard()
         print("[Frontmost app]")
         if let app = NSWorkspace.shared.frontmostApplication { print(AppInfoFeature.describe(app)) }

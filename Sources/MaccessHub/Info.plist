@@ -30,6 +30,10 @@
 	<string>MaccessHub plays a sound when Bluetooth devices connect or disconnect.</string>
 	<key>NSHumanReadableCopyright</key>
 	<string>MIT</string>
+	<key>NSLocationUsageDescription</key>
+	<string>macOS only reveals the name of the Wi-Fi network to apps with Location access. MaccessHub uses it for the network report and nothing else.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>macOS only reveals the name of the Wi-Fi network to apps with Location access. MaccessHub uses it for the network report and nothing else.</string>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
 	<key>SUFeedURL</key>

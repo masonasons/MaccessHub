@@ -22,6 +22,7 @@ final class AppController {
     let appInfo: AppInfoFeature
     let positionInfo: PositionInfoFeature
     let menuExtras: MenuExtrasFeature
+    let network: NetworkInfoFeature
     let keyClicks = KeyClickMonitor()
     let focusMonitor = FocusMonitor()
     private var focusMonitorRunning = false
@@ -55,6 +56,7 @@ final class AppController {
         appInfo = AppInfoFeature(speaker: speaker)
         positionInfo = PositionInfoFeature(speaker: speaker)
         menuExtras = MenuExtrasFeature(speaker: speaker)
+        network = NetworkInfoFeature(speaker: speaker)
         eventMonitors = [workspaceMonitor, PowerMonitor(), NetworkMonitor(), USBMonitor(),
                          BluetoothMonitor(), UIEventMonitor()]
 
@@ -132,6 +134,7 @@ final class AppController {
         systemInfo.browsableVolumesOnly = data.systemInfo.browsableVolumesOnly
         systemInfo.topProcessCount = data.systemInfo.topProcessCount
         systemInfo.includeGPUProcesses = data.systemInfo.includeGPUProcesses
+        network.topProcessCount = data.systemInfo.topProcessCount
         doublePressInterval = data.general.doublePressInterval
 
         keyClicks.scope = data.keyClicks.scope
@@ -337,17 +340,18 @@ final class AppController {
     }
 
     private func performDouble(_ action: HotKeyAction) {
-        log.debug("Double press: \(action.rawValue)")
+        log.debug("Double press: \(action.rawValue, privacy: .public)")
         switch action {
         case .cpuUsage: systemInfo.speakTopCPUProcesses()
         case .memoryUsage: systemInfo.speakTopMemoryProcesses()
+        case .networkUsage: network.speakTopNetworkProcesses()
         default:
             if let index = action.menuExtraIndex { menuExtras.handle(index: index, action: .activate) }
         }
     }
 
     private func performSingle(_ action: HotKeyAction) {
-        log.debug("Single press: \(action.rawValue)")
+        log.debug("Single press: \(action.rawValue, privacy: .public)")
         switch action {
         case .previousOutputDevice: audioSwitch.step(.output, by: -1)
         case .nextOutputDevice: audioSwitch.step(.output, by: 1)
@@ -365,6 +369,7 @@ final class AppController {
         case .audioDevices: systemInfo.speakAudioDevices()
         case .clipboard: systemInfo.speakClipboard()
         case .deviceBatteries: systemInfo.speakDeviceBatteries()
+        case .networkUsage: network.speakNetwork()
         case .appInfo: appInfo.speakFrontmostApp()
         case .positionInfo: positionInfo.speakPosition()
         case .toggleEventSounds: toggleEventSounds()

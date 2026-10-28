@@ -6,7 +6,7 @@ enum HotKeyAction: String, CaseIterable, Codable, Identifiable {
     case previousOutputDevice, nextOutputDevice, previousInputDevice, nextInputDevice
     case toggleInputMute, listOutputDevices, listInputDevices
     // System information
-    case cpuUsage, memoryUsage, diskUsage, osVersion, uptime, battery, audioDevices, clipboard, deviceBatteries
+    case cpuUsage, memoryUsage, diskUsage, osVersion, uptime, battery, audioDevices, clipboard, deviceBatteries, networkUsage
     // Focus & app information
     case appInfo, positionInfo
     // Menu extras: item 1–9, and 0 for the tenth
@@ -32,7 +32,7 @@ enum HotKeyAction: String, CaseIterable, Codable, Identifiable {
         case .previousOutputDevice, .nextOutputDevice, .previousInputDevice, .nextInputDevice,
              .toggleInputMute, .listOutputDevices, .listInputDevices:
             return .audio
-        case .cpuUsage, .memoryUsage, .diskUsage, .osVersion, .uptime, .battery, .audioDevices, .clipboard, .deviceBatteries:
+        case .cpuUsage, .memoryUsage, .diskUsage, .osVersion, .uptime, .battery, .audioDevices, .clipboard, .deviceBatteries, .networkUsage:
             return .systemInfo
         case .appInfo, .positionInfo:
             return .focus
@@ -62,6 +62,7 @@ enum HotKeyAction: String, CaseIterable, Codable, Identifiable {
         case .audioDevices: return "Speak current audio devices"
         case .clipboard: return "Speak clipboard"
         case .deviceBatteries: return "Speak connected devices and their batteries"
+        case .networkUsage: return "Speak network and transfer speed (twice: top processes)"
         case .appInfo: return "Speak frontmost application info"
         case .positionInfo: return "Speak position in list or text"
         case .menuExtra1: return "Menu extra 1 (twice: open it)"
@@ -103,6 +104,7 @@ enum HotKeyAction: String, CaseIterable, Codable, Identifiable {
         case .audioDevices: return KeyCombo("7", cs)
         case .clipboard: return KeyCombo("8", cs)
         case .deviceBatteries: return KeyCombo("9", cs)
+        case .networkUsage: return KeyCombo("0", cs)
         case .appInfo: return KeyCombo("v", cs)
         case .positionInfo: return KeyCombo("p", cs)
         case .menuExtra1: return KeyCombo("1", os)
@@ -115,14 +117,14 @@ enum HotKeyAction: String, CaseIterable, Codable, Identifiable {
         case .menuExtra8: return KeyCombo("8", os)
         case .menuExtra9: return KeyCombo("9", os)
         case .menuExtra10: return KeyCombo("0", os)
-        case .openSettings: return KeyCombo("0", cs)
+        case .openSettings: return KeyCombo("-", cs)
         case .toggleEventSounds, .toggleKeyClicks, .toggleFocusSounds: return nil
         }
     }
 
     /// Actions with a second behaviour on a double press.
     var hasDoublePress: Bool {
-        self == .cpuUsage || self == .memoryUsage || menuExtraIndex != nil
+        self == .cpuUsage || self == .memoryUsage || self == .networkUsage || menuExtraIndex != nil
     }
 
     /// 1-based index for the menu extra actions.
