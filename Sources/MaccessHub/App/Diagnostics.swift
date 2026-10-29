@@ -56,6 +56,8 @@ enum Diagnostics {
         print("[macOS]"); info.speakOSVersion()
         print("[Uptime]"); info.speakUptime()
         print("[Battery]"); info.speakBattery()
+        print("[Battery details]"); info.speakBatteryDetails()
+        print("[Top disk processes]"); info.speakTopDiskProcesses(); waitForSpeech(seconds: 1.6)
         print("[Audio devices]"); info.speakAudioDevices()
         print("[Output devices]"); audio.list(.output)
         print("[Input devices]"); audio.list(.input)

@@ -55,10 +55,10 @@ enum HotKeyAction: String, CaseIterable, Codable, Identifiable {
         case .listInputDevices: return "Speak input devices"
         case .cpuUsage: return "Speak CPU and GPU usage (twice: top processes)"
         case .memoryUsage: return "Speak memory usage (twice: top processes)"
-        case .diskUsage: return "Speak disk usage"
+        case .diskUsage: return "Speak disk usage (twice: top processes)"
         case .osVersion: return "Speak macOS version"
         case .uptime: return "Speak uptime"
-        case .battery: return "Speak battery status"
+        case .battery: return "Speak battery status (twice: health and power)"
         case .audioDevices: return "Speak current audio devices"
         case .clipboard: return "Speak clipboard"
         case .deviceBatteries: return "Speak connected devices and their batteries"
@@ -126,7 +126,7 @@ enum HotKeyAction: String, CaseIterable, Codable, Identifiable {
 
     /// Actions with a second behaviour on a double press.
     var hasDoublePress: Bool {
-        self == .cpuUsage || self == .memoryUsage || self == .networkUsage || self == .processInfo || menuExtraIndex != nil
+        [.cpuUsage, .memoryUsage, .diskUsage, .battery, .networkUsage, .processInfo].contains(self) || menuExtraIndex != nil
     }
 
     /// 1-based index for the menu extra actions.

@@ -347,6 +347,8 @@ final class AppController {
         case .cpuUsage: systemInfo.speakTopCPUProcesses()
         case .memoryUsage: systemInfo.speakTopMemoryProcesses()
         case .networkUsage: network.speakTopNetworkProcesses()
+        case .diskUsage: systemInfo.speakTopDiskProcesses()
+        case .battery: systemInfo.speakBatteryDetails()
         case .processInfo: processInfo.speakDetails()
         default:
             if let index = action.menuExtraIndex { menuExtras.handle(index: index, action: .activate) }

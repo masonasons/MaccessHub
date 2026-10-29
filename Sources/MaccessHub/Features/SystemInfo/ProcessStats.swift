@@ -98,6 +98,52 @@ enum ProcessStats {
         var command: String
     }
 
+    struct DiskEntry { var name: String; var read: Double; var written: Double }
+
+    /// Processes doing the most disk I/O over `interval` seconds, in bytes per
+    /// second. Reads per-process accounting, which macOS only exposes for the
+    /// current user's processes; system daemons are not included.
+    static func topDisk(limit: Int = 5, interval: TimeInterval = 1.0, completion: @escaping ([DiskEntry]) -> Void) {
+        DispatchQueue.global(qos: .userInitiated).async {
+            let first = diskCounters()
+            let start = DispatchTime.now()
+            Thread.sleep(forTimeInterval: interval)
+            let second = diskCounters()
+            let elapsed = Double(DispatchTime.now().uptimeNanoseconds - start.uptimeNanoseconds) / 1e9
+            var byName: [String: DiskEntry] = [:]
+            for (pid, after) in second {
+                guard let before = first[pid] else { continue }
+                let read = Double(after.read &- before.read) / elapsed
+                let written = Double(after.written &- before.written) / elapsed
+                var entry = byName[after.name] ?? DiskEntry(name: after.name, read: 0, written: 0)
+                entry.read += read
+                entry.written += written
+                byName[after.name] = entry
+            }
+            let top = byName.values.filter { $0.read + $0.written >= 1024 }
+                .sorted { $0.read + $0.written > $1.read + $1.written }
+                .prefix(limit)
+            DispatchQueue.main.async { completion(Array(top)) }
+        }
+    }
+
+    private static func diskCounters() -> [pid_t: (name: String, read: UInt64, written: UInt64)] {
+        var result: [pid_t: (String, UInt64, UInt64)] = [:]
+        let count = proc_listallpids(nil, 0)
+        guard count > 0 else { return [:] }
+        var pids = [pid_t](repeating: 0, count: Int(count) * 2)
+        let filled = proc_listallpids(&pids, Int32(pids.count * MemoryLayout<pid_t>.size))
+        for pid in pids.prefix(Int(max(0, filled))) where pid > 0 {
+            var info = rusage_info_current()
+            let status = withUnsafeMutablePointer(to: &info) { pointer -> Int32 in
+                pointer.withMemoryRebound(to: rusage_info_t?.self, capacity: 1) { proc_pid_rusage(pid, RUSAGE_INFO_CURRENT, $0) }
+            }
+            guard status == 0 else { continue }
+            result[pid] = (fullName(pid: pid) ?? "pid \(pid)", info.ri_diskio_bytesread, info.ri_diskio_byteswritten)
+        }
+        return result
+    }
+
     /// Processes using the most CPU over about one second, as percent of one core.
     /// Calls back on the main thread.
     static func topCPU(limit: Int = 5, completion: @escaping ([Entry]) -> Void) {

@@ -72,6 +72,21 @@ final class SystemInfoFeature {
         speaker.speak(parts.joined(separator: " "))
     }
 
+    func speakTopDiskProcesses() {
+        ProcessStats.topDisk(limit: topProcessCount) { [speaker] entries in
+            guard !entries.isEmpty else { speaker.speak("No noticeable disk activity among your processes."); return }
+            let parts = entries.map {
+                "\($0.name) reading \(NetworkInfoFeature.rate($0.read)), writing \(NetworkInfoFeature.rate($0.written))"
+            }
+            speaker.speak("Top disk: " + parts.joined(separator: ". ") + ".")
+        }
+    }
+
+    func speakBatteryDetails() {
+        guard let status = BatteryStatus.current(), status.hasBattery else { speaker.speak("This Mac has no battery."); return }
+        speaker.speak(BatteryDetails.read()?.describe() ?? "Battery details are unavailable.")
+    }
+
     func speakOSVersion() { speaker.speak(SystemStats.osVersionDescription()) }
 
     func speakUptime() { speaker.speak("Up \(SystemStats.uptimeDescription()).") }
