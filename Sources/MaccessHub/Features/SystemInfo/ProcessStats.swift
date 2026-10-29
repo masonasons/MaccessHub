@@ -38,6 +38,20 @@ enum ProcessStats {
         }
     }
 
+    /// GPU usage of one process over `interval` seconds, as percent of wall time.
+    /// Nil when the process has no accelerator client (it has never touched the GPU).
+    static func gpuPercent(pid: pid_t, interval: TimeInterval = 0.5, completion: @escaping (Double?) -> Void) {
+        DispatchQueue.global(qos: .userInitiated).async {
+            guard let first = gpuTimes()[pid] else { DispatchQueue.main.async { completion(nil) }; return }
+            let start = DispatchTime.now()
+            Thread.sleep(forTimeInterval: interval)
+            let second = gpuTimes()[pid]
+            let elapsed = Double(DispatchTime.now().uptimeNanoseconds - start.uptimeNanoseconds)
+            let percent = second.map { Double($0.time &- first.time) / elapsed * 100 }
+            DispatchQueue.main.async { completion(percent) }
+        }
+    }
+
     /// pid → (name, accumulated GPU nanoseconds) for every process with an accelerator client.
     private static func gpuTimes() -> [pid_t: (name: String, time: UInt64)] {
         var result: [pid_t: (String, UInt64)] = [:]

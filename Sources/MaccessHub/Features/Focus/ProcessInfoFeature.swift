@@ -13,15 +13,22 @@ final class ProcessInfoFeature {
         guard let app = NSWorkspace.shared.frontmostApplication else { speaker.speak("No frontmost application."); return }
         let pid = app.processIdentifier
         let name = app.localizedName ?? "Unknown"
-        Self.cpuPercent(pid: pid) { [speaker] cpu in
+        // CPU and GPU are both sampled over half a second, concurrently.
+        var gpuResult: Double??
+        var cpuResult: Double??
+        let finish = { [speaker] in
+            guard let cpu = cpuResult, let gpu = gpuResult else { return }
             var parts = ["\(name), process \(pid)"]
             if let cpu { parts.append(String(format: "CPU %.0f percent", cpu)) }
+            if let gpu { parts.append(String(format: "GPU %.0f percent", gpu)) }
             if let memory = Self.footprint(pid: pid) { parts.append("memory \(SystemStats.bytesToHuman(memory))") }
             if let since = Self.launchDate(pid: pid) {
                 parts.append("running \(SystemStats.durationDescription(seconds: Int(Date().timeIntervalSince(since))))")
             }
             speaker.speak(parts.joined(separator: ", ") + ".")
         }
+        Self.cpuPercent(pid: pid) { cpu in cpuResult = .some(cpu); finish() }
+        ProcessStats.gpuPercent(pid: pid) { gpu in gpuResult = .some(gpu); finish() }
     }
 
     /// Double press: everything else worth knowing.

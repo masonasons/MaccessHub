@@ -75,6 +75,10 @@ enum Diagnostics {
             if let t = ProcessInfoFeature.threadCount(pid: pid) { parts.append("\(t) threads") }
             if let p = ProcessInfoFeature.parentName(pid: pid) { parts.append("parent \(p)") }
             if let c = ProcessInfoFeature.totalCPUTime(pid: pid) { parts.append(String(format: "%.1f s CPU", c)) }
+            var gpu: Double?? = nil
+            ProcessStats.gpuPercent(pid: pid) { gpu = .some($0) }
+            while gpu == nil { RunLoop.main.run(mode: .default, before: Date(timeIntervalSinceNow: 0.05)) }
+            parts.append(gpu!.map { String(format: "GPU %.1f%%", $0) } ?? "GPU: no accelerator client")
             if let d = ProcessInfoFeature.launchDate(pid: pid) { parts.append("launched \(d.formatted(date: .abbreviated, time: .shortened))") }
             print(parts.joined(separator: ", "))
         }
