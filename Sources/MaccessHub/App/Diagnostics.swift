@@ -67,6 +67,17 @@ enum Diagnostics {
         print("[Clipboard]"); info.speakClipboard()
         print("[Frontmost app]")
         if let app = NSWorkspace.shared.frontmostApplication { print(AppInfoFeature.describe(app)) }
+        print("[Process]")
+        if let app = NSWorkspace.shared.frontmostApplication {
+            let pid = app.processIdentifier
+            var parts = ["\(app.localizedName ?? "?") pid \(pid)", ProcessInfoFeature.architecture(of: app)]
+            if let m = ProcessInfoFeature.footprint(pid: pid) { parts.append("memory \(SystemStats.bytesToHuman(m))") }
+            if let t = ProcessInfoFeature.threadCount(pid: pid) { parts.append("\(t) threads") }
+            if let p = ProcessInfoFeature.parentName(pid: pid) { parts.append("parent \(p)") }
+            if let c = ProcessInfoFeature.totalCPUTime(pid: pid) { parts.append(String(format: "%.1f s CPU", c)) }
+            if let d = ProcessInfoFeature.launchDate(pid: pid) { parts.append("launched \(d.formatted(date: .abbreviated, time: .shortened))") }
+            print(parts.joined(separator: ", "))
+        }
         print("[Position]")
         if !AccessibilityPermission.isTrusted {
             print("needs Accessibility permission")

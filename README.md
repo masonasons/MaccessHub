@@ -19,10 +19,11 @@ VoiceOver it falls back to the system voice.
 | **Audio devices** – cycle output and input devices, mute the microphone (confirmed by speech, a sound, or both), list devices. | Audioswitch | ⌃⇧[ ⌃⇧] ⌃⌘⇧[ ⌃⌘⇧] ⌃⇧M ⌃⇧L ⌃⌘⇧L |
 | **System information** – CPU and GPU, memory, disks, macOS version, uptime, battery, current audio devices, clipboard. Press the CPU or memory shortcut twice for the top processes (count and GPU inclusion are settings). Connected devices and their battery levels (AirPods report left, right and case; Logitech Bluetooth devices are asked directly over HID++). Network: connection type, Wi-Fi name (with Location access), signal and link rate, IP address and live send/receive speed; press twice for the processes moving the most data. | recmon | ⌃⇧1 … ⌃⇧0 |
 | **Application info** – name, version, bundle ID and path of the frontmost app. | AppInfo | ⌃⇧V |
+| **Process info** – the frontmost app's process: name, PID, CPU, memory and running time on one press; bundle ID, version, architecture (and Rosetta), path, parent, threads, CPU time, launch time and window count on two. | – | ⌃⇧- |
 | **Position info** – "42 percent, item 5 of 12" in tables, outlines and lists; character and line position in text. | PositionInfo | ⌃⇧P |
 | **Menu extras** – press once to hear the Nth status item in the menu bar, twice to open it. Off by default. | MenuExt | ⌥⇧1 … ⌥⇧0 |
 
-Every shortcut can be changed or removed in **Settings → Shortcuts** (⌃⇧-
+Every shortcut can be changed or removed in **Settings → Shortcuts** (⌃⇧=
 opens it). There are also unbound shortcuts for toggling event sounds and key
 clicks.
 

@@ -23,6 +23,7 @@ final class AppController {
     let positionInfo: PositionInfoFeature
     let menuExtras: MenuExtrasFeature
     let network: NetworkInfoFeature
+    let processInfo: ProcessInfoFeature
     let keyClicks = KeyClickMonitor()
     let focusMonitor = FocusMonitor()
     private var focusMonitorRunning = false
@@ -57,6 +58,7 @@ final class AppController {
         positionInfo = PositionInfoFeature(speaker: speaker)
         menuExtras = MenuExtrasFeature(speaker: speaker)
         network = NetworkInfoFeature(speaker: speaker)
+        processInfo = ProcessInfoFeature(speaker: speaker)
         eventMonitors = [workspaceMonitor, PowerMonitor(), NetworkMonitor(), USBMonitor(),
                          BluetoothMonitor(), UIEventMonitor()]
 
@@ -345,6 +347,7 @@ final class AppController {
         case .cpuUsage: systemInfo.speakTopCPUProcesses()
         case .memoryUsage: systemInfo.speakTopMemoryProcesses()
         case .networkUsage: network.speakTopNetworkProcesses()
+        case .processInfo: processInfo.speakDetails()
         default:
             if let index = action.menuExtraIndex { menuExtras.handle(index: index, action: .activate) }
         }
@@ -370,6 +373,7 @@ final class AppController {
         case .clipboard: systemInfo.speakClipboard()
         case .deviceBatteries: systemInfo.speakDeviceBatteries()
         case .networkUsage: network.speakNetwork()
+        case .processInfo: processInfo.speakSummary()
         case .appInfo: appInfo.speakFrontmostApp()
         case .positionInfo: positionInfo.speakPosition()
         case .toggleEventSounds: toggleEventSounds()
