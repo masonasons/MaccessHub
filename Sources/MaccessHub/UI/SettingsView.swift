@@ -49,6 +49,9 @@ struct GeneralSettingsView: View {
                 Picker("Speak messages with", selection: $store.data.general.speechOutput) {
                     ForEach(SpeechOutput.allCases) { Text($0.title).tag($0) }
                 }
+                .help(store.data.general.speechOutput.help)
+                Text(store.data.general.speechOutput.help)
+                    .font(.callout).foregroundStyle(.secondary)
                 Picker("System voice", selection: $store.data.general.speechVoice) {
                     Text("Default").tag(String?.none)
                     ForEach(voices, id: \.identifier) { voice in
