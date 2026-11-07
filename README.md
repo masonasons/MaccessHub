@@ -12,7 +12,7 @@ VoiceOver it falls back to the system voice.
 
 | Feature | Spoon it replaces | Default shortcuts |
 |---------|-------------------|-------------------|
-| **Event sounds** – plays a sound when apps launch or quit, the Mac sleeps or wakes, volumes mount, USB and Bluetooth devices come and go, Wi-Fi and Ethernet connect, power source or battery state changes, spaces change, windows open, menus open and close, rows expand, and Music plays or pauses. | EventSounds | – |
+| **Event sounds** – plays a sound when apps launch or quit, the Mac sleeps or wakes, disks mount, USB and Bluetooth devices come and go, Wi-Fi and Ethernet connect, power source or battery state changes, spaces change, windows open, menus open and close, rows expand, and Music plays or pauses. | EventSounds | – |
 | **Focus sounds** – like the Unspoken add-on for NVDA: a distinct sound when focus lands on a button, checkbox, radio button, pop-up, text field, link, list row, outline row, menu item, tab, slider, image or progress indicator. Uses the Unspoken-ng default theme (GPL-2, see the pack's CREDITS.txt). Follows keyboard focus, menu highlighting, row selection, and (optionally) the VoiceOver cursor itself, by polling VoiceOver for its cursor bounds and hit-testing the item beneath. Optionally rendered with HRTF at the control's screen position, with a choice of room reverb. | – | – |
 | **Progress bars** – NVDA-style: rising beeps (110 Hz at 0 % doubling every 25 %) and/or speech every N percent as bars fill, optionally for background windows and apps. | – | – |
 | **Key clicks** – a click for every key while typing in a text field, with different sounds for lowercase, uppercase, digits, punctuation, space, return, tab, delete, arrows and function keys. | KeyClicks | – |
@@ -24,8 +24,8 @@ VoiceOver it falls back to the system voice.
 | **Menu extras** – press once to hear the Nth status item in the menu bar, twice to open it. Off by default. | MenuExt | ⌥⇧1 … ⌥⇧0 |
 
 Every shortcut can be changed or removed in **Settings → Shortcuts** (⌃⇧=
-opens it). There are also unbound shortcuts for toggling event sounds and key
-clicks.
+opens it). There are also unbound shortcuts for turning event sounds, key
+clicks and focus sounds on or off.
 
 ## Improvements over the spoons
 
@@ -42,7 +42,7 @@ clicks.
 - Audio device switching wraps around (optional) and can speak the volume.
 - Position info also handles lists, focused rows, and reports the line number
   in text.
-- Clipboard reports describe files and images, and summarise long text.
+- Clipboard reports describe files and images, and summarize long text.
 - All sounds are decoded once and played through a single AVAudioEngine for
   minimal latency: player nodes stay running and new sounds are scheduled with
   `.interrupts` (microseconds, versus 5–12 ms for stop/play), and the output
@@ -67,12 +67,13 @@ My Pack/
 
 Any format AVFoundation can decode is accepted (wav, aiff, caf, mp3, m4a,
 flac). A pack can be partial: missing events either use the Classic sound or
-stay silent, depending on the "Use Classic sounds…" toggle. Key clicks and
+stay silent, depending on the "Use the Classic sound when this pack has none"
+toggle. Key clicks and
 event sounds can use different packs.
 
 User packs live in `~/Library/Application Support/MaccessHub/Soundpacks/`.
 The **Soundpacks** tab can create an empty pack, duplicate an existing one,
-import a folder, or export the sounds currently in use (custom files included)
+import a folder, or save the sounds currently in use (custom files included)
 as a new pack. Event IDs are listed in each pack's "Events without a sound"
 section and in `SoundEvent.swift`.
 
@@ -109,7 +110,7 @@ MaccessHub.app/Contents/MacOS/MaccessHub --report
 ## Permissions
 
 - **Accessibility** – key clicks (to know when a text field is focused),
-  position info, menu extras, and window/menu sounds. Requested on first launch.
+  focus sounds, position info, menu extras, and window/menu sounds. Requested on first launch.
 - **Input Monitoring** – some macOS versions require this as well for the
   key-click event tap, and it is needed to read Logitech device batteries.
 - **Automation → VoiceOver** – asked the first time MaccessHub speaks through

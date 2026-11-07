@@ -39,7 +39,7 @@ final class ShortcutRecorderView: NSView {
         super.init(frame: frameRect)
         setAccessibilityElement(true)
         setAccessibilityRole(.button)
-        setAccessibilityHelp("Press to record a new shortcut. While recording, press Escape to cancel or Delete to remove the shortcut.")
+        setAccessibilityHelp("Press to record a new shortcut. Then Escape cancels, and Delete removes it.")
     }
 
     @available(*, unavailable)
@@ -94,7 +94,7 @@ final class ShortcutRecorderView: NSView {
         guard isFunctionKey || hasModifier else {
             NSSound.beep()
             NSAccessibility.post(element: self, notification: .announcementRequested,
-                                 userInfo: [.announcement: "Include Command, Option or Control.",
+                                 userInfo: [.announcement: "A shortcut needs Command, Option or Control.",
                                             .priority: NSAccessibilityPriorityLevel.high.rawValue])
             return
         }

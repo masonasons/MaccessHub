@@ -50,7 +50,7 @@ final class PositionInfoFeature {
         let total = table.count(kAXRowsAttribute) ?? table.elements(kAXRowsAttribute).count
         guard total > 0 else { return "The list is empty." }
         let selected = focusedRow ?? table.elements(kAXSelectedRowsAttribute).first
-        guard let selected else { return "No row selected of \(total)." }
+        guard let selected else { return "No row selected, \(total) rows." }
         var index = selected.int(kAXIndexAttribute)
         if index == nil {
             let rows = table.elements(kAXRowsAttribute)
@@ -68,7 +68,7 @@ final class PositionInfoFeature {
         let selected = list.elements(kAXSelectedChildrenAttribute).first
             ?? children.first { $0.bool(kAXSelectedAttribute) == true }
         guard let selected, let index = children.firstIndex(where: { CFEqual($0.element, selected.element) }) else {
-            return "No item selected of \(total)."
+            return "No item selected, \(total) items."
         }
         return "\(percent(index + 1, of: total)) percent, item \(index + 1) of \(total)."
     }
