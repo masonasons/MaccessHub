@@ -14,6 +14,8 @@ struct SettingsView: View {
                 .tabItem { Label("Key Clicks", systemImage: "keyboard") }
             FocusSoundsSettingsView(store: store, library: library)
                 .tabItem { Label("Focus", systemImage: "scope") }
+            SoundProcessingSettingsView(store: store)
+                .tabItem { Label("Sound Processing", systemImage: "slider.horizontal.3") }
             ToolsSettingsView(store: store)
                 .tabItem { Label("Tools", systemImage: "wrench.and.screwdriver") }
             ShortcutsSettingsView(store: store)
@@ -344,6 +346,125 @@ struct FocusSoundsSettingsView: View {
             }
         }
         .formStyle(.grouped)
+    }
+}
+
+// MARK: - Sound Processing
+
+/// Volume, EQ and reverb per sound group. One page: pick a group, then adjust it.
+struct SoundProcessingSettingsView: View {
+    @Bindable var store: SettingsStore
+    @State private var bus: SoundBus = .events
+
+    private var previewer: BusPreviewer { AppController.shared.busPreviewer }
+
+    private var settings: Binding<AudioBusSettings> {
+        Binding(get: { store.data.soundProcessing[bus] }, set: { store.data.soundProcessing[bus] = $0 })
+    }
+
+    private var current: AudioBusSettings { store.data.soundProcessing[bus] }
+
+    static func decibels(_ value: Double) -> String {
+        let n = Int(value.rounded())
+        if n == 0 { return "0 decibels, flat" }
+        let unit = abs(n) == 1 ? "decibel" : "decibels"
+        return "\(n > 0 ? "plus" : "minus") \(abs(n)) \(unit)"
+    }
+
+    private static func shortDecibels(_ value: Double) -> String {
+        let n = Int(value.rounded())
+        return n > 0 ? "+\(n) dB" : "\(n) dB"
+    }
+
+    var body: some View {
+        Form {
+            Section {
+                Picker("Sound group", selection: $bus) {
+                    ForEach(SoundBus.allCases) { Text($0.title).tag($0) }
+                }
+                Text("Each group of sounds has its own volume, tone and reverb, so you can add reverb to some sounds and keep others dry, or make one group brighter and easier to hear. Changes apply right away. Nothing plays until you press Play Sample or Hear in Context, and moving a control while one is playing changes what you hear.")
+                    .font(.callout).foregroundStyle(.secondary)
+            }
+            Section("Volume") {
+                Slider(value: settings.volume, in: 0...1, step: 0.05) { Text("Volume") }
+                    minimumValueLabel: { Text("0%") } maximumValueLabel: { Text("100%") }
+                    .accessibilityLabel("Volume for \(bus.title.lowercased())")
+                    .accessibilityValue("\(Int((current.volume * 100).rounded())) percent")
+                Text("This works together with the volume on the group's own tab: at 50 percent here, everything in the group plays at half its usual level.")
+                    .font(.callout).foregroundStyle(.secondary)
+            }
+            Section("Tone") {
+                eqSlider("Bass", value: settings.eqLow, note: "around 200 Hz and below")
+                eqSlider("Middle", value: settings.eqMid, note: "around 1,500 Hz")
+                eqSlider("Treble", value: settings.eqHigh, note: "around 5,000 Hz and above")
+                HStack {
+                    ForEach(AudioBusSettings.EQPreset.allCases) { preset in
+                        Button(preset.title) { store.data.soundProcessing[bus].apply(preset) }
+                            .accessibilityLabel("\(preset.title) tone")
+                            .accessibilityHint(preset.help)
+                            .help(preset.help)
+                    }
+                }
+                Text("Boosts are limited so a sound never distorts.")
+                    .font(.callout).foregroundStyle(.secondary)
+            }
+            Section("Reverb") {
+                Picker("Reverb", selection: settings.reverb) {
+                    ForEach(BusReverb.allCases) { Text($0.title).tag($0) }
+                }
+                Slider(value: settings.reverbMix, in: 0...1, step: 0.05) {
+                    Text("Reverb amount")
+                } minimumValueLabel: { Text("Dry") } maximumValueLabel: { Text("Wet") }
+                .accessibilityValue("\(Int((current.reverbMix * 100).rounded())) percent")
+                .disabled(current.reverb == .none)
+                Text("More reverb puts the sound further away: at 100 percent you hear only the room.")
+                    .font(.callout).foregroundStyle(.secondary)
+                if bus == .focus || bus == .progress {
+                    Text("With HRTF on, the Room setting on the Focus tab also applies to these sounds. This reverb is added on top of it.")
+                        .font(.callout).foregroundStyle(.secondary)
+                }
+            }
+            Section("Try it") {
+                HStack {
+                    Button(previewer.isPlaying(bus, .sample) ? "Stop Sample" : "Play Sample") {
+                        previewer.toggle(bus, .sample)
+                    }
+                    .accessibilityHint("Plays a short sample of \(bus.title.lowercased()). Press again to stop.")
+                    Button(previewer.isPlaying(bus, .context) ? "Stop" : "Hear in Context") {
+                        previewer.toggle(bus, .context)
+                    }
+                    .accessibilityLabel(previewer.isPlaying(bus, .context) ? "Stop" : "Hear \(bus.title.lowercased()) in context")
+                    .accessibilityHint(contextHint)
+                    Spacer()
+                    Button("Reset This Group") { store.data.soundProcessing[bus] = AudioBusSettings() }
+                        .accessibilityLabel("Reset \(bus.title.lowercased())")
+                        .accessibilityHint("Full volume, flat tone, no reverb.")
+                        .disabled(current == AudioBusSettings())
+                }
+            }
+        }
+        .formStyle(.grouped)
+        .onChange(of: bus) { previewer.stop() }
+        .onDisappear { previewer.stop() }
+    }
+
+    private var contextHint: String {
+        switch bus {
+        case .events: return "Plays a few seconds of event sounds: an app opening, Wi-Fi connecting, the app quitting."
+        case .focus: return "Plays focus sounds as if tabbing through a dialog."
+        case .keys: return "Plays key clicks as if typing a short phrase, with a correction."
+        case .progress: return "Plays beeps as if a progress bar fills from 0 to 100 percent."
+        }
+    }
+
+    private func eqSlider(_ title: String, value: Binding<Double>, note: String) -> some View {
+        Slider(value: value, in: AudioBusSettings.eqRange, step: 1) {
+            Text("\(title): \(Self.shortDecibels(value.wrappedValue))")
+        } minimumValueLabel: { Text("-12") } maximumValueLabel: { Text("+12") }
+        .accessibilityLabel(title)
+        .accessibilityValue(Self.decibels(value.wrappedValue))
+        .accessibilityHint(note.prefix(1).uppercased() + note.dropFirst() + ".")
+        .help("\(title), \(note)")
     }
 }
 

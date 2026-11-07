@@ -6,7 +6,9 @@ import os
 /// Low-latency, polyphonic sample player built on AVAudioEngine.
 ///
 /// Every file is decoded once into a PCM buffer in the engine's common format,
-/// then scheduled on one of a small pool of player nodes. Key clicks use
+/// then scheduled on one of a small pool of player nodes. Each sound group
+/// (`SoundBus`) has its own players and its own volume, EQ and reverb chain.
+/// Key clicks use
 /// `exclusive: true` so a rapid retype cuts off the previous click the way
 /// the original spoon's `stop():play()` did.
 final class SoundEngine {
@@ -14,16 +16,20 @@ final class SoundEngine {
     private let engine = AVAudioEngine()
     private let format = AVAudioFormat(standardFormatWithSampleRate: 48_000, channels: 2)!
     private let monoFormat = AVAudioFormat(standardFormatWithSampleRate: 48_000, channels: 1)!
-    private var nodes: [AVAudioPlayerNode] = []
-    private var nextNode = 1
     private var buffers: [URL: AVAudioPCMBuffer] = [:]
     private var monoBuffers: [URL: AVAudioPCMBuffer] = [:]
-    private var activeNode: [URL: AVAudioPlayerNode] = [:]
-    /// HRTF path: mono players feeding an environment node that renders binaurally.
-    private let environment = AVAudioEnvironmentNode()
-    private var spatialNodes: [AVAudioPlayerNode] = []
-    private var nextSpatialNode = 1
-    private var activeSpatialNode: [URL: AVAudioPlayerNode] = [:]
+    /// One processing chain (volume, EQ, reverb) per sound group.
+    private var chains: [SoundBus: SoundBusChain] = [:]
+    /// Plain (stereo) players per group.
+    private var pools: [SoundBus: PlayerPool] = [:]
+    /// HRTF players per group. Each spatial group has its own environment node
+    /// so its output lands on that group's chain: focus sounds go to the Focus
+    /// chain and spatial progress beeps to the Progress chain.
+    private var spatialPools: [SoundBus: PlayerPool] = [:]
+    private var environments: [SoundBus: AVAudioEnvironmentNode] = [:]
+    /// Every player node, for start, stop and rebuild.
+    private var allNodes: [AVAudioPlayerNode] = []
+    private var allSpatialNodes: [AVAudioPlayerNode] = []
     private let lock = NSLock()
     private var configObserver: NSObjectProtocol?
     private var defaultDeviceListener: AudioObjectPropertyListenerBlock?
@@ -32,33 +38,73 @@ final class SoundEngine {
     private(set) var lastPeak: Float = -1
     private var meterUntil: TimeInterval = 0
     private var meterArmed = false
-    /// Progress beeps go through one node per path so each beep cuts the previous.
-    private lazy var toneNode: AVAudioPlayerNode = nodes[0]
-    private lazy var spatialToneNode: AVAudioPlayerNode = spatialNodes[0]
 
-    init(voices: Int = 12) {
-        for _ in 0..<voices {
-            let node = AVAudioPlayerNode()
-            engine.attach(node)
-            engine.connect(node, to: engine.mainMixerNode, format: format)
-            nodes.append(node)
+    /// Players for one group. Round-robin, except that an exclusive sound reuses
+    /// the node it last played on so a repeat cuts off the previous copy.
+    private final class PlayerPool {
+        let nodes: [AVAudioPlayerNode]
+        private var next = 0
+        private var active: [URL: AVAudioPlayerNode] = [:]
+        init(_ nodes: [AVAudioPlayerNode]) { self.nodes = nodes }
+        /// Caller holds the engine lock.
+        func node(for url: URL, exclusive: Bool) -> AVAudioPlayerNode {
+            let node: AVAudioPlayerNode
+            if exclusive, let previous = active[url] {
+                node = previous
+            } else {
+                node = nodes[next]
+                next = (next + 1) % nodes.count
+            }
+            active[url] = node
+            return node
         }
-        // Spatial pool. The environment node only spatialises mono inputs.
-        engine.attach(environment)
-        engine.connect(environment, to: engine.mainMixerNode, format: format)
-        environment.listenerPosition = AVAudio3DPoint(x: 0, y: 0, z: 0)
-        environment.listenerVectorOrientation = AVAudio3DVectorOrientation(
-            forward: AVAudio3DVector(x: 0, y: 0, z: -1), up: AVAudio3DVector(x: 0, y: 1, z: 0))
-        environment.distanceAttenuationParameters.referenceDistance = 1
-        environment.distanceAttenuationParameters.maximumDistance = 100
-        environment.outputType = .headphones
-        for _ in 0..<6 {
-            let node = AVAudioPlayerNode()
-            engine.attach(node)
-            engine.connect(node, to: environment, format: monoFormat)
-            node.renderingAlgorithm = .HRTFHQ
-            node.sourceMode = .pointSource
-            spatialNodes.append(node)
+    }
+
+    /// Plain players per group: events overlap the most, key clicks cut each
+    /// other off, progress beeps use a single node so each beep cuts the last.
+    private static let plainVoices: [SoundBus: Int] = [.events: 6, .keys: 4, .focus: 3, .progress: 1]
+    /// HRTF players per group.
+    private static let spatialVoices: [SoundBus: Int] = [.focus: 5, .progress: 1]
+
+    init() {
+        for bus in SoundBus.allCases {
+            let chain = SoundBusChain()
+            chain.attach(to: engine, destination: engine.mainMixerNode, format: format)
+            chains[bus] = chain
+
+            var plain: [AVAudioPlayerNode] = []
+            for _ in 0..<(Self.plainVoices[bus] ?? 1) {
+                let node = AVAudioPlayerNode()
+                engine.attach(node)
+                engine.connect(node, to: chain.input, format: format)
+                plain.append(node)
+            }
+            pools[bus] = PlayerPool(plain)
+            allNodes += plain
+
+            // Spatial players. The environment node only spatialises mono inputs.
+            guard let count = Self.spatialVoices[bus] else { continue }
+            let environment = AVAudioEnvironmentNode()
+            engine.attach(environment)
+            engine.connect(environment, to: chain.input, format: format)
+            environment.listenerPosition = AVAudio3DPoint(x: 0, y: 0, z: 0)
+            environment.listenerVectorOrientation = AVAudio3DVectorOrientation(
+                forward: AVAudio3DVector(x: 0, y: 0, z: -1), up: AVAudio3DVector(x: 0, y: 1, z: 0))
+            environment.distanceAttenuationParameters.referenceDistance = 1
+            environment.distanceAttenuationParameters.maximumDistance = 100
+            environment.outputType = .headphones
+            environments[bus] = environment
+            var spatial: [AVAudioPlayerNode] = []
+            for _ in 0..<count {
+                let node = AVAudioPlayerNode()
+                engine.attach(node)
+                engine.connect(node, to: environment, format: monoFormat)
+                node.renderingAlgorithm = .HRTFHQ
+                node.sourceMode = .pointSource
+                spatial.append(node)
+            }
+            spatialPools[bus] = PlayerPool(spatial)
+            allSpatialNodes += spatial
         }
         setReverb(.smallRoom)
         // Self-check meter: after each play, log the peak that actually reached the output.
@@ -99,6 +145,12 @@ final class SoundEngine {
         AudioObjectAddPropertyListenerBlock(AudioObjectID(kAudioObjectSystemObject), &address, DispatchQueue.main, listener)
     }
 
+    /// Applies a group's volume, EQ and reverb. Takes effect immediately, on
+    /// sounds already playing too.
+    func configure(_ bus: SoundBus, with settings: AudioBusSettings) {
+        chains[bus]?.apply(settings)
+    }
+
     /// Stops the engine, points its output at the current default device, and
     /// starts it again. Connections and attached nodes survive a stop.
     private func rebuild() {
@@ -120,7 +172,7 @@ final class SoundEngine {
         engine.prepare()
         // Player nodes can report isPlaying after a restart while being idle;
         // cycle them so the state is real.
-        for node in nodes + spatialNodes { node.stop() }
+        for node in allNodes + allSpatialNodes { node.stop() }
         startIfNeeded()
         log.info("Engine rebuilt: running=\(self.engine.isRunning, privacy: .public) output \(self.engine.outputNode.outputFormat(forBus: 0).sampleRate, privacy: .public) Hz")
     }
@@ -147,7 +199,7 @@ final class SoundEngine {
         // on a running node costs microseconds; `stop()` and `play()` each
         // block for an IO cycle (5–12 ms measured), so they are avoided on the
         // playback path.
-        for node in nodes + spatialNodes where !node.isPlaying { node.play() }
+        for node in allNodes + allSpatialNodes where !node.isPlaying { node.play() }
     }
 
     private func applyIOBufferSize() {
@@ -190,19 +242,13 @@ final class SoundEngine {
         meterArmed = true
     }
 
-    /// Plays the file. `volume` is 0...1. Returns the sound's duration in seconds.
+    /// Plays the file through `bus`'s volume, EQ and reverb. `volume` is 0...1
+    /// and multiplies with the group's volume. Returns the sound's duration in seconds.
     @discardableResult
-    func play(_ url: URL, volume: Float, exclusive: Bool = false) -> TimeInterval {
-        guard let buffer = preload(url) else { return 0 }
+    func play(_ url: URL, volume: Float, bus: SoundBus, exclusive: Bool = false) -> TimeInterval {
+        guard let buffer = preload(url), let pool = pools[bus] else { return 0 }
         lock.lock()
-        let node: AVAudioPlayerNode
-        if exclusive, let previous = activeNode[url] {
-            node = previous
-        } else {
-            node = nodes[nextNode]
-            nextNode = nextNode % (nodes.count - 1) + 1 // skip index 0, the beep node
-        }
-        activeNode[url] = node
+        let node = pool.node(for: url, exclusive: exclusive)
         lock.unlock()
 
         startIfNeeded()
@@ -229,40 +275,42 @@ final class SoundEngine {
         // The environment node hosts the reverb, but each source decides how
         // much of itself it sends there (`reverbBlend`, 0 by default). Both are
         // needed, or the presets do nothing.
-        let params = environment.reverbParameters
+        // Every environment node (focus and progress) gets the same room, as
+        // the single shared one did before sound groups existed.
         let blend: Float
+        for environment in environments.values {
+            let params = environment.reverbParameters
+            switch reverb {
+            case .none:
+                params.enable = false
+            case .smallRoom:
+                params.enable = true; params.loadFactoryReverbPreset(.smallRoom); params.level = -6
+            case .mediumRoom:
+                params.enable = true; params.loadFactoryReverbPreset(.mediumRoom); params.level = -4
+            case .hall:
+                params.enable = true; params.loadFactoryReverbPreset(.largeHall); params.level = -2
+            }
+        }
         switch reverb {
-        case .none:
-            params.enable = false
-            blend = 0
-        case .smallRoom:
-            params.enable = true; params.loadFactoryReverbPreset(.smallRoom); params.level = -6
-            blend = 0.35
-        case .mediumRoom:
-            params.enable = true; params.loadFactoryReverbPreset(.mediumRoom); params.level = -4
-            blend = 0.45
-        case .hall:
-            params.enable = true; params.loadFactoryReverbPreset(.largeHall); params.level = -2
-            blend = 0.55
+        case .none: blend = 0
+        case .smallRoom: blend = 0.35
+        case .mediumRoom: blend = 0.45
+        case .hall: blend = 0.55
         }
         let scaled = min(1, blend * Float(max(0, min(1, amount))) * 2)
-        for node in spatialNodes { node.reverbBlend = scaled }
+        for node in allSpatialNodes { node.reverbBlend = scaled }
     }
 
     /// Plays the file binaurally at a position on the unit sphere around the
-    /// listener (+x right, +y up, -z forward).
+    /// listener (+x right, +y up, -z forward), through `bus`'s processing.
+    /// Groups without spatial players fall back to plain playback.
     @discardableResult
-    func playSpatial(_ url: URL, volume: Float, at position: AVAudio3DPoint, exclusive: Bool = true) -> TimeInterval {
+    func playSpatial(_ url: URL, volume: Float, at position: AVAudio3DPoint, bus: SoundBus = .focus,
+                     exclusive: Bool = true) -> TimeInterval {
+        guard let pool = spatialPools[bus] else { return play(url, volume: volume, bus: bus, exclusive: exclusive) }
         guard let buffer = preloadMono(url) else { return 0 }
         lock.lock()
-        let node: AVAudioPlayerNode
-        if exclusive, let previous = activeSpatialNode[url] {
-            node = previous
-        } else {
-            node = spatialNodes[nextSpatialNode]
-            nextSpatialNode = nextSpatialNode % (spatialNodes.count - 1) + 1 // skip index 0, the beep node
-        }
-        activeSpatialNode[url] = node
+        let node = pool.node(for: url, exclusive: exclusive)
         lock.unlock()
 
         startIfNeeded()
@@ -312,20 +360,31 @@ final class SoundEngine {
         return buffer
     }
 
-    /// Plays a beep, binaurally at `position` when given, otherwise through the plain mixer.
+    /// Plays a progress beep through the Progress group, binaurally at
+    /// `position` when given, otherwise plain.
     func playTone(frequency: Double, duration: TimeInterval = 0.04, volume: Float, at position: AVAudio3DPoint?) {
         guard let buffer = toneBuffer(frequency: frequency, duration: duration,
-                                      format: position == nil ? format : monoFormat) else { return }
+                                      format: position == nil ? format : monoFormat),
+              let plain = pools[.progress]?.nodes.first, let spatial = spatialPools[.progress]?.nodes.first
+        else { return }
         startIfNeeded()
         // One node per path: scheduling with .interrupts on it cuts the previous beep.
-        let node = position == nil ? toneNode : spatialToneNode
+        let node = position == nil ? plain : spatial
         if let position { node.position = position }
         node.volume = max(0, min(1, volume))
         node.scheduleBuffer(buffer, at: nil, options: [.interrupts], completionHandler: nil)
     }
 
     func stopAll() {
-        for node in nodes + spatialNodes { node.stop() }
+        for node in allNodes + allSpatialNodes { node.stop() }
+    }
+
+    /// Silences whatever is playing in one group (used to stop a preview).
+    /// The players are restarted at once so the next sound is still instant.
+    func stop(_ bus: SoundBus) {
+        let nodes = (pools[bus]?.nodes ?? []) + (spatialPools[bus]?.nodes ?? [])
+        for node in nodes { node.stop() }
+        startIfNeeded()
     }
 
     private static func decode(_ url: URL, to format: AVAudioFormat) -> AVAudioPCMBuffer? {

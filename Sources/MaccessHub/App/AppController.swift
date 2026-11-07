@@ -16,6 +16,8 @@ final class AppController {
     let engine = SoundEngine()
     let speaker = Speaker()
     let hotkeys = HotKeyCenter()
+    /// Previews for the Sound Processing page.
+    lazy var busPreviewer = BusPreviewer(app: self)
 
     let audioSwitch: AudioSwitchFeature
     let systemInfo: SystemInfoFeature
@@ -81,7 +83,7 @@ final class AppController {
         // Feedback sounds for the mute toggle bypass the event-sounds master switch.
         audioSwitch.playSound = { [weak self] id in
             guard let self, let event = SoundEvent.byID[id], let url = scheme.url(for: event) else { return false }
-            engine.play(url, volume: Float(settings.data.eventSounds.volume))
+            engine.play(url, volume: Float(settings.data.eventSounds.volume), bus: .events)
             return true
         }
         settings.onChange = { [weak self] _ in self?.applySettings() }
@@ -166,6 +168,7 @@ final class AppController {
         focusMonitor.rows = data.focusSounds.rows
         focusMonitor.followVoiceOverCursor = data.focusSounds.followVoiceOverCursor
         engine.setReverb(data.focusSounds.reverb, amount: data.focusSounds.reverbAmount)
+        for bus in SoundBus.allCases { engine.configure(bus, with: data.soundProcessing[bus]) }
         if data.focusSounds.enabled, !focusMonitorRunning {
             focusMonitor.start()
             focusMonitorRunning = true
@@ -218,9 +221,9 @@ final class AppController {
               data.focusSounds.isEnabled(event), let url = scheme.url(for: event) else { return }
         if data.focusSounds.spatial {
             let position = (frame ?? element?.frame).map { SpatialMapper.position(for: $0) } ?? SpatialMapper.center
-            engine.playSpatial(url, volume: Float(data.focusSounds.volume), at: position)
+            engine.playSpatial(url, volume: Float(data.focusSounds.volume), at: position, bus: .focus)
         } else {
-            engine.play(url, volume: Float(data.focusSounds.volume), exclusive: true)
+            engine.play(url, volume: Float(data.focusSounds.volume), bus: .focus, exclusive: true)
         }
     }
 
@@ -246,7 +249,8 @@ final class AppController {
             DispatchQueue.main.asyncAfter(deadline: .now() + Double(i) * 0.5) { [engine] in
                 let frame = CGRect(x: desktop.minX + desktop.width * spot.0, y: desktop.minY + desktop.height * spot.1,
                                    width: 1, height: 1)
-                engine.playSpatial(url, volume: volume, at: SpatialMapper.position(for: frame, in: desktop), exclusive: false)
+                engine.playSpatial(url, volume: volume, at: SpatialMapper.position(for: frame, in: desktop),
+                                   bus: .focus, exclusive: false)
             }
         }
     }
@@ -294,7 +298,7 @@ final class AppController {
             return
         }
         log.debug("key click play \(url.lastPathComponent, privacy: .public)")
-        engine.play(url, volume: Float(data.keyClicks.volume), exclusive: true)
+        engine.play(url, volume: Float(data.keyClicks.volume), bus: .keys, exclusive: true)
     }
 
     /// Plays the event's sound. `ignoreEnabledState` is used by the preview buttons.
@@ -305,12 +309,13 @@ final class AppController {
         if !ignoreEnabledState, !data.isEnabled(event) { return false }
         guard let url = scheme.url(for: event) else { return false }
         let volume: Double
+        let bus: SoundBus
         switch event.group {
-        case .keys: volume = data.keyClicks.volume
-        case .focus: volume = data.focusSounds.volume
-        default: volume = data.eventSounds.volume
+        case .keys: volume = data.keyClicks.volume; bus = .keys
+        case .focus: volume = data.focusSounds.volume; bus = .focus
+        default: volume = data.eventSounds.volume; bus = .events
         }
-        engine.play(url, volume: Float(volume), exclusive: event.isKeyClick || event.group == .focus)
+        engine.play(url, volume: Float(volume), bus: bus, exclusive: event.isKeyClick || event.group == .focus)
         return true
     }
 

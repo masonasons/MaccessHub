@@ -31,6 +31,7 @@ final class SettingsWindowController: NSWindowController, NSWindowDelegate {
 
     func windowWillClose(_ notification: Notification) {
         AppController.shared.isRecordingShortcut = false
+        AppController.shared.busPreviewer.stop()
         AppController.shared.settings.save()
     }
 }
