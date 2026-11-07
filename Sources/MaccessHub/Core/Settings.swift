@@ -265,7 +265,9 @@ struct SettingsData: Codable {
         soundOverrides = c.value(.soundOverrides, default: [:])
         hotkeys = c.value(.hotkeys, default: [:])
         disabledHotkeys = c.value(.disabledHotkeys, default: [])
-        appSoundRules = c.value(.appSoundRules, default: [])
+        // Lossy: one damaged entry is dropped instead of emptying the whole list.
+        appSoundRules = ((try? c.decodeIfPresent([LossyAppSoundRule].self, forKey: .appSoundRules)) ?? nil)?
+            .compactMap(\.rule) ?? []
     }
 
     // MARK: Hotkeys

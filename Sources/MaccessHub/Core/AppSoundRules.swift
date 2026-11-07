@@ -106,3 +106,9 @@ extension SettingsData {
         return appSoundRules.first { $0.bundleID == bundleID }
     }
 }
+
+/// Decodes one rule, or nil if that entry is damaged.
+struct LossyAppSoundRule: Decodable {
+    let rule: AppSoundRule?
+    init(from decoder: Decoder) throws { rule = try? AppSoundRule(from: decoder) }
+}
