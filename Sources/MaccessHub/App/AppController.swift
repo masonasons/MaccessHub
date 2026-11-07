@@ -310,7 +310,10 @@ final class AppController {
         case .focus: volume = data.focusSounds.volume
         default: volume = data.eventSounds.volume
         }
-        engine.play(url, volume: Float(volume), exclusive: event.isKeyClick || event.group == .focus)
+        // Exclusive for every group: a burst of the same event (Bluetooth
+        // devices reconnecting after wake, say) restarts one copy of the sound
+        // instead of stacking copies on separate voices until it clips.
+        engine.play(url, volume: Float(volume), exclusive: true)
         return true
     }
 
