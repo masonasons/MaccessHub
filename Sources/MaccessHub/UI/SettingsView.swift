@@ -25,6 +25,15 @@ struct SettingsView: View {
     }
 }
 
+// MARK: - Announcements
+
+/// Confirms a button whose effect is elsewhere on the page, so VoiceOver users
+/// hear that it worked instead of the button being read again.
+func announce(_ message: String) {
+    NSAccessibility.post(element: NSApp as Any, notification: .announcementRequested,
+                         userInfo: [.announcement: message, .priority: NSAccessibilityPriorityLevel.high.rawValue])
+}
+
 // MARK: - General
 
 struct GeneralSettingsView: View {
@@ -213,9 +222,18 @@ struct EventSoundsSettingsView: View {
                     .accessibilityValue("\(Int(store.data.eventSounds.volume * 100)) percent")
                 Toggle("Use Classic sounds for events the pack does not cover", isOn: $store.data.eventSounds.fillMissingFromClassic)
                 HStack {
-                    Button("Enable All") { setAll(true) }
-                    Button("Disable All") { setAll(false) }
-                    Button("Reset to Defaults") { store.data.eventSounds.eventStates = [:] }
+                    Button("Enable All") {
+                        setAll(true)
+                        announce("All event sounds on")
+                    }
+                    Button("Disable All") {
+                        setAll(false)
+                        announce("All event sounds off")
+                    }
+                    Button("Reset to Defaults") {
+                        store.data.eventSounds.eventStates = [:]
+                        announce("Event sounds reset to defaults")
+                    }
                 }
             }
             ForEach(SoundGroup.eventGroups) { group in
@@ -430,6 +448,7 @@ struct ShortcutsSettingsView: View {
                 Button("Reset All Shortcuts") {
                     store.data.hotkeys = [:]
                     store.data.disabledHotkeys = []
+                    announce("All shortcuts reset to defaults")
                 }
             }
             ForEach(HotKeyAction.Group.allCases) { group in
