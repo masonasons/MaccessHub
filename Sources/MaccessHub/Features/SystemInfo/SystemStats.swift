@@ -5,9 +5,16 @@ import IOKit
 
 /// Raw system measurements used by the resource-monitor feature.
 enum SystemStats {
+    /// One core's tick counters. The kernel keeps them as unsigned 32-bit
+    /// numbers at 100 ticks a second, so an idle core passes 2^31 after about
+    /// 248 days awake and wraps after about 497.
+    struct CoreTicks {
+        var user: UInt32 = 0, system: UInt32 = 0, idle: UInt32 = 0, nice: UInt32 = 0
+    }
+
+    /// Per-core ticks, in core order.
     struct CPUTicks {
-        var user: UInt64 = 0, system: UInt64 = 0, idle: UInt64 = 0, nice: UInt64 = 0
-        var total: UInt64 { user + system + idle + nice }
+        var cores: [CoreTicks] = []
     }
 
     static func cpuTicks() -> CPUTicks? {
@@ -21,12 +28,15 @@ enum SystemStats {
         }
         var ticks = CPUTicks()
         let stride = Int(CPU_STATE_MAX)
+        // The array is integer_t (Int32) but holds unsigned counters: read the
+        // bits as UInt32. Converting a value past 2^31 straight to UInt64 traps.
+        func tick(_ index: Int) -> UInt32 { UInt32(bitPattern: info[index]) }
         for cpu in 0..<Int(cpuCount) {
             let base = cpu * stride
-            ticks.user += UInt64(info[base + Int(CPU_STATE_USER)])
-            ticks.system += UInt64(info[base + Int(CPU_STATE_SYSTEM)])
-            ticks.idle += UInt64(info[base + Int(CPU_STATE_IDLE)])
-            ticks.nice += UInt64(info[base + Int(CPU_STATE_NICE)])
+            ticks.cores.append(CoreTicks(user: tick(base + Int(CPU_STATE_USER)),
+                                         system: tick(base + Int(CPU_STATE_SYSTEM)),
+                                         idle: tick(base + Int(CPU_STATE_IDLE)),
+                                         nice: tick(base + Int(CPU_STATE_NICE))))
         }
         return ticks
     }
@@ -37,12 +47,24 @@ enum SystemStats {
     static func cpuUsage(interval: TimeInterval = 0.5, completion: @escaping (CPUUsage?) -> Void) {
         guard let first = cpuTicks() else { completion(nil); return }
         DispatchQueue.global().asyncAfter(deadline: .now() + interval) {
-            guard let second = cpuTicks() else { DispatchQueue.main.async { completion(nil) }; return }
-            let total = Double(second.total &- first.total)
+            guard let second = cpuTicks(), second.cores.count == first.cores.count else {
+                DispatchQueue.main.async { completion(nil) }; return
+            }
+            // Differences per core in 32-bit wrapping arithmetic, so a counter
+            // that wrapped between the samples still gives the right amount.
+            var user: UInt64 = 0, system: UInt64 = 0, idle: UInt64 = 0
+            for (a, b) in zip(first.cores, second.cores) {
+                user += UInt64(b.user &- a.user) + UInt64(b.nice &- a.nice)
+                system += UInt64(b.system &- a.system)
+                idle += UInt64(b.idle &- a.idle)
+            }
+            let total = Double(user + system + idle)
             guard total > 0 else { DispatchQueue.main.async { completion(nil) }; return }
-            let user = Double((second.user &- first.user) + (second.nice &- first.nice)) / total * 100
-            let system = Double(second.system &- first.system) / total * 100
-            DispatchQueue.main.async { completion(CPUUsage(overall: user + system, user: user, system: system)) }
+            let userPercent = Double(user) / total * 100
+            let systemPercent = Double(system) / total * 100
+            DispatchQueue.main.async {
+                completion(CPUUsage(overall: userPercent + systemPercent, user: userPercent, system: systemPercent))
+            }
         }
     }
 
