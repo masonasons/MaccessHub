@@ -120,6 +120,20 @@ enum ProgressOutput: String, Codable, CaseIterable, Identifiable {
     }
 }
 
+/// Where progress beeps come from.
+enum BeepPlacement: String, Codable, CaseIterable, Identifiable {
+    case screen, fixed, leftToRight, rightToLeft
+    var id: String { rawValue }
+    var title: String {
+        switch self {
+        case .screen: return "Where the bar is on screen"
+        case .fixed: return "Fixed, set with Beep pan"
+        case .leftToRight: return "Move left to right as it fills"
+        case .rightToLeft: return "Move right to left as it fills"
+        }
+    }
+}
+
 /// NVDA-style progress bar reporting.
 struct ProgressSettings: Codable {
     var output: ProgressOutput = .beep
@@ -138,6 +152,9 @@ struct ProgressSettings: Codable {
     /// Left/right placement of beeps, -100 (left) to 100 (right). Ignored when
     /// beeps are placed with HRTF at the bar's position.
     var beepPan = 0
+    /// Where beeps come from. Unset means what earlier versions did: the bar's
+    /// place on screen when focus sounds use 3D placement, otherwise the pan.
+    var beepPlacement: BeepPlacement?
     /// Classic is NVDA's beep; Pleasant uses the settings below.
     var beepStyle: ProgressBeepStyle = .classic
     var beepWaveform: BeepWaveform = .sine
@@ -173,6 +190,21 @@ struct ProgressSettings: Codable {
     /// -1...1 for the mixer.
     var beepPanAmount: Float { Float(beepPan.clamped(to: Self.beepPanRange)) / 100 }
 
+    func placement(spatialFocus: Bool) -> BeepPlacement {
+        beepPlacement ?? (spatialFocus ? .screen : .fixed)
+    }
+
+    /// Left/right position for a beep, -1...1. Moving placements sweep from
+    /// one side to the other as the bar fills.
+    func pan(percent: Int, placement: BeepPlacement) -> Float {
+        let sweep = Float(percent.clamped(to: 0...100)) / 50 - 1
+        switch placement {
+        case .leftToRight: return sweep
+        case .rightToLeft: return -sweep
+        case .fixed, .screen: return beepPanAmount
+        }
+    }
+
     /// How VoiceOver reads the pan setting.
     static func panDescription(_ pan: Int) -> String {
         if pan == 0 { return "Centre" }
@@ -190,6 +222,7 @@ struct ProgressSettings: Codable {
         beepMinHz = c.value(.beepMinHz, default: 110)
         beepVolume = c.value(.beepVolume, default: 0.5)
         beepPan = c.value(.beepPan, default: 0)
+        beepPlacement = try? c.decodeIfPresent(BeepPlacement.self, forKey: .beepPlacement)
         beepStyle = c.value(.beepStyle, default: .classic)
         beepWaveform = c.value(.beepWaveform, default: .sine)
         beepEnvelope = c.value(.beepEnvelope, default: .cosine)

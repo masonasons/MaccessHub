@@ -371,13 +371,25 @@ struct FocusSoundsSettingsView: View {
                 Slider(value: $store.data.progress.beepVolume, in: 0...1) { Text("Beep volume") }
                     .accessibilityValue("\(Int(store.data.progress.beepVolume * 100)) percent")
                     .disabled(beepsOff)
-                Slider(value: Binding(get: { Double(store.data.progress.beepPan) },
-                                      set: { store.data.progress.beepPan = Int($0.rounded()) }),
-                       in: -100...100, step: 10) {
-                    Text("Beep pan")
-                } minimumValueLabel: { Text("Left") } maximumValueLabel: { Text("Right") }
-                .accessibilityValue(ProgressSettings.panDescription(store.data.progress.beepPan))
+                let placement = store.data.progress.placement(spatialFocus: store.data.focusSounds.spatial)
+                Picker("Beep position", selection: Binding(get: { placement },
+                                                           set: { store.data.progress.beepPlacement = $0 })) {
+                    ForEach(BeepPlacement.allCases) { Text($0.title).tag($0) }
+                }
                 .disabled(beepsOff)
+                if placement == .fixed {
+                    Slider(value: Binding(get: { Double(store.data.progress.beepPan) },
+                                          set: { store.data.progress.beepPan = Int($0.rounded()) }),
+                           in: -100...100, step: 10) {
+                        Text("Beep pan")
+                    } minimumValueLabel: { Text("Left") } maximumValueLabel: { Text("Right") }
+                    .accessibilityValue(ProgressSettings.panDescription(store.data.progress.beepPan))
+                    .disabled(beepsOff)
+                }
+                Text(placement == .screen
+                     ? "Beeps come from the bar's place on screen, in 3D. Best with headphones. The previews play from the middle of the screen."
+                     : "Left and right need headphones or two speakers. On a single speaker every position sounds the same.")
+                    .font(.callout).foregroundStyle(.secondary)
                 HStack {
                     Button("Play Sample") { AppController.shared.playProgressBeepSample() }
                         .accessibilityHint("Plays beeps for 0, 25, 50, 75 and 100 percent with these settings")
@@ -396,8 +408,8 @@ struct FocusSoundsSettingsView: View {
                 }
                 .disabled(beepsOff)
                 Text(store.data.progress.beepStyle == .classic
-                     ? "NVDA's progress beeps, sample for sample: 40 ms, pitch doubling every 25 percent, and speech at each interval. With HRTF on, beeps come from the bar's position on screen and pan is not used. Pan has no effect on a single speaker. Defaults match NVDA's."
-                     : "Pleasant beeps fade in and out and rise from the low pitch to the high pitch as the bar fills. Inspired by the Pleasant Progress Bar add-on for NVDA. With HRTF on, beeps come from the bar's position on screen and pan is not used. Pan has no effect on a single speaker.")
+                     ? "NVDA's progress beeps, sample for sample: 40 ms, pitch doubling every 25 percent, and speech at each interval. Defaults match NVDA's."
+                     : "Pleasant beeps fade in and out and rise from the low pitch to the high pitch as the bar fills. Inspired by the Pleasant Progress Bar add-on for NVDA.")
                     .font(.callout).foregroundStyle(.secondary)
             }
             Section("Control sounds") {
