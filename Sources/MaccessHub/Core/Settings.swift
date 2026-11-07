@@ -86,6 +86,9 @@ struct KeyClickSettings: Codable {
     var ignoreWithCommand = true
     var ignoreWithControl = false
     var ignoreWithOption = false
+    /// Same click for every character key in password fields, so the sounds
+    /// do not reveal what kind of character was typed.
+    var maskSecureFields = true
     var fillMissingFromClassic = true
     var eventStates: [String: Bool] = [:]
 
@@ -100,6 +103,7 @@ struct KeyClickSettings: Codable {
         ignoreWithCommand = c.value(.ignoreWithCommand, default: true)
         ignoreWithControl = c.value(.ignoreWithControl, default: false)
         ignoreWithOption = c.value(.ignoreWithOption, default: false)
+        maskSecureFields = c.value(.maskSecureFields, default: true)
         fillMissingFromClassic = c.value(.fillMissingFromClassic, default: true)
         eventStates = c.value(.eventStates, default: [:])
     }

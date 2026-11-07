@@ -257,6 +257,9 @@ struct KeyClicksSettingsView: View {
                 Toggle("Silent when Command is held", isOn: $store.data.keyClicks.ignoreWithCommand)
                 Toggle("Silent when Control is held", isOn: $store.data.keyClicks.ignoreWithControl)
                 Toggle("Silent when Option is held", isOn: $store.data.keyClicks.ignoreWithOption)
+                Toggle("Same click for every key in password fields", isOn: $store.data.keyClicks.maskSecureFields)
+                Text("In a password field, letters, numbers, symbols and Space all make the same click, so nobody nearby can tell what you typed. Return, Delete, Tab and the arrow keys keep their own sounds.")
+                    .font(.callout).foregroundStyle(.secondary)
             }
             Section("Key sounds") {
                 ForEach(SoundEvent.events(in: .keys)) { event in
