@@ -18,6 +18,10 @@ final class ProgressMonitor {
     /// Called on the main thread.
     var onUpdate: ((Update) -> Void)?
     var watchBackgroundApps = false { didSet { if running { refreshObservers() } } }
+    /// Bundle IDs never observed, so their bars cost nothing and make no sound.
+    var excludedBundleIDs: Set<String> = [] {
+        didSet { if running, excludedBundleIDs != oldValue { refreshObservers() } }
+    }
 
     private let log = Logger(subsystem: "com.maccesshub.app", category: "progress")
     private var observers: [pid_t: (observer: AXObserver, element: AXUIElement)] = [:]
@@ -64,6 +68,12 @@ final class ProgressMonitor {
             }
         }
         wanted.remove(ProcessInfo.processInfo.processIdentifier)
+        if !excludedBundleIDs.isEmpty {
+            wanted = wanted.filter { pid in
+                guard let id = NSRunningApplication(processIdentifier: pid)?.bundleIdentifier else { return true }
+                return !excludedBundleIDs.contains(id)
+            }
+        }
         for pid in Array(observers.keys) where !wanted.contains(pid) { detach(pid: pid) }
         for pid in wanted where observers[pid] == nil { attach(pid: pid) }
     }
