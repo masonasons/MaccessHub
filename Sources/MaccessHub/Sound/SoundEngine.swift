@@ -136,11 +136,19 @@ final class SoundEngine {
     /// A running engine keeps the output device open, and Core Audio holds a
     /// PreventUserIdleSystemSleep assertion for it, so the Mac never sleeps on
     /// its own. Pause the engine after this long without a sound; the next
-    /// sound starts it again.
-    private let idleTimeout: TimeInterval = 30
+    /// sound starts it again. 0 never pauses it.
+    var idleTimeout: TimeInterval = 30 {
+        didSet {
+            guard idleTimeout != oldValue else { return }
+            // A check already waiting was timed for the old value; start over.
+            idleCheck?.cancel()
+            idleCheck = nil
+            scheduleIdleCheck(after: 0)
+        }
+    }
     /// Uptime at which the last scheduled sound finishes.
     private var busyUntil: TimeInterval = 0
-    private var idleCheckScheduled = false
+    private var idleCheck: DispatchWorkItem?
 
     private func startIfNeeded() {
         if !engine.isRunning {
@@ -165,11 +173,10 @@ final class SoundEngine {
     /// stop: it releases the device but keeps the graph and the player nodes
     /// running, so restarting costs no more than the first start did.
     private func scheduleIdleCheck(after delay: TimeInterval) {
-        guard !idleCheckScheduled else { return }
-        idleCheckScheduled = true
-        DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in
+        guard idleCheck == nil, idleTimeout > 0 else { return }
+        let check = DispatchWorkItem { [weak self] in
             guard let self else { return }
-            idleCheckScheduled = false
+            idleCheck = nil
             let idle = ProcessInfo.processInfo.systemUptime - busyUntil
             if idle < idleTimeout {
                 scheduleIdleCheck(after: idleTimeout - idle)
@@ -178,6 +185,8 @@ final class SoundEngine {
                 log.debug("Audio engine paused after \(Int(idle), privacy: .public) s idle")
             }
         }
+        idleCheck = check
+        DispatchQueue.main.asyncAfter(deadline: .now() + delay, execute: check)
     }
 
     private func applyIOBufferSize() {

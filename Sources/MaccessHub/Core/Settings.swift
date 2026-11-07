@@ -41,6 +41,8 @@ struct GeneralSettings: Codable {
     var hasSeenWelcome = false
     /// Seconds within which a second press of the same shortcut counts as a double press.
     var doublePressInterval = 0.35
+    /// Seconds without a sound before the audio device is released; 0 keeps it open.
+    var audioIdleTimeout = 30.0
 
     init() {}
     init(from decoder: Decoder) throws {
@@ -52,6 +54,7 @@ struct GeneralSettings: Codable {
         speechVoice = c.value(.speechVoice, default: nil)
         hasSeenWelcome = c.value(.hasSeenWelcome, default: false)
         doublePressInterval = c.value(.doublePressInterval, default: 0.35)
+        audioIdleTimeout = c.value(.audioIdleTimeout, default: 30.0)
     }
 }
 

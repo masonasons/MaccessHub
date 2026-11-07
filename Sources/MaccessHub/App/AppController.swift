@@ -166,6 +166,7 @@ final class AppController {
         focusMonitor.rows = data.focusSounds.rows
         focusMonitor.followVoiceOverCursor = data.focusSounds.followVoiceOverCursor
         engine.setReverb(data.focusSounds.reverb, amount: data.focusSounds.reverbAmount)
+        engine.idleTimeout = max(0, data.general.audioIdleTimeout)
         if data.focusSounds.enabled, !focusMonitorRunning {
             focusMonitor.start()
             focusMonitorRunning = true
