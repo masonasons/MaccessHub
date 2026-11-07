@@ -179,7 +179,10 @@ struct SoundEventRow: View {
 
     private var statusText: String {
         var parts: [String] = []
-        if let source { parts.append(source.description) } else { parts.append("No sound") }
+        if let source {
+            parts.append(source.description)
+            if source.variantCount > 1 { parts.append("\(source.variantCount) variants, one picked at random") }
+        } else { parts.append("No sound") }
         if let note = event.note { parts.append(note) }
         return parts.joined(separator: " · ")
     }
@@ -248,6 +251,8 @@ struct KeyClicksSettingsView: View {
                 Slider(value: $store.data.keyClicks.volume, in: 0...1) { Text("Volume") }
                     .accessibilityValue("\(Int(store.data.keyClicks.volume * 100)) percent")
                 Toggle("Use Classic sounds for keys the pack does not cover", isOn: $store.data.keyClicks.fillMissingFromClassic)
+                Button("Preview Typing") { AppController.shared.previewTyping() }
+                    .help("Plays the pack as if you typed a short phrase. Press again to stop.")
             }
             Section("When to click") {
                 Picker("Play clicks", selection: $store.data.keyClicks.scope) {
@@ -282,6 +287,8 @@ struct FocusSoundsSettingsView: View {
                 Slider(value: $store.data.focusSounds.volume, in: 0...1) { Text("Volume") }
                     .accessibilityValue("\(Int(store.data.focusSounds.volume * 100)) percent")
                 Toggle("Use Classic sounds for controls the pack does not cover", isOn: $store.data.focusSounds.fillMissingFromClassic)
+                Button("Preview Focus Sounds") { AppController.shared.previewFocusSounds() }
+                    .help("Plays each control's sound in turn. Press again to stop.")
                 Text("Like the Unspoken add-on for NVDA: each kind of control has its own sound.")
                     .font(.callout).foregroundStyle(.secondary)
             }
@@ -477,6 +484,9 @@ struct SoundpacksSettingsView: View {
     @State private var newSheetSource: Soundpack?
     @State private var exportMode = false
     @State private var errorMessage: String?
+    /// What the last NVDA import did, shown until dismissed.
+    @State private var importResults: [NavSoundsImporter.Result] = []
+    @State private var importSummary: String?
 
     private var selectedPack: Soundpack? { selection.flatMap { library.pack(id: $0) } }
 
@@ -485,11 +495,12 @@ struct SoundpacksSettingsView: View {
             Text("Soundpacks")
                 .font(.headline)
                 .padding(.horizontal)
+            if let importSummary { importBanner(importSummary) }
             HSplitView {
                 List(library.packs, selection: $selection) { pack in
                     VStack(alignment: .leading) {
                         Text(pack.name)
-                        Text("\(pack.eventCount) sounds\(pack.isBuiltIn ? ", built-in" : "")")
+                        Text("\(pack.eventCount) sounds\(pack.fileCount > pack.eventCount ? " (\(pack.fileCount) files with variants)" : "")\(pack.isBuiltIn ? ", built-in" : "")")
                             .font(.caption).foregroundStyle(.secondary)
                     }
                     .tag(pack.id)
@@ -507,6 +518,8 @@ struct SoundpacksSettingsView: View {
                 Button("Export Current Scheme…") { newSheetSource = nil; exportMode = true; showNewSheet = true }
                     .help("Creates a pack from the sounds currently in use, custom files included.")
                 Button("Import Folder…") { importPack() }
+                Button("Import NVDA Sounds…") { importNVDA() }
+                    .help("Imports a typing or navigation pack from the NVDA add-on Navigation Sounds, as a folder or a zip file.")
                 Spacer()
                 Button("Show in Finder") {
                     if let pack = selectedPack { NSWorkspace.shared.activateFileViewerSelecting([pack.url]) }
@@ -540,11 +553,30 @@ struct SoundpacksSettingsView: View {
                     if let description = pack.manifest.description { Text(description) }
                     LabeledContent("Folder", value: pack.url.path)
                     LabeledContent("Sounds", value: "\(pack.eventCount) of \(SoundEvent.all.count) events")
+                    if pack.fileCount > pack.eventCount {
+                        let varied = SoundEvent.all.filter { pack.variantCount(for: $0.id) > 1 }
+                        LabeledContent("Variants", value: varied.map { "\($0.title): \(pack.variantCount(for: $0.id))" }
+                            .joined(separator: ", "))
+                    }
                     HStack {
                         Button("Use for Event Sounds") { store.data.eventSounds.packID = pack.id }
                             .disabled(store.data.eventSounds.packID == pack.id)
                         Button("Use for Key Clicks") { store.data.keyClicks.packID = pack.id }
                             .disabled(store.data.keyClicks.packID == pack.id)
+                        Button("Use for Focus Sounds") { store.data.focusSounds.packID = pack.id }
+                            .disabled(store.data.focusSounds.packID == pack.id)
+                    }
+                    HStack {
+                        if Self.hasSounds(pack, in: .keys) {
+                            Button("Preview Typing") { AppController.shared.previewTyping(packID: pack.id) }
+                                .accessibilityLabel("Preview typing with \(pack.name)")
+                                .help("Plays this pack as if you typed a short phrase. Press again to stop.")
+                        }
+                        if Self.hasSounds(pack, in: .focus) {
+                            Button("Preview Focus Sounds") { AppController.shared.previewFocusSounds(packID: pack.id) }
+                                .accessibilityLabel("Preview focus sounds of \(pack.name)")
+                                .help("Plays each control's sound from this pack in turn. Press again to stop.")
+                        }
                     }
                     if !missing.isEmpty {
                         DisclosureGroup("Events without a sound (\(missing.count))") {
@@ -553,7 +585,7 @@ struct SoundpacksSettingsView: View {
                             }
                         }
                     }
-                    Text("A soundpack is a folder of audio files named after event IDs, such as application.launched.wav or key.lower.wav, plus an optional pack.json. Drop files into the folder and they are picked up the next time the pack is used.")
+                    Text("A soundpack is a folder of audio files named after event IDs, such as application.launched.wav or key.lower.wav, plus an optional pack.json. Add key.lower.2.wav, key.lower.3.wav and so on for variants, one picked at random each time. Drop files into the folder and they are picked up the next time the pack is used.")
                         .font(.callout).foregroundStyle(.secondary)
                 }
             }
@@ -577,6 +609,77 @@ struct SoundpacksSettingsView: View {
         }
     }
 
+    static func hasSounds(_ pack: Soundpack, in group: SoundGroup) -> Bool {
+        SoundEvent.events(in: group).contains { pack.url(for: $0.id) != nil }
+    }
+
+    private func importNVDA() {
+        let panel = NSOpenPanel()
+        panel.title = "Choose a Navigation Sounds pack folder or zip file"
+        panel.message = "Choose a typing or navigation pack from the NVDA add-on Navigation Sounds: a folder of wav files, a folder of packs, or a zip file."
+        panel.prompt = "Import"
+        panel.canChooseDirectories = true
+        panel.canChooseFiles = true
+        panel.allowedContentTypes = [.zip, .folder]
+        panel.allowsMultipleSelection = false
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+        do {
+            let results = try library.importNavigationSoundsPacks(from: url)
+            importResults = results
+            let summary = Self.describe(results)
+            importSummary = summary
+            if let first = results.first { selection = first.name }
+            AppController.shared.speaker.speak(summary)
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    static func describe(_ results: [NavSoundsImporter.Result]) -> String {
+        if results.count == 1, let r = results.first {
+            var text = "Imported \(r.name), a \(r.kind.noun) pack with \(r.soundCount) sound\(r.soundCount == 1 ? "" : "s")."
+            if !r.skipped.isEmpty {
+                text += " Left out \(r.skipped.count) sound\(r.skipped.count == 1 ? "" : "s") for controls MaccessHub does not use."
+            }
+            if !r.unreadable.isEmpty {
+                text += " \(r.unreadable.count) file\(r.unreadable.count == 1 ? " was" : "s were") not playable audio and \(r.unreadable.count == 1 ? "was" : "were") skipped."
+            }
+            return text
+        }
+        let names = results.map(\.name).joined(separator: ", ")
+        return "Imported \(results.count) packs: \(names). Select one in the list to preview it."
+    }
+
+    @ViewBuilder
+    private func importBanner(_ summary: String) -> some View {
+        HStack(alignment: .firstTextBaseline) {
+            Text(summary)
+                .fixedSize(horizontal: false, vertical: true)
+                .accessibilityAddTraits(.isStaticText)
+            Spacer()
+            if importResults.count == 1, let result = importResults.first, library.pack(id: result.name) != nil {
+                if result.kind == .typing {
+                    Button("Preview") { AppController.shared.previewTyping(packID: result.name) }
+                        .accessibilityLabel("Preview typing with \(result.name)")
+                    Button("Use for Key Clicks") { store.data.keyClicks.packID = result.name }
+                        .disabled(store.data.keyClicks.packID == result.name)
+                        .accessibilityLabel("Use \(result.name) for key clicks")
+                } else {
+                    Button("Preview") { AppController.shared.previewFocusSounds(packID: result.name) }
+                        .accessibilityLabel("Preview focus sounds of \(result.name)")
+                    Button("Use for Focus Sounds") { store.data.focusSounds.packID = result.name }
+                        .disabled(store.data.focusSounds.packID == result.name)
+                        .accessibilityLabel("Use \(result.name) for focus sounds")
+                }
+            }
+            Button("Dismiss") { importSummary = nil; importResults = [] }
+                .accessibilityLabel("Dismiss import message")
+        }
+        .padding(8)
+        .background(.quaternary, in: RoundedRectangle(cornerRadius: 6))
+        .padding(.horizontal)
+    }
+
     private func deleteSelected() {
         guard let pack = selectedPack else { return }
         let alert = NSAlert()
@@ -587,6 +690,7 @@ struct SoundpacksSettingsView: View {
         guard alert.runModal() == .alertFirstButtonReturn else { return }
         do {
             try library.deletePack(pack)
+            if importResults.contains(where: { $0.name == pack.id }) { importSummary = nil; importResults = [] }
             selection = library.packs.first?.id
         } catch {
             errorMessage = error.localizedDescription
@@ -651,9 +755,12 @@ struct NewSoundpackSheet: View {
             let pack: Soundpack
             if exportScheme {
                 let scheme = AppController.shared.scheme
-                var files: [String: URL] = [:]
-                for event in SoundEvent.all { if let url = scheme.url(for: event) { files[event.id] = url } }
-                pack = try library.createPack(named: name, author: author, description: description, files: files)
+                var variants: [String: [URL]] = [:]
+                for event in SoundEvent.all {
+                    let urls = scheme.urls(for: event)
+                    if !urls.isEmpty { variants[event.id] = urls }
+                }
+                pack = try library.createPack(named: name, author: author, description: description, variants: variants)
             } else {
                 pack = try library.createPack(named: name, author: author, description: description,
                                               copying: library.pack(id: copyFrom))

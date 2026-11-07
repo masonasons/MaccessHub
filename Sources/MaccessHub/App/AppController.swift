@@ -15,6 +15,8 @@ final class AppController {
     let library = SoundpackLibrary()
     let engine = SoundEngine()
     let speaker = Speaker()
+    /// Chooses among an event's variants so the same file never plays twice running.
+    let variants = VariantPicker()
     let hotkeys = HotKeyCenter()
 
     let audioSwitch: AudioSwitchFeature
@@ -215,7 +217,7 @@ final class AppController {
     private func handleFocus(_ slot: String, element: AXElement?, frame: CGRect?) {
         let data = settings.data
         guard data.focusSounds.enabled, let event = SoundEvent.byID["focus.\(slot)"],
-              data.focusSounds.isEnabled(event), let url = scheme.url(for: event) else { return }
+              data.focusSounds.isEnabled(event), let url = variants.pick(from: scheme.urls(for: event)) else { return }
         if data.focusSounds.spatial {
             let position = (frame ?? element?.frame).map { SpatialMapper.position(for: $0) } ?? SpatialMapper.center
             engine.playSpatial(url, volume: Float(data.focusSounds.volume), at: position)
@@ -289,7 +291,7 @@ final class AppController {
     private func handleKey(_ category: KeyCategory) {
         let data = settings.data
         guard data.keyClicks.enabled, let event = SoundEvent.byID[category.eventID],
-              data.keyClicks.isEnabled(event), let url = scheme.url(for: event) else {
+              data.keyClicks.isEnabled(event), let url = variants.pick(from: scheme.urls(for: event)) else {
             log.debug("key click skipped: enabled=\(data.keyClicks.enabled, privacy: .public) event=\(category.eventID, privacy: .public)")
             return
         }
@@ -303,7 +305,7 @@ final class AppController {
         guard let event = SoundEvent.byID[id] else { return false }
         let data = settings.data
         if !ignoreEnabledState, !data.isEnabled(event) { return false }
-        guard let url = scheme.url(for: event) else { return false }
+        guard let url = variants.pick(from: scheme.urls(for: event)) else { return false }
         let volume: Double
         switch event.group {
         case .keys: volume = data.keyClicks.volume
@@ -318,6 +320,97 @@ final class AppController {
         if !play(event.id, ignoreEnabledState: true) {
             speaker.speak("No sound for \(event.title).")
         }
+    }
+
+    // MARK: Pack previews
+
+    /// Bumped to cancel a running preview.
+    private var previewGeneration = 0
+    private var previewEndsAt: TimeInterval = 0
+
+    /// A short typed phrase, as key events: "Hello world", a slip, a fix, Return.
+    private static let typingPhrase: [String] = {
+        var keys: [String] = ["key.upper"]
+        keys += Array(repeating: "key.lower", count: 4)          // ello
+        keys.append("key.space")
+        keys += Array(repeating: "key.lower", count: 4)          // worl
+        keys.append("key.lower")                                  // a typo
+        keys.append("key.delete")
+        keys.append("key.lower")                                  // d
+        keys.append("key.punctuation")                            // !
+        keys.append("key.enter")
+        return keys
+    }()
+
+    /// Plays a pack's key clicks as if someone typed a short phrase, at a
+    /// natural speed with a little jitter (about two seconds). Pressing it
+    /// again while it plays stops it. `packID` nil means the key-clicks pack in use.
+    /// Returns false when the preview was stopped instead of started.
+    @discardableResult
+    func previewTyping(packID: String? = nil) -> Bool {
+        if stopPreviewIfPlaying() { return false }
+        var data = settings.data
+        if let packID { data.keyClicks.packID = packID }
+        let previewScheme = SoundScheme(settings: data, library: library)
+        let volume = Float(data.keyClicks.volume)
+        var steps: [(TimeInterval, URL?)] = []
+        var time: TimeInterval = 0
+        for id in Self.typingPhrase {
+            guard let event = SoundEvent.byID[id] else { continue }
+            // A pause before and after the space and before Return, like real typing.
+            let gap = Double.random(in: 0.09...0.13) + (id == "key.space" || id == "key.enter" ? 0.08 : 0)
+            steps.append((time, variants.pick(from: previewScheme.urls(for: event))))
+            time += gap
+        }
+        guard steps.contains(where: { $0.1 != nil }) else {
+            speaker.speak("This pack has no key sounds.")
+            return false
+        }
+        return schedulePreview(steps, volume: volume) { [engine] url, volume in
+            engine.play(url, volume: volume, exclusive: false)
+        }
+    }
+
+    /// Plays each focus sound of a pack in turn, about a third of a second apart.
+    @discardableResult
+    func previewFocusSounds(packID: String? = nil) -> Bool {
+        if stopPreviewIfPlaying() { return false }
+        var data = settings.data
+        if let packID { data.focusSounds.packID = packID }
+        let previewScheme = SoundScheme(settings: data, library: library)
+        let urls = SoundEvent.events(in: .focus).compactMap { variants.pick(from: previewScheme.urls(for: $0)) }
+        guard !urls.isEmpty else {
+            speaker.speak("This pack has no focus sounds.")
+            return false
+        }
+        let steps = urls.enumerated().map { (TimeInterval($0.offset) * 0.35, Optional($0.element)) }
+        return schedulePreview(steps, volume: Float(data.focusSounds.volume)) { [engine] url, volume in
+            engine.play(url, volume: volume, exclusive: true)
+        }
+    }
+
+    private func stopPreviewIfPlaying() -> Bool {
+        guard ProcessInfo.processInfo.systemUptime < previewEndsAt else { return false }
+        previewGeneration += 1
+        previewEndsAt = 0
+        return true
+    }
+
+    private func schedulePreview(_ steps: [(TimeInterval, URL?)], volume: Float,
+                                 play: @escaping (URL, Float) -> Void) -> Bool {
+        previewGeneration += 1
+        let generation = previewGeneration
+        let urls = Set(steps.compactMap(\.1))
+        DispatchQueue.global(qos: .userInitiated).async { [engine] in urls.forEach { engine.preload($0) } }
+        previewEndsAt = ProcessInfo.processInfo.systemUptime + (steps.last?.0 ?? 0) + 0.3
+        for (offset, url) in steps {
+            guard let url else { continue }
+            DispatchQueue.main.asyncAfter(deadline: .now() + offset) { [weak self] in
+                guard let self, self.previewGeneration == generation else { return }
+                play(url, volume)
+            }
+        }
+        return true
     }
 
     // MARK: Hotkeys
