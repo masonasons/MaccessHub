@@ -229,8 +229,14 @@ struct EventSoundsSettingsView: View {
         .formStyle(.grouped)
     }
 
+    /// Only the groups shown on this page. Control (focus) and key sounds keep
+    /// their own states and their own tabs, so they are left alone here.
     private func setAll(_ on: Bool) {
-        for event in SoundEvent.all where !event.isKeyClick { store.data.eventSounds.eventStates[event.id] = on }
+        let ids = Set(SoundGroup.eventGroups.flatMap { SoundEvent.events(in: $0) }.map(\.id))
+        // Drop entries older versions wrote here for control sounds; nothing reads them.
+        var states = store.data.eventSounds.eventStates.filter { ids.contains($0.key) }
+        for id in ids { states[id] = on }
+        store.data.eventSounds.eventStates = states
     }
 }
 
