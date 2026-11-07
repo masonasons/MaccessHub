@@ -291,12 +291,12 @@ struct FocusSoundsSettingsView: View {
             }
             Section("Where sounds come from") {
                 Toggle("Play sounds from where the control is on screen (3D audio)", isOn: $store.data.focusSounds.spatial)
-                Picker("Room echo", selection: $store.data.focusSounds.reverb) {
+                Picker("Room reverb", selection: $store.data.focusSounds.reverb) {
                     ForEach(SoundEngine.Reverb.allCases) { Text($0.title).tag($0) }
                 }
                 .disabled(!store.data.focusSounds.spatial)
                 Slider(value: $store.data.focusSounds.reverbAmount, in: 0...1) {
-                    Text("Echo amount")
+                    Text("Reverb amount")
                 } minimumValueLabel: { Text("Less") } maximumValueLabel: { Text("More") }
                 .accessibilityValue("\(Int(store.data.focusSounds.reverbAmount * 100)) percent")
                 .disabled(!store.data.focusSounds.spatial || store.data.focusSounds.reverb == .none)
