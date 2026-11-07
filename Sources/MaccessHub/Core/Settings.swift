@@ -248,6 +248,8 @@ struct SettingsData: Codable {
     /// action raw value → combo; absent means the default binding.
     var hotkeys: [String: KeyCombo] = [:]
     var disabledHotkeys: Set<String> = []
+    /// Per-app changes to key clicks, focus sounds and progress bars.
+    var appSoundRules: [AppSoundRule] = []
 
     init() {}
     init(from decoder: Decoder) throws {
@@ -263,6 +265,7 @@ struct SettingsData: Codable {
         soundOverrides = c.value(.soundOverrides, default: [:])
         hotkeys = c.value(.hotkeys, default: [:])
         disabledHotkeys = c.value(.disabledHotkeys, default: [])
+        appSoundRules = c.value(.appSoundRules, default: [])
     }
 
     // MARK: Hotkeys
