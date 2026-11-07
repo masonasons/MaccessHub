@@ -127,8 +127,22 @@ enum SystemStats {
     static func bytesToHuman(_ bytes: UInt64) -> String { bytesToHuman(Int64(clamping: bytes)) }
 
     static func uptimeDescription() -> String {
-        let total = Int(ProcessInfo.processInfo.systemUptime)
-        return durationDescription(seconds: total)
+        durationDescription(seconds: Int(uptimeSeconds()))
+    }
+
+    /// Seconds since the Mac started, sleep included, like `uptime`.
+    /// `ProcessInfo.systemUptime` leaves out time spent asleep, so on a Mac
+    /// that sleeps it can be days short.
+    static func uptimeSeconds() -> TimeInterval {
+        var boot = timeval()
+        var size = MemoryLayout<timeval>.size
+        var mib: [Int32] = [CTL_KERN, KERN_BOOTTIME]
+        if sysctl(&mib, 2, &boot, &size, nil, 0) == 0, boot.tv_sec > 0 {
+            let booted = Date(timeIntervalSince1970: TimeInterval(boot.tv_sec) + TimeInterval(boot.tv_usec) / 1_000_000)
+            let elapsed = Date().timeIntervalSince(booted)
+            if elapsed > 0 { return elapsed }
+        }
+        return ProcessInfo.processInfo.systemUptime
     }
 
     static func durationDescription(seconds total: Int) -> String {
