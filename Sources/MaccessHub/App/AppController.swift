@@ -244,10 +244,21 @@ final class AppController {
     private func playProgressBeep(percent: Int, frame: CGRect?) {
         let progress = settings.data.progress
         let placement = progressBeepPlacement
-        let position: AVAudio3DPoint? = placement == .screen
-            ? (frame.map { SpatialMapper.position(for: $0) } ?? SpatialMapper.center) : nil
+        let pan = progress.pan(percent: percent, placement: placement)
+        let position: AVAudio3DPoint?
+        if placement == .screen {
+            position = frame.map { SpatialMapper.position(for: $0) } ?? SpatialMapper.center
+        } else if settings.data.focusSounds.spatial {
+            // With 3D audio on, the other placements go through the 3D path too,
+            // at the matching spot on an arc in front of the listener, so they
+            // get the same room reverb as every other placed sound.
+            let angle = Double(pan) * .pi / 2
+            position = AVAudio3DPoint(x: Float(sin(angle)), y: 0, z: Float(-cos(angle)))
+        } else {
+            position = nil
+        }
         engine.playTone(progress.beepTone(percent: percent), volume: Float(progress.beepVolume),
-                        pan: progress.pan(percent: percent, placement: placement), at: position)
+                        pan: pan, at: position)
     }
 
     private var simulationTimer: Timer?

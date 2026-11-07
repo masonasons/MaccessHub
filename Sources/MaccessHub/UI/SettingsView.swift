@@ -388,7 +388,7 @@ struct FocusSoundsSettingsView: View {
                 }
                 Text(placement == .screen
                      ? "Beeps come from the bar's place on screen, in 3D. Best with headphones. The previews play from the middle of the screen."
-                     : "Left and right need headphones or two speakers. On a single speaker every position sounds the same.")
+                     : "Left and right need headphones or two speakers. With 3D audio on for focus sounds, these beeps are placed in 3D too and get the same room reverb.")
                     .font(.callout).foregroundStyle(.secondary)
                 HStack {
                     Button("Play Sample") { AppController.shared.playProgressBeepSample() }
