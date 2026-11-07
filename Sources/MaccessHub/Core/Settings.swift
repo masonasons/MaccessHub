@@ -135,6 +135,49 @@ struct ProgressSettings: Codable {
     var beepMinHz = 110
     /// 0.5 matches NVDA's default beep level.
     var beepVolume = 0.5
+    /// Left/right placement of beeps, -100 (left) to 100 (right). Ignored when
+    /// beeps are placed with HRTF at the bar's position.
+    var beepPan = 0
+    /// Classic is NVDA's beep; Pleasant uses the settings below.
+    var beepStyle: ProgressBeepStyle = .classic
+    var beepWaveform: BeepWaveform = .sine
+    var beepEnvelope: BeepEnvelope = .cosine
+    /// Pleasant beep length, 40 to 100 ms.
+    var beepLengthMs = 80
+    /// Pleasant pitch at 0 percent, 55 to 600 Hz (the add-on offers 110 to 300).
+    var beepLowHz = 110
+    /// Pleasant pitch at 100 percent, 600 to 4000 Hz (the add-on offers 1200 to 1800).
+    /// Wider so people who hear high or low pitches poorly can fit the sweep to their hearing.
+    var beepHighHz = 1720
+
+    static let beepPanRange = -100...100
+    static let beepLengthRange = 40...100
+    static let beepLowRange = 55...600
+    static let beepHighRange = 600...4000
+
+    /// The beep for a percentage, in whichever style is chosen.
+    func beepTone(percent: Int) -> SoundEngine.Tone {
+        switch beepStyle {
+        case .classic:
+            // NVDA: beepMinHZ * 2 ** (percentage / 25), 40 ms.
+            return .classic(frequency: Double(beepMinHz) * pow(2, Double(percent) / 25), duration: 0.04)
+        case .pleasant:
+            let low = Double(beepLowHz.clamped(to: Self.beepLowRange))
+            let high = Double(beepHighHz.clamped(to: Self.beepHighRange))
+            return SoundEngine.Tone(style: .pleasant, waveform: beepWaveform, envelope: beepEnvelope,
+                                    frequency: ToneSynth.frequency(percent: Double(percent), low: low, high: high),
+                                    duration: Double(beepLengthMs.clamped(to: Self.beepLengthRange)) / 1000)
+        }
+    }
+
+    /// -1...1 for the mixer.
+    var beepPanAmount: Float { Float(beepPan.clamped(to: Self.beepPanRange)) / 100 }
+
+    /// How VoiceOver reads the pan setting.
+    static func panDescription(_ pan: Int) -> String {
+        if pan == 0 { return "Centre" }
+        return "\(abs(pan)) percent \(pan < 0 ? "left" : "right")"
+    }
 
     init() {}
     init(from decoder: Decoder) throws {
@@ -146,7 +189,18 @@ struct ProgressSettings: Codable {
         beepEvery = c.value(.beepEvery, default: 1)
         beepMinHz = c.value(.beepMinHz, default: 110)
         beepVolume = c.value(.beepVolume, default: 0.5)
+        beepPan = c.value(.beepPan, default: 0)
+        beepStyle = c.value(.beepStyle, default: .classic)
+        beepWaveform = c.value(.beepWaveform, default: .sine)
+        beepEnvelope = c.value(.beepEnvelope, default: .cosine)
+        beepLengthMs = c.value(.beepLengthMs, default: 80)
+        beepLowHz = c.value(.beepLowHz, default: 110)
+        beepHighHz = c.value(.beepHighHz, default: 1720)
     }
+}
+
+extension Comparable {
+    func clamped(to range: ClosedRange<Self>) -> Self { min(max(self, range.lowerBound), range.upperBound) }
 }
 
 struct FocusSoundSettings: Codable {

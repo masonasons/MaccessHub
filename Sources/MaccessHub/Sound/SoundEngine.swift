@@ -294,7 +294,7 @@ final class SoundEngine {
     /// crossing. Amplitude 14000/32767 at full pan; NVDA's default pan of 50
     /// corresponds to a volume of 0.5 here.
     private func toneBuffer(frequency: Double, duration: TimeInterval, format: AVAudioFormat) -> AVAudioPCMBuffer? {
-        let key = "\(Int(frequency.rounded()))/\(Int(duration * 1000))/\(format.channelCount)"
+        let key = Tone.classic(frequency: frequency, duration: duration).cacheKey(channels: format.channelCount)
         lock.lock(); if let cached = toneBuffers[key] { lock.unlock(); return cached }; lock.unlock()
         let rate = format.sampleRate
         let samplesPerCycle = max(1, Int(rate / frequency))
@@ -314,12 +314,66 @@ final class SoundEngine {
 
     /// Plays a beep, binaurally at `position` when given, otherwise through the plain mixer.
     func playTone(frequency: Double, duration: TimeInterval = 0.04, volume: Float, at position: AVAudio3DPoint?) {
-        guard let buffer = toneBuffer(frequency: frequency, duration: duration,
-                                      format: position == nil ? format : monoFormat) else { return }
+        playTone(.classic(frequency: frequency, duration: duration), volume: volume, pan: 0, at: position)
+    }
+
+    /// What a progress beep sounds like.
+    struct Tone {
+        var style: ProgressBeepStyle
+        var waveform: BeepWaveform = .sine
+        var envelope: BeepEnvelope = .cosine
+        var frequency: Double
+        var duration: TimeInterval
+
+        static func classic(frequency: Double, duration: TimeInterval = 0.04) -> Tone {
+            Tone(style: .classic, frequency: frequency, duration: duration)
+        }
+
+        /// Everything that changes the samples, so differently shaped beeps never share a cache entry.
+        func cacheKey(channels: AVAudioChannelCount) -> String {
+            let ms = Int((duration * 1000).rounded())
+            switch style {
+            case .classic: return "classic/\(Int(frequency.rounded()))/\(ms)/\(channels)"
+            case .pleasant: return "pleasant/\(waveform.rawValue)/\(envelope.rawValue)/\(Int(frequency.rounded()))/\(ms)/\(channels)"
+            }
+        }
+    }
+
+    private func pleasantBuffer(_ tone: Tone, format: AVAudioFormat) -> AVAudioPCMBuffer? {
+        let key = tone.cacheKey(channels: format.channelCount)
+        lock.lock(); if let cached = toneBuffers[key] { lock.unlock(); return cached }; lock.unlock()
+        let samples = ToneSynth.render(waveform: tone.waveform, envelope: tone.envelope,
+                                       frequency: tone.frequency, duration: tone.duration,
+                                       sampleRate: format.sampleRate)
+        guard let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: AVAudioFrameCount(samples.count)) else { return nil }
+        buffer.frameLength = AVAudioFrameCount(samples.count)
+        for channel in 0..<Int(format.channelCount) {
+            samples.withUnsafeBufferPointer { src in
+                buffer.floatChannelData![channel].update(from: src.baseAddress!, count: samples.count)
+            }
+        }
+        lock.lock()
+        // Settings can be changed freely, so keep the cache from growing without bound.
+        if toneBuffers.count > 600 { toneBuffers.removeAll() }
+        toneBuffers[key] = buffer
+        lock.unlock()
+        return buffer
+    }
+
+    /// Plays a beep, binaurally at `position` when given, otherwise through the
+    /// plain mixer panned by `pan` (-1 left ... 1 right; ignored when spatial).
+    func playTone(_ tone: Tone, volume: Float, pan: Float, at position: AVAudio3DPoint?) {
+        let format = position == nil ? self.format : monoFormat
+        let buffer: AVAudioPCMBuffer?
+        switch tone.style {
+        case .classic: buffer = toneBuffer(frequency: tone.frequency, duration: tone.duration, format: format)
+        case .pleasant: buffer = pleasantBuffer(tone, format: format)
+        }
+        guard let buffer else { return }
         startIfNeeded()
         // One node per path: scheduling with .interrupts on it cuts the previous beep.
         let node = position == nil ? toneNode : spatialToneNode
-        if let position { node.position = position }
+        if let position { node.position = position } else { node.pan = max(-1, min(1, pan)) }
         node.volume = max(0, min(1, volume))
         node.scheduleBuffer(buffer, at: nil, options: [.interrupts], completionHandler: nil)
     }
