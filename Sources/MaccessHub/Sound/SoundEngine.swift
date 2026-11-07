@@ -15,14 +15,20 @@ final class SoundEngine {
     private let format = AVAudioFormat(standardFormatWithSampleRate: 48_000, channels: 2)!
     private let monoFormat = AVAudioFormat(standardFormatWithSampleRate: 48_000, channels: 1)!
     private var nodes: [AVAudioPlayerNode] = []
-    private var nextNode = 1
+    /// Player nodes at the start of each pool reserved for progress beeps. A
+    /// Pleasant beep fades out on its own, so rather than cutting it (a click
+    /// at full level) each new one starts on the next of these and the old one
+    /// finishes its fade. Three cover beeps up to 100 ms arriving every 40 ms.
+    /// Classic beeps use only the first, cut each time, as NVDA does.
+    static let beepVoices = 3
+    private var nextNode = SoundEngine.beepVoices
     private var buffers: [URL: AVAudioPCMBuffer] = [:]
     private var monoBuffers: [URL: AVAudioPCMBuffer] = [:]
     private var activeNode: [URL: AVAudioPlayerNode] = [:]
     /// HRTF path: mono players feeding an environment node that renders binaurally.
     private let environment = AVAudioEnvironmentNode()
     private var spatialNodes: [AVAudioPlayerNode] = []
-    private var nextSpatialNode = 1
+    private var nextSpatialNode = SoundEngine.beepVoices
     private var activeSpatialNode: [URL: AVAudioPlayerNode] = [:]
     private let lock = NSLock()
     private var configObserver: NSObjectProtocol?
@@ -32,12 +38,15 @@ final class SoundEngine {
     private(set) var lastPeak: Float = -1
     private var meterUntil: TimeInterval = 0
     private var meterArmed = false
-    /// Progress beeps go through one node per path so each beep cuts the previous.
+    /// Classic beeps go through one node per path so each beep cuts the previous.
     private lazy var toneNode: AVAudioPlayerNode = nodes[0]
     private lazy var spatialToneNode: AVAudioPlayerNode = spatialNodes[0]
+    /// Which reserved beep node the next Pleasant beep uses.
+    private var nextBeepVoice = 0
 
+    /// `voices` is the pool for ordinary sounds; the beep nodes come on top.
     init(voices: Int = 12) {
-        for _ in 0..<voices {
+        for _ in 0..<(voices + Self.beepVoices - 1) {
             let node = AVAudioPlayerNode()
             engine.attach(node)
             engine.connect(node, to: engine.mainMixerNode, format: format)
@@ -52,7 +61,7 @@ final class SoundEngine {
         environment.distanceAttenuationParameters.referenceDistance = 1
         environment.distanceAttenuationParameters.maximumDistance = 100
         environment.outputType = .headphones
-        for _ in 0..<6 {
+        for _ in 0..<(6 + Self.beepVoices - 1) {
             let node = AVAudioPlayerNode()
             engine.attach(node)
             engine.connect(node, to: environment, format: monoFormat)
@@ -200,7 +209,7 @@ final class SoundEngine {
             node = previous
         } else {
             node = nodes[nextNode]
-            nextNode = nextNode % (nodes.count - 1) + 1 // skip index 0, the beep node
+            nextNode = Self.nextPoolIndex(after: nextNode, count: nodes.count) // skips the beep nodes
         }
         activeNode[url] = node
         lock.unlock()
@@ -260,7 +269,7 @@ final class SoundEngine {
             node = previous
         } else {
             node = spatialNodes[nextSpatialNode]
-            nextSpatialNode = nextSpatialNode % (spatialNodes.count - 1) + 1 // skip index 0, the beep node
+            nextSpatialNode = Self.nextPoolIndex(after: nextSpatialNode, count: spatialNodes.count) // skips the beep nodes
         }
         activeSpatialNode[url] = node
         lock.unlock()
@@ -371,11 +380,29 @@ final class SoundEngine {
         }
         guard let buffer else { return }
         startIfNeeded()
-        // One node per path: scheduling with .interrupts on it cuts the previous beep.
-        let node = position == nil ? toneNode : spatialToneNode
+        let node: AVAudioPlayerNode
+        switch tone.style {
+        case .classic:
+            // One node per path: scheduling with .interrupts on it cuts the previous beep.
+            node = position == nil ? toneNode : spatialToneNode
+        case .pleasant:
+            // Rotate through the reserved nodes so the previous beep fades out by itself.
+            lock.lock()
+            nextBeepVoice = (nextBeepVoice + 1) % Self.beepVoices
+            let index = nextBeepVoice
+            lock.unlock()
+            node = position == nil ? nodes[index] : spatialNodes[index]
+        }
         if let position { node.position = position } else { node.pan = max(-1, min(1, pan)) }
         node.volume = max(0, min(1, volume))
         node.scheduleBuffer(buffer, at: nil, options: [.interrupts], completionHandler: nil)
+    }
+
+    /// Round-robin over the pool after the reserved beep nodes.
+    static func nextPoolIndex(after index: Int, count: Int) -> Int {
+        let free = count - beepVoices
+        guard free > 0 else { return 0 }
+        return beepVoices + (max(0, index - beepVoices) + 1) % free
     }
 
     func stopAll() {
