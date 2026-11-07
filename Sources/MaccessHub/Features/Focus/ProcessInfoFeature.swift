@@ -121,7 +121,13 @@ final class ProcessInfoFeature {
     static func architecture(of app: NSRunningApplication) -> String {
         switch app.executableArchitecture {
         case NSBundleExecutableArchitectureARM64: return "Apple silicon native"
-        case NSBundleExecutableArchitectureX86_64: return "Intel, running under Rosetta"
+        case NSBundleExecutableArchitectureX86_64:
+            // Only Apple silicon Macs translate Intel code; on an Intel Mac it's native.
+            #if arch(arm64)
+            return "Intel, running under Rosetta"
+            #else
+            return "Intel native"
+            #endif
         case NSBundleExecutableArchitectureI386: return "32-bit Intel"
         default: return "unknown architecture"
         }
