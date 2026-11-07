@@ -42,9 +42,10 @@ final class StatusItemController: NSObject, NSMenuDelegate {
         focusSoundsItem.state = data.focusSounds.enabled ? .on : .off
     }
 
-    @objc private func toggleEventSounds() { AppController.shared.settings.data.eventSounds.enabled.toggle() }
-    @objc private func toggleKeyClicks() { AppController.shared.settings.data.keyClicks.enabled.toggle() }
-    @objc private func toggleFocusSounds() { AppController.shared.settings.data.focusSounds.enabled.toggle() }
+    // The same toggles the shortcuts use, so the menu confirms the change out loud too.
+    @objc private func toggleEventSounds() { AppController.shared.toggleEventSounds() }
+    @objc private func toggleKeyClicks() { AppController.shared.toggleKeyClicks() }
+    @objc private func toggleFocusSounds() { AppController.shared.toggleFocusSounds() }
     @objc private func speakMenuExtras() { AppController.shared.menuExtras.speakAll() }
     @objc private func openSettings() { SettingsWindowController.shared.show() }
     @objc private func openSoundpacksFolder() {
