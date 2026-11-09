@@ -292,6 +292,20 @@ struct KeyClicksSettingsView: View {
                 Toggle("Silent when Option is held", isOn: $store.data.keyClicks.ignoreWithOption)
             }
             Section("Key sounds") {
+                HStack {
+                    Button("Enable All") {
+                        for event in SoundEvent.events(in: .keys) { store.data.keyClicks.eventStates[event.id] = true }
+                        announce("All key sounds on")
+                    }
+                    Button("Disable All") {
+                        for event in SoundEvent.events(in: .keys) { store.data.keyClicks.eventStates[event.id] = false }
+                        announce("All key sounds off")
+                    }
+                    Button("Reset to Defaults") {
+                        store.data.keyClicks.eventStates = [:]
+                        announce("Key sounds reset to defaults")
+                    }
+                }
                 ForEach(SoundEvent.events(in: .keys)) { event in
                     SoundEventRow(event: event, store: store, library: library)
                 }
@@ -381,6 +395,20 @@ struct FocusSoundsSettingsView: View {
                     .font(.callout).foregroundStyle(.secondary)
             }
             Section("Control sounds") {
+                HStack {
+                    Button("Enable All") {
+                        for event in SoundEvent.events(in: .focus) { store.data.focusSounds.eventStates[event.id] = true }
+                        announce("All control sounds on")
+                    }
+                    Button("Disable All") {
+                        for event in SoundEvent.events(in: .focus) { store.data.focusSounds.eventStates[event.id] = false }
+                        announce("All control sounds off")
+                    }
+                    Button("Reset to Defaults") {
+                        store.data.focusSounds.eventStates = [:]
+                        announce("Control sounds reset to defaults")
+                    }
+                }
                 ForEach(SoundEvent.events(in: .focus)) { event in
                     SoundEventRow(event: event, store: store, library: library)
                 }
