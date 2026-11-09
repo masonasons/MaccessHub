@@ -368,7 +368,13 @@ final class AppController {
             performDouble(action)
             return
         }
-        pendingPress?.work.cancel()
+        // A different shortcut waiting for its second press has had its
+        // answer: it was a single press. Run it now rather than dropping it.
+        if let pending = pendingPress {
+            pending.work.cancel()
+            pendingPress = nil
+            performSingle(pending.action)
+        }
         let work = DispatchWorkItem { [weak self] in
             self?.pendingPress = nil
             self?.performSingle(action)
