@@ -417,6 +417,7 @@ final class AppController {
         case .toggleEventSounds: toggleEventSounds()
         case .toggleKeyClicks: toggleKeyClicks()
         case .toggleFocusSounds: toggleFocusSounds()
+        case .speakStatus: speakStatus()
         case .openSettings: SettingsWindowController.shared.show()
         default:
             if let index = action.menuExtraIndex { menuExtras.handle(index: index, action: .speak) }
@@ -436,5 +437,17 @@ final class AppController {
     func toggleKeyClicks() {
         settings.data.keyClicks.enabled.toggle()
         speaker.speak(settings.data.keyClicks.enabled ? "Key clicks on" : "Key clicks off")
+    }
+
+    /// One sentence covering every sound feature's master switch.
+    func speakStatus() {
+        let data = settings.data
+        let parts = [
+            "Event sounds \(data.eventSounds.enabled ? "on" : "off")",
+            "key clicks \(data.keyClicks.enabled ? "on" : "off")",
+            "focus sounds \(data.focusSounds.enabled ? "on" : "off")",
+            "progress bars \(data.progress.output.title.lowercased())",
+        ]
+        speaker.speak(parts.joined(separator: ", ") + ".")
     }
 }
