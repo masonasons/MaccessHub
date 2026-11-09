@@ -86,6 +86,8 @@ final class NetworkInfoFeature: NSObject, CLLocationManagerDelegate {
         Thread.sleep(forTimeInterval: 1)
         let second = Self.byteCounters(of: interface.name)
         if let first, let second {
+            // The counters are 32-bit and wrap every 4 GB (every 34 seconds at
+            // a gigabit), so subtract with 32-bit wrapping.
             let down = Double(second.received &- first.received)
             let up = Double(second.sent &- first.sent)
             parts.append("Receiving \(Self.rate(down)), sending \(Self.rate(up))")
@@ -182,7 +184,9 @@ final class NetworkInfoFeature: NSObject, CLLocationManagerDelegate {
         return nil
     }
 
-    static func byteCounters(of interface: String) -> (received: UInt64, sent: UInt64)? {
+    /// The interface's byte counters. `if_data` keeps them as 32-bit values
+    /// that wrap around; compare two readings with `&-` on these UInt32s.
+    static func byteCounters(of interface: String) -> (received: UInt32, sent: UInt32)? {
         var list: UnsafeMutablePointer<ifaddrs>?
         guard getifaddrs(&list) == 0, let first = list else { return nil }
         defer { freeifaddrs(list) }
@@ -192,7 +196,7 @@ final class NetworkInfoFeature: NSObject, CLLocationManagerDelegate {
             guard String(cString: entry.pointee.ifa_name) == interface,
                   let addr = entry.pointee.ifa_addr, addr.pointee.sa_family == UInt8(AF_LINK),
                   let data = entry.pointee.ifa_data?.assumingMemoryBound(to: if_data.self) else { continue }
-            return (UInt64(data.pointee.ifi_ibytes), UInt64(data.pointee.ifi_obytes))
+            return (data.pointee.ifi_ibytes, data.pointee.ifi_obytes)
         }
         return nil
     }
