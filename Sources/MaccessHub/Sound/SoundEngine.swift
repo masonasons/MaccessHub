@@ -32,6 +32,10 @@ final class SoundEngine {
     private(set) var lastPeak: Float = -1
     private var meterUntil: TimeInterval = 0
     private var meterArmed = false
+    /// Set while the Mac sleeps. The audio hardware powers down and comes back
+    /// (several times through dark wakes), so the engine is left stopped and
+    /// configuration changes are ignored until `resume()`.
+    private var suspended = false
     /// Progress beeps go through one node per path so each beep cuts the previous.
     private lazy var toneNode: AVAudioPlayerNode = nodes[0]
     private lazy var spatialToneNode: AVAudioPlayerNode = spatialNodes[0]
@@ -102,6 +106,7 @@ final class SoundEngine {
     /// Stops the engine, points its output at the current default device, and
     /// starts it again. Connections and attached nodes survive a stop.
     private func rebuild() {
+        guard !suspended else { return }
         engine.stop()
         var address = AudioObjectPropertyAddress(mSelector: kAudioHardwarePropertyDefaultOutputDevice,
                                                  mScope: kAudioObjectPropertyScopeGlobal,
@@ -125,6 +130,21 @@ final class SoundEngine {
         log.info("Engine rebuilt: running=\(self.engine.isRunning, privacy: .public) output \(self.engine.outputNode.outputFormat(forBus: 0).sampleRate, privacy: .public) Hz")
     }
 
+    /// Stops the engine and drops anything queued, so nothing plays late.
+    func suspend() {
+        guard !suspended else { return }
+        suspended = true
+        stopAll()
+        engine.stop()
+        log.info("Engine suspended for sleep")
+    }
+
+    func resume() {
+        guard suspended else { return }
+        suspended = false
+        rebuild()
+    }
+
     deinit {
         if let configObserver { NotificationCenter.default.removeObserver(configObserver) }
     }
@@ -133,21 +153,36 @@ final class SoundEngine {
     /// about 5 ms; the macOS default of 512 is about 11 ms.
     private let ioBufferFrames: UInt32 = 256
 
-    private func startIfNeeded() {
+    /// Returns whether the engine is running and the players can take buffers.
+    @discardableResult
+    private func startIfNeeded() -> Bool {
+        guard !suspended else { return false }
         if !engine.isRunning {
+            // While the output device is going away (sleep, unplugging) its
+            // format reads as empty and starting would fail or half-succeed.
+            let output = engine.outputNode.outputFormat(forBus: 0)
+            guard output.channelCount > 0, output.sampleRate > 0 else {
+                log.error("Audio output unavailable, not starting engine")
+                return false
+            }
             do {
                 try engine.start()
                 applyIOBufferSize()
             } catch {
                 log.error("Could not start audio engine: \(error.localizedDescription)")
-                return
+                return false
             }
         }
+        // `AVAudioPlayerNode.play()` raises an Objective-C exception (which
+        // Swift cannot catch) if the engine is not running, and the engine can
+        // stop again right after starting while the device changes.
+        guard engine.isRunning else { return false }
         // Player nodes stay running. Scheduling a buffer with `.interrupts`
         // on a running node costs microseconds; `stop()` and `play()` each
         // block for an IO cycle (5–12 ms measured), so they are avoided on the
         // playback path.
         for node in nodes + spatialNodes where !node.isPlaying { node.play() }
+        return true
     }
 
     private func applyIOBufferSize() {
@@ -193,7 +228,9 @@ final class SoundEngine {
     /// Plays the file. `volume` is 0...1. Returns the sound's duration in seconds.
     @discardableResult
     func play(_ url: URL, volume: Float, exclusive: Bool = false) -> TimeInterval {
-        guard let buffer = preload(url) else { return 0 }
+        // A buffer scheduled on a stopped engine waits in its node and plays
+        // when audio comes back, together with every other queued sound.
+        guard startIfNeeded(), let buffer = preload(url) else { return 0 }
         lock.lock()
         let node: AVAudioPlayerNode
         if exclusive, let previous = activeNode[url] {
@@ -205,7 +242,6 @@ final class SoundEngine {
         activeNode[url] = node
         lock.unlock()
 
-        startIfNeeded()
         node.volume = max(0, min(1, volume))
         node.scheduleBuffer(buffer, at: nil, options: [.interrupts], completionHandler: nil)
         return Double(buffer.frameLength) / buffer.format.sampleRate
@@ -253,7 +289,7 @@ final class SoundEngine {
     /// listener (+x right, +y up, -z forward).
     @discardableResult
     func playSpatial(_ url: URL, volume: Float, at position: AVAudio3DPoint, exclusive: Bool = true) -> TimeInterval {
-        guard let buffer = preloadMono(url) else { return 0 }
+        guard startIfNeeded(), let buffer = preloadMono(url) else { return 0 }
         lock.lock()
         let node: AVAudioPlayerNode
         if exclusive, let previous = activeSpatialNode[url] {
@@ -265,7 +301,6 @@ final class SoundEngine {
         activeSpatialNode[url] = node
         lock.unlock()
 
-        startIfNeeded()
         node.position = position
         node.volume = max(0, min(1, volume))
         node.scheduleBuffer(buffer, at: nil, options: [.interrupts], completionHandler: nil)
@@ -315,8 +350,8 @@ final class SoundEngine {
     /// Plays a beep, binaurally at `position` when given, otherwise through the plain mixer.
     func playTone(frequency: Double, duration: TimeInterval = 0.04, volume: Float, at position: AVAudio3DPoint?) {
         guard let buffer = toneBuffer(frequency: frequency, duration: duration,
-                                      format: position == nil ? format : monoFormat) else { return }
-        startIfNeeded()
+                                      format: position == nil ? format : monoFormat),
+              startIfNeeded() else { return }
         // One node per path: scheduling with .interrupts on it cuts the previous beep.
         let node = position == nil ? toneNode : spatialToneNode
         if let position { node.position = position }

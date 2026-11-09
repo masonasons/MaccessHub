@@ -36,6 +36,12 @@ final class AppController {
     private let workspaceMonitor = WorkspaceMonitor()
     private let eventMonitors: [EventMonitor]
     private var monitorsRunning = false
+    /// Between `willSleep` and `didWake` (dark wakes included, which post neither).
+    private var isAsleep = false
+    private var lastWake: TimeInterval = 0
+    /// Wi-Fi drops for sleep and reconnects a few seconds after waking; those
+    /// transitions are expected, not news.
+    private let networkSettleAfterWake: TimeInterval = 10
 
     private var doublePressInterval = 0.35
     private var pendingPress: (action: HotKeyAction, work: DispatchWorkItem)?
@@ -85,6 +91,29 @@ final class AppController {
             return true
         }
         settings.onChange = { [weak self] _ in self?.applySettings() }
+        observeSleep()
+    }
+
+    /// Keeps the audio engine down while the Mac sleeps. Restarting it while
+    /// the hardware powers up and down crashed the app, and sounds raised
+    /// meanwhile (mostly network ones) queued up and all played at wake.
+    private func observeSleep() {
+        let wc = NSWorkspace.shared.notificationCenter
+        wc.addObserver(forName: NSWorkspace.willSleepNotification, object: nil, queue: .main) { [weak self] _ in
+            guard let self else { return }
+            isAsleep = true
+            // Leave the "going to sleep" sound a moment to play.
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { [weak self] in
+                guard let self, isAsleep else { return }
+                engine.suspend()
+            }
+        }
+        wc.addObserver(forName: NSWorkspace.didWakeNotification, object: nil, queue: .main) { [weak self] _ in
+            guard let self else { return }
+            isAsleep = false
+            lastWake = ProcessInfo.processInfo.systemUptime
+            engine.resume()
+        }
     }
 
     // MARK: Lifecycle
@@ -209,6 +238,9 @@ final class AppController {
 
     private func handleEvent(_ id: String) {
         guard settings.data.eventSounds.enabled else { return }
+        if isAsleep, id != "system.willSleep" { return }
+        if id.hasPrefix("network."),
+           ProcessInfo.processInfo.systemUptime - lastWake < networkSettleAfterWake { return }
         play(id, ignoreEnabledState: false)
     }
 
