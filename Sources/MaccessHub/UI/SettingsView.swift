@@ -39,6 +39,11 @@ struct GeneralSettingsView: View {
 
     @State private var accessibilityTrusted = AccessibilityPermission.isTrusted
     @State private var voices = SpeechVoices.available()
+    // Sparkle's settings aren't observable, so mirror them here and re-read
+    // after every change; otherwise the toggles never redraw.
+    @State private var automaticallyChecks = Updater.shared.automaticallyChecks
+    @State private var automaticallyDownloads = Updater.shared.automaticallyDownloads
+    @State private var lastCheck = Updater.shared.lastCheck
 
     var body: some View {
         Form {
@@ -92,15 +97,15 @@ struct GeneralSettingsView: View {
             }
             Section("Updates") {
                 Toggle("Check for updates automatically", isOn: Binding(
-                    get: { Updater.shared.automaticallyChecks },
-                    set: { Updater.shared.automaticallyChecks = $0 }))
+                    get: { automaticallyChecks },
+                    set: { Updater.shared.automaticallyChecks = $0; readUpdaterSettings() }))
                 Toggle("Download and install updates automatically", isOn: Binding(
-                    get: { Updater.shared.automaticallyDownloads },
-                    set: { Updater.shared.automaticallyDownloads = $0 }))
+                    get: { automaticallyDownloads },
+                    set: { Updater.shared.automaticallyDownloads = $0; readUpdaterSettings() }))
                 LabeledContent("Installed version", value: Self.versionString)
                 HStack {
                     Button("Check for Updates Now") { Updater.shared.checkForUpdates() }
-                    if let last = Updater.shared.lastCheck {
+                    if let last = lastCheck {
                         Text("Last checked \(last.formatted(date: .abbreviated, time: .shortened))")
                             .font(.callout).foregroundStyle(.secondary)
                     }
@@ -116,8 +121,18 @@ struct GeneralSettingsView: View {
         .formStyle(.grouped)
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
             accessibilityTrusted = AccessibilityPermission.isTrusted
+            readUpdaterSettings()
         }
-        .onAppear { accessibilityTrusted = AccessibilityPermission.isTrusted }
+        .onAppear {
+            accessibilityTrusted = AccessibilityPermission.isTrusted
+            readUpdaterSettings()
+        }
+    }
+
+    private func readUpdaterSettings() {
+        automaticallyChecks = Updater.shared.automaticallyChecks
+        automaticallyDownloads = Updater.shared.automaticallyDownloads
+        lastCheck = Updater.shared.lastCheck
     }
 }
 
