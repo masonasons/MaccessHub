@@ -501,6 +501,17 @@ struct ToolsSettingsView: View {
 
 struct ShortcutsSettingsView: View {
     @Bindable var store: SettingsStore
+    @State private var search = ""
+
+    /// Matches the action's name or its current keys, spoken ("Control-Shift-1") or as symbols.
+    private func matches(_ action: HotKeyAction) -> Bool {
+        let query = search.trimmingCharacters(in: .whitespaces)
+        guard !query.isEmpty else { return true }
+        if action.title.localizedCaseInsensitiveContains(query) { return true }
+        guard let combo = store.data.combo(for: action) else { return false }
+        return combo.spokenString.localizedCaseInsensitiveContains(query)
+            || combo.displayString.localizedCaseInsensitiveContains(query)
+    }
 
     private var conflicts: [HotKeyAction: [HotKeyAction]] {
         var byCombo: [KeyCombo: [HotKeyAction]] = [:]
@@ -524,11 +535,19 @@ struct ShortcutsSettingsView: View {
                     store.data.disabledHotkeys = []
                     announce("All shortcuts reset to defaults")
                 }
+                TextField("Search shortcuts", text: $search)
+                if !search.trimmingCharacters(in: .whitespaces).isEmpty {
+                    let count = HotKeyAction.allCases.filter(matches).count
+                    Text(count == 1 ? "1 shortcut matches" : "\(count) shortcuts match")
+                }
             }
             ForEach(HotKeyAction.Group.allCases) { group in
-                Section(group.rawValue) {
-                    ForEach(group.actions) { action in
-                        row(for: action)
+                let actions = group.actions.filter(matches)
+                if !actions.isEmpty {
+                    Section(group.rawValue) {
+                        ForEach(actions) { action in
+                            row(for: action)
+                        }
                     }
                 }
             }
