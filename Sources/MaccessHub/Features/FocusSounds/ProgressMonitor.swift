@@ -46,6 +46,7 @@ final class ProgressMonitor {
         tokens.append(center.addObserver(forName: NSWorkspace.didTerminateApplicationNotification, object: nil, queue: .main) { [weak self] note in
             guard let app = note.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication else { return }
             self?.detach(pid: app.processIdentifier)
+            self?.retries[app.processIdentifier] = nil
         })
         frontmostPID = NSWorkspace.shared.frontmostApplication?.processIdentifier ?? 0
         refreshObservers()
@@ -57,6 +58,7 @@ final class ProgressMonitor {
         tokens.removeAll()
         for pid in Array(observers.keys) { detach(pid: pid) }
         lastPercent.removeAll()
+        retries.removeAll()
     }
 
     private func refreshObservers() {
@@ -88,9 +90,30 @@ final class ProgressMonitor {
         let app = AXUIElementCreateApplication(pid)
         let status = AXObserverAddNotification(observer, app, kAXValueChangedNotification as CFString,
                                                Unmanaged.passUnretained(self).toOpaque())
-        guard status == .success else { return }
+        guard status == .success else {
+            if status == .cannotComplete { scheduleRetry(pid: pid) }
+            return
+        }
+        retries[pid] = nil
         CFRunLoopAddSource(CFRunLoopGetMain(), AXObserverGetRunLoopSource(observer), .defaultMode)
         observers[pid] = (observer, app)
+    }
+
+    /// Attempts so far per app that answered "cannot complete".
+    private var retries: [pid_t: Int] = [:]
+    private static let retryDelays: [TimeInterval] = [0.5, 1.5, 4]
+
+    /// An app that has only just launched answers "cannot complete" for a
+    /// moment. Without another try its bars went unreported until the user
+    /// switched away and back.
+    private func scheduleRetry(pid: pid_t) {
+        let attempt = retries[pid, default: 0]
+        guard attempt < Self.retryDelays.count else { return }
+        retries[pid] = attempt + 1
+        DispatchQueue.main.asyncAfter(deadline: .now() + Self.retryDelays[attempt]) { [weak self] in
+            guard let self, running, observers[pid] == nil else { return }
+            refreshObservers()
+        }
     }
 
     private func detach(pid: pid_t) {
