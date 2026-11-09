@@ -204,6 +204,7 @@ final class AppController {
         }
 
         progressMonitor.watchBackgroundApps = data.progress.backgroundApps
+        progressMonitor.excludedBundleIDs = Set(data.progress.excludedApps)
         if data.progress.output != .off, !progressMonitorRunning {
             progressMonitor.start()
             progressMonitorRunning = true

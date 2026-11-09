@@ -135,6 +135,8 @@ struct ProgressSettings: Codable {
     var beepMinHz = 110
     /// 0.5 matches NVDA's default beep level.
     var beepVolume = 0.5
+    /// Bundle IDs of apps whose bars are never reported (level meters that look like progress bars).
+    var excludedApps: [String] = []
 
     init() {}
     init(from decoder: Decoder) throws {
@@ -146,6 +148,7 @@ struct ProgressSettings: Codable {
         beepEvery = c.value(.beepEvery, default: 1)
         beepMinHz = c.value(.beepMinHz, default: 110)
         beepVolume = c.value(.beepVolume, default: 0.5)
+        excludedApps = c.value(.excludedApps, default: [])
     }
 }
 

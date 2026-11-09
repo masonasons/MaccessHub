@@ -350,6 +350,16 @@ struct FocusSoundsSettingsView: View {
                     .disabled(store.data.progress.output == .off)
                 Toggle("Report bars in background apps", isOn: $store.data.progress.backgroundApps)
                     .disabled(store.data.progress.output == .off)
+                ForEach(store.data.progress.excludedApps, id: \.self) { bundleID in
+                    HStack {
+                        Text("Never report bars in \(Self.appName(bundleID))")
+                        Spacer()
+                        Button("Remove") { store.data.progress.excludedApps.removeAll { $0 == bundleID } }
+                            .accessibilityLabel("Report bars in \(Self.appName(bundleID)) again")
+                    }
+                }
+                Button("Leave Out an App…") { chooseExcludedApps() }
+                    .disabled(store.data.progress.output == .off)
                 Stepper(value: $store.data.progress.speakEvery, in: 1...50) {
                     Text("Speak every \(store.data.progress.speakEvery) percent")
                 }
@@ -377,6 +387,27 @@ struct FocusSoundsSettingsView: View {
             }
         }
         .formStyle(.grouped)
+    }
+
+    /// The app's name for a bundle ID, or the ID itself if the app isn't installed.
+    static func appName(_ bundleID: String) -> String {
+        guard let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundleID) else { return bundleID }
+        let name = FileManager.default.displayName(atPath: url.path)
+        return name.hasSuffix(".app") ? String(name.dropLast(4)) : name
+    }
+
+    private func chooseExcludedApps() {
+        let panel = NSOpenPanel()
+        panel.title = "Choose apps whose progress bars should never be reported"
+        panel.allowedContentTypes = [.application]
+        panel.allowsMultipleSelection = true
+        panel.directoryURL = URL(fileURLWithPath: "/Applications")
+        guard panel.runModal() == .OK else { return }
+        for url in panel.urls {
+            guard let id = Bundle(url: url)?.bundleIdentifier,
+                  !store.data.progress.excludedApps.contains(id) else { continue }
+            store.data.progress.excludedApps.append(id)
+        }
     }
 }
 
