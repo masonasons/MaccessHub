@@ -175,6 +175,7 @@ final class AppController {
         keyClicks.ignoreWithCommand = data.keyClicks.ignoreWithCommand
         keyClicks.ignoreWithControl = data.keyClicks.ignoreWithControl
         keyClicks.ignoreWithOption = data.keyClicks.ignoreWithOption
+        keyClicks.maskSecureFields = data.keyClicks.maskSecureFields
 
         if data.keyClicks.enabled {
             if !keyClicks.isRunning, !keyClicks.start() {
