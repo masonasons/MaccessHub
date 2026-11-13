@@ -39,6 +39,12 @@ final class SoundEngine {
     /// Progress beeps go through one node per path so each beep cuts the previous.
     private lazy var toneNode: AVAudioPlayerNode = nodes[0]
     private lazy var spatialToneNode: AVAudioPlayerNode = spatialNodes[0]
+    /// After a player fails to start, sounds are dropped until this uptime and
+    /// the engine is rebuilt then. See `playerFailed(_:)`.
+    private var retryAt: TimeInterval = 0
+    /// The last wait between retries; doubles on each failure, up to 30 s.
+    private var retryDelay: TimeInterval = 0
+    private var retryWork: DispatchWorkItem?
 
     init(voices: Int = 12) {
         for _ in 0..<voices {
@@ -134,6 +140,7 @@ final class SoundEngine {
     func suspend() {
         guard !suspended else { return }
         suspended = true
+        clearRetry()
         stopAll()
         engine.stop()
         log.info("Engine suspended for sleep")
@@ -156,7 +163,7 @@ final class SoundEngine {
     /// Returns whether the engine is running and the players can take buffers.
     @discardableResult
     private func startIfNeeded() -> Bool {
-        guard !suspended else { return false }
+        guard !suspended, !waitingToRetry else { return false }
         if !engine.isRunning {
             // While the output device is going away (sleep, unplugging) its
             // format reads as empty and starting would fail or half-succeed.
@@ -173,16 +180,84 @@ final class SoundEngine {
                 return false
             }
         }
-        // `AVAudioPlayerNode.play()` raises an Objective-C exception (which
-        // Swift cannot catch) if the engine is not running, and the engine can
-        // stop again right after starting while the device changes.
+        // `AVAudioPlayerNode.play()` raises an Objective-C exception if the
+        // engine is not running, and the engine can stop again right after
+        // starting while the device changes.
         guard engine.isRunning else { return false }
         // Player nodes stay running. Scheduling a buffer with `.interrupts`
         // on a running node costs microseconds; `stop()` and `play()` each
         // block for an IO cycle (5–12 ms measured), so they are avoided on the
         // playback path.
-        for node in nodes + spatialNodes where !node.isPlaying { node.play() }
+        //
+        // A running engine is not enough, though. Just after wake the output
+        // device can be open but not yet running its IO cycles ("IO is still
+        // disabled after waiting" in the log). `play()` then waits several
+        // seconds for a render cycle and raises "player did not see an IO
+        // cycle", which took the app down when it happened off the main
+        // thread. Catch it, drop the sound and try again a little later.
+        for node in nodes + spatialNodes where !node.isPlaying {
+            do {
+                try ObjCExceptionCatcher.run { node.play() }
+            } catch {
+                playerFailed(error)
+                return false
+            }
+        }
+        lock.lock(); retryDelay = 0; lock.unlock()
         return true
+    }
+
+    /// Whether an earlier failure is still being waited out.
+    private var waitingToRetry: Bool {
+        lock.lock(); defer { lock.unlock() }
+        return ProcessInfo.processInfo.systemUptime < retryAt
+    }
+
+    /// A player could not start or take a buffer. Stops the engine, drops
+    /// sounds for a moment (each failed `play()` blocks for seconds, so trying
+    /// again on every sound would stall the app) and rebuilds the engine
+    /// when the wait is over. The wait doubles on each failure in a row.
+    private func playerFailed(_ error: Error) {
+        lock.lock()
+        retryDelay = min(max(retryDelay * 2, 1), 30)
+        let delay = retryDelay
+        retryAt = ProcessInfo.processInfo.systemUptime + delay
+        lock.unlock()
+        log.error("Audio player failed (\(error.localizedDescription, privacy: .public)); dropping sounds and retrying in \(delay, privacy: .public) s")
+        engine.stop()
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            retryWork?.cancel()
+            let work = DispatchWorkItem { [weak self] in
+                guard let self else { return }
+                retryWork = nil
+                lock.lock(); retryAt = 0; lock.unlock()
+                rebuild()
+            }
+            retryWork = work
+            DispatchQueue.main.asyncAfter(deadline: .now() + delay, execute: work)
+        }
+    }
+
+    private func clearRetry() {
+        retryWork?.cancel()
+        retryWork = nil
+        lock.lock(); retryAt = 0; retryDelay = 0; lock.unlock()
+    }
+
+    /// Schedules `buffer` on `node`, cutting off whatever it was playing.
+    /// Returns false if AVFoundation raised (a detached node, or a format the
+    /// node's connection no longer has after a device change).
+    private func schedule(_ buffer: AVAudioPCMBuffer, on node: AVAudioPlayerNode) -> Bool {
+        do {
+            try ObjCExceptionCatcher.run {
+                node.scheduleBuffer(buffer, at: nil, options: [.interrupts], completionHandler: nil)
+            }
+            return true
+        } catch {
+            playerFailed(error)
+            return false
+        }
     }
 
     private func applyIOBufferSize() {
@@ -243,7 +318,7 @@ final class SoundEngine {
         lock.unlock()
 
         node.volume = max(0, min(1, volume))
-        node.scheduleBuffer(buffer, at: nil, options: [.interrupts], completionHandler: nil)
+        guard schedule(buffer, on: node) else { return 0 }
         return Double(buffer.frameLength) / buffer.format.sampleRate
     }
 
@@ -303,7 +378,7 @@ final class SoundEngine {
 
         node.position = position
         node.volume = max(0, min(1, volume))
-        node.scheduleBuffer(buffer, at: nil, options: [.interrupts], completionHandler: nil)
+        guard schedule(buffer, on: node) else { return 0 }
         return Double(buffer.frameLength) / buffer.format.sampleRate
     }
 
@@ -356,7 +431,7 @@ final class SoundEngine {
         let node = position == nil ? toneNode : spatialToneNode
         if let position { node.position = position }
         node.volume = max(0, min(1, volume))
-        node.scheduleBuffer(buffer, at: nil, options: [.interrupts], completionHandler: nil)
+        _ = schedule(buffer, on: node)
     }
 
     func stopAll() {

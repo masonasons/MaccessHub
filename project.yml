@@ -65,5 +65,7 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.maccesshub.app
         PRODUCT_NAME: MaccessHub
         GENERATE_INFOPLIST_FILE: NO
+        # ObjCExceptionCatcher, so AVFoundation exceptions can be caught from Swift.
+        SWIFT_OBJC_BRIDGING_HEADER: Sources/MaccessHub/MaccessHub-Bridging-Header.h
         ENABLE_HARDENED_RUNTIME: YES
         MACOSX_DEPLOYMENT_TARGET: "14.0"
