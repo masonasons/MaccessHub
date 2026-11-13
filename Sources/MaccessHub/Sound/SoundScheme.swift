@@ -6,18 +6,25 @@ struct SoundScheme {
     var settings: SettingsData
     var library: SoundpackLibrary
 
+    /// Where an event's sound comes from. Pack sources carry every variant,
+    /// primary first; a custom file is always a single sound.
     enum Source {
         case override(URL)
-        case pack(URL, Soundpack)
-        case fallback(URL, Soundpack, viaEvent: String)
-        case classic(URL)
+        case pack([URL], Soundpack)
+        case fallback([URL], Soundpack, viaEvent: String)
+        case classic([URL])
 
-        var url: URL {
+        var urls: [URL] {
             switch self {
-            case .override(let u), .classic(let u): return u
+            case .override(let u): return [u]
+            case .classic(let u): return u
             case .pack(let u, _), .fallback(let u, _, _): return u
             }
         }
+
+        /// The primary file.
+        var url: URL { urls[0] }
+        var variantCount: Int { urls.count }
 
         var description: String {
             switch self {
@@ -55,23 +62,29 @@ struct SoundScheme {
         let chain = [event.id] + event.fallbacks
         if let pack = pack(for: event) {
             for id in chain {
-                if let url = pack.url(for: id) {
-                    return id == event.id ? .pack(url, pack) : .fallback(url, pack, viaEvent: id)
+                let urls = pack.urls(for: id)
+                if !urls.isEmpty {
+                    return id == event.id ? .pack(urls, pack) : .fallback(urls, pack, viaEvent: id)
                 }
             }
         }
         if fillsMissing(event), let classic = library.classic, classic.id != pack(for: event)?.id {
             for id in chain {
-                if let url = classic.url(for: id) { return .classic(url) }
+                let urls = classic.urls(for: id)
+                if !urls.isEmpty { return .classic(urls) }
             }
         }
         return nil
     }
 
+    /// The event's primary file.
     func url(for event: SoundEvent) -> URL? { source(for: event)?.url }
 
-    /// Every file the current configuration can play, for preloading.
+    /// Every variant the event can play, primary first.
+    func urls(for event: SoundEvent) -> [URL] { source(for: event)?.urls ?? [] }
+
+    /// Every file the current configuration can play, variants included, for preloading.
     func allURLs() -> Set<URL> {
-        Set(SoundEvent.all.compactMap { url(for: $0) })
+        Set(SoundEvent.all.flatMap { urls(for: $0) })
     }
 }

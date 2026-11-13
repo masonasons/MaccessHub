@@ -135,6 +135,8 @@ struct ProgressSettings: Codable {
     var beepMinHz = 110
     /// 0.5 matches NVDA's default beep level.
     var beepVolume = 0.5
+    /// Bundle IDs of apps whose bars are never reported (level meters that look like progress bars).
+    var excludedApps: [String] = []
 
     init() {}
     init(from decoder: Decoder) throws {
@@ -146,6 +148,7 @@ struct ProgressSettings: Codable {
         beepEvery = c.value(.beepEvery, default: 1)
         beepMinHz = c.value(.beepMinHz, default: 110)
         beepVolume = c.value(.beepVolume, default: 0.5)
+        excludedApps = c.value(.excludedApps, default: [])
     }
 }
 
@@ -339,11 +342,31 @@ final class SettingsStore {
     @ObservationIgnored private var saveScheduled = false
 
     init() {
-        if let raw = try? Data(contentsOf: Self.fileURL),
-           let decoded = try? JSONDecoder().decode(SettingsData.self, from: raw) {
-            data = decoded
-        } else {
-            data = SettingsData()
+        if let raw = try? Data(contentsOf: Self.fileURL) {
+            if let decoded = try? JSONDecoder().decode(SettingsData.self, from: raw) {
+                data = decoded
+                return
+            }
+            // The file is there but can't be read (a bad hand edit, say).
+            // Starting from defaults is right, but the first save would write
+            // over it and every setting would be gone for good, so set it aside.
+            Self.setAsideUnreadableFile()
+        }
+        data = SettingsData()
+    }
+
+    private static func setAsideUnreadableFile() {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.dateFormat = "yyyy-MM-dd-HHmmss"
+        let name = "settings.unreadable-\(formatter.string(from: Date())).json"
+        let copy = fileURL.deletingLastPathComponent().appendingPathComponent(name)
+        let log = Logger(subsystem: "com.maccesshub.app", category: "settings")
+        do {
+            try FileManager.default.moveItem(at: fileURL, to: copy)
+            log.error("Settings file could not be read; starting from defaults. The old file is at \(copy.path, privacy: .public)")
+        } catch {
+            log.error("Settings file could not be read, and could not be set aside: \(error.localizedDescription, privacy: .public)")
         }
     }
 

@@ -100,11 +100,57 @@ flac). A pack can be partial: missing events either use the Classic sound or
 stay silent, depending on the "Use Classic sounds…" toggle. Key clicks and
 event sounds can use different packs.
 
+### Variants
+
+An event can have several sounds. MaccessHub picks one at random each time it
+plays, and never the same file twice in a row (with two, they alternate). Name
+the extra files with a number after the event ID:
+
+```
+key.lower.wav
+key.lower.2.wav
+key.lower.3.wav
+```
+
+The number only counts as a variant when what comes before it is a known event
+ID. Duplicating a pack and exporting the current scheme keep every variant. A
+custom file chosen for one event is always a single sound.
+
 User packs live in `~/Library/Application Support/MaccessHub/Soundpacks/`.
 The **Soundpacks** tab can create an empty pack, duplicate an existing one,
 import a folder, or export the sounds currently in use (custom files included)
 as a new pack. Event IDs are listed in each pack's "Events without a sound"
-section and in `SoundEvent.swift`.
+section and in `SoundEvent.swift`. **Preview Typing** plays a key-clicks pack
+as if you typed a short phrase, and **Preview Focus Sounds** plays each
+control's sound in turn; press either again to stop.
+
+### Importing NVDA Navigation Sounds packs
+
+**Import NVDA Sounds…** on the Soundpacks tab reads packs made for the NVDA
+add-on [Navigation Sounds](https://github.com/ahmedthebest31/navsounds), as a
+folder, a folder of packs, or a downloaded `.zip` (zips are capped at 64 MB and
+2000 files). No sounds from that project ship with MaccessHub, since many of
+them are recordings of phone keyboards; you import the packs you want.
+
+The kind of pack is worked out from the file names.
+
+- **Typing packs** become key-click packs. A file whose name contains "space"
+  plays for Space; "delete" or "backspace" for Delete; "bill", "bell", "enter"
+  or "return" for Return; "letter" for letters; "number" or "digit" for digits.
+  Everything else becomes a variant of both letters and other keys. If a pack
+  has no file for Space, Delete or Return, those keys use its general key
+  presses too, the way Navigation Sounds plays them.
+- **Navigation packs** (files named after NVDA roles, like `button.wav` or
+  `treeviewitem.wav`) become focus-sound packs, one sound per kind of control.
+  Roles MaccessHub has no slot for are left out.
+
+A name that is already taken gets a number. Files that are not playable audio
+are skipped, and the result is spoken and shown at the top of the tab with
+buttons to preview the new pack or start using it.
+
+`scripts/verify-nvda-import.sh /path/to/navsounds` runs the importer against a
+checkout of Navigation Sounds into a temporary folder and prints what each
+pack turns into.
 
 ## Building
 
