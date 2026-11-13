@@ -153,6 +153,15 @@ final class SoundEngine {
     /// about 5 ms; the macOS default of 512 is about 11 ms.
     private let ioBufferFrames: UInt32 = 256
 
+    /// A running engine keeps the output device open, and Core Audio holds a
+    /// PreventUserIdleSystemSleep assertion for it, so the Mac never sleeps on
+    /// its own. Pause the engine after this long without a sound; the next
+    /// sound starts it again.
+    private let idleTimeout: TimeInterval = 30
+    /// Uptime at which the last scheduled sound finishes.
+    private var busyUntil: TimeInterval = 0
+    private var idleCheckScheduled = false
+
     /// Returns whether the engine is running and the players can take buffers.
     @discardableResult
     private func startIfNeeded() -> Bool {
@@ -182,7 +191,28 @@ final class SoundEngine {
         // block for an IO cycle (5–12 ms measured), so they are avoided on the
         // playback path.
         for node in nodes + spatialNodes where !node.isPlaying { node.play() }
+        busyUntil = max(busyUntil, ProcessInfo.processInfo.systemUptime)
+        scheduleIdleCheck(after: idleTimeout)
         return true
+    }
+
+    /// Pauses the engine once nothing has played for `idleTimeout`. Pause, not
+    /// stop: it releases the device but keeps the graph and the player nodes
+    /// running, so restarting costs no more than the first start did.
+    private func scheduleIdleCheck(after delay: TimeInterval) {
+        guard !idleCheckScheduled else { return }
+        idleCheckScheduled = true
+        DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in
+            guard let self else { return }
+            idleCheckScheduled = false
+            let idle = ProcessInfo.processInfo.systemUptime - busyUntil
+            if idle < idleTimeout {
+                scheduleIdleCheck(after: idleTimeout - idle)
+            } else if !suspended, engine.isRunning {
+                engine.pause()
+                log.debug("Audio engine paused after \(Int(idle), privacy: .public) s idle")
+            }
+        }
     }
 
     private func applyIOBufferSize() {
@@ -244,7 +274,9 @@ final class SoundEngine {
 
         node.volume = max(0, min(1, volume))
         node.scheduleBuffer(buffer, at: nil, options: [.interrupts], completionHandler: nil)
-        return Double(buffer.frameLength) / buffer.format.sampleRate
+        let duration = Double(buffer.frameLength) / buffer.format.sampleRate
+        busyUntil = max(busyUntil, ProcessInfo.processInfo.systemUptime + duration)
+        return duration
     }
 
     enum Reverb: String, Codable, CaseIterable, Identifiable {
@@ -304,7 +336,9 @@ final class SoundEngine {
         node.position = position
         node.volume = max(0, min(1, volume))
         node.scheduleBuffer(buffer, at: nil, options: [.interrupts], completionHandler: nil)
-        return Double(buffer.frameLength) / buffer.format.sampleRate
+        let duration = Double(buffer.frameLength) / buffer.format.sampleRate
+        busyUntil = max(busyUntil, ProcessInfo.processInfo.systemUptime + duration)
+        return duration
     }
 
     private func preloadMono(_ url: URL) -> AVAudioPCMBuffer? {
