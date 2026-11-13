@@ -323,28 +323,50 @@ final class SoundEngine {
 
     private var toneBuffers: [String: AVAudioPCMBuffer] = [:]
 
-    /// NVDA's beep, ported from nvdaHelper/local/beeps.cpp: a sine doubled and
-    /// hard-clipped (the source of its slightly buzzy timbre), no envelope, and
-    /// the length rounded up to a whole number of cycles so it ends at a zero
-    /// crossing. Amplitude 14000/32767 at full pan; NVDA's default pan of 50
-    /// corresponds to a volume of 0.5 here.
+    /// NVDA's beep, after nvdaHelper/local/beeps.cpp: a sine doubled and
+    /// hard-clipped (the source of its slightly buzzy timbre), amplitude
+    /// 14000/32767 at full pan; NVDA's default pan of 50 corresponds to a volume
+    /// of 0.5 here.
+    ///
+    /// Two departures from the C++, both to stop it clicking:
+    /// - The length is a whole number of *true* cycles. beeps.cpp rounds the
+    ///   samples per cycle down to an integer, so at 48 kHz the beep stops
+    ///   mid-wave (at 880 and 1760 Hz it ends at full level): an audible click
+    ///   at the end of most beeps.
+    /// - A 2 ms raised-cosine fade at each end, so the edges are exactly zero
+    ///   whatever the pitch. Far too short to change the timbre.
     private func toneBuffer(frequency: Double, duration: TimeInterval, format: AVAudioFormat) -> AVAudioPCMBuffer? {
         let key = "\(Int(frequency.rounded()))/\(Int(duration * 1000))/\(format.channelCount)"
         lock.lock(); if let cached = toneBuffers[key] { lock.unlock(); return cached }; lock.unlock()
-        let rate = format.sampleRate
-        let samplesPerCycle = max(1, Int(rate / frequency))
-        var totalSamples = Int(duration * rate)
-        totalSamples += samplesPerCycle - (totalSamples % samplesPerCycle)
-        guard let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: AVAudioFrameCount(totalSamples)) else { return nil }
-        buffer.frameLength = AVAudioFrameCount(totalSamples)
-        let sinFreq = (2.0 * Double.pi) / (rate / frequency)
-        let amplitude: Float = 14000.0 / 32767.0
-        for i in 0..<totalSamples {
-            let sample = Float(min(max(sin(Double(i % Int(rate)) * sinFreq) * 2.0, -1.0), 1.0)) * amplitude
-            for channel in 0..<Int(format.channelCount) { buffer.floatChannelData![channel][i] = sample }
+        let samples = Self.classicBeepSamples(frequency: frequency, duration: duration, sampleRate: format.sampleRate)
+        guard let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: AVAudioFrameCount(samples.count)) else { return nil }
+        buffer.frameLength = AVAudioFrameCount(samples.count)
+        for channel in 0..<Int(format.channelCount) {
+            samples.withUnsafeBufferPointer { src in
+                buffer.floatChannelData![channel].update(from: src.baseAddress!, count: samples.count)
+            }
         }
         lock.lock(); toneBuffers[key] = buffer; lock.unlock()
         return buffer
+    }
+
+    /// The Classic beep's samples (see `toneBuffer`). Static and free of the
+    /// engine so it can be checked on its own.
+    static func classicBeepSamples(frequency: Double, duration: TimeInterval, sampleRate rate: Double) -> [Float] {
+        let f = max(1, frequency)
+        let cycles = max(1, (duration * f).rounded(.up))
+        let count = max(2, Int((cycles * rate / f).rounded()))
+        let amplitude = 14000.0 / 32767.0
+        let fade = max(1, min(count / 4, Int(rate * 0.002)))
+        var out = [Float](repeating: 0, count: count)
+        for i in 0..<count {
+            let phase = (Double(i) * f / rate).truncatingRemainder(dividingBy: 1)
+            var s = min(max(sin(2 * Double.pi * phase) * 2.0, -1.0), 1.0) * amplitude
+            let edge = min(i, count - 1 - i)
+            if edge < fade { s *= 0.5 * (1 - cos(Double.pi * Double(edge) / Double(fade))) }
+            out[i] = Float(s)
+        }
+        return out
     }
 
     /// Plays a beep, binaurally at `position` when given, otherwise through the plain mixer.
