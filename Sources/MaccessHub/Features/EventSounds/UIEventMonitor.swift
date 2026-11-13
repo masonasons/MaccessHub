@@ -76,13 +76,35 @@ final class UIEventMonitor: EventMonitor {
             return
         }
         let element = AXUIElementCreateApplication(pid)
-        let refcon = Unmanaged.passUnretained(self).toOpaque()
-        for (name, _) in Self.notifications {
-            AXObserverAddNotification(newObserver, element, name as CFString, refcon)
-        }
         CFRunLoopAddSource(CFRunLoopGetMain(), AXObserverGetRunLoopSource(newObserver), .defaultMode)
         observer = newObserver
         observedElement = element
         observedPID = pid
+        subscribe(pid: pid, attempt: 0)
+    }
+
+    /// Delays before asking again when the app is not ready yet.
+    private static let retryDelays: [TimeInterval] = [0.5, 1.5, 4]
+
+    /// Registers for the notifications. An app that has only just launched
+    /// (it activates as it opens) answers "cannot complete" for a moment, and
+    /// without another try its windows and menus would make no sound until
+    /// the user switched away and back.
+    private func subscribe(pid: pid_t, attempt: Int) {
+        guard let observer, let observedElement, observedPID == pid else { return }
+        let refcon = Unmanaged.passUnretained(self).toOpaque()
+        var notReady = false
+        for (name, _) in Self.notifications {
+            let status = AXObserverAddNotification(observer, observedElement, name as CFString, refcon)
+            if status == .cannotComplete { notReady = true }
+        }
+        guard notReady else { return }
+        guard attempt < Self.retryDelays.count else {
+            log.debug("pid \(pid) is still not answering; window and menu sounds may be missing for it")
+            return
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + Self.retryDelays[attempt]) { [weak self] in
+            self?.subscribe(pid: pid, attempt: attempt + 1)
+        }
     }
 }
