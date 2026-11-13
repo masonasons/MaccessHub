@@ -15,7 +15,7 @@ enum SpeechOutput: String, Codable, CaseIterable, Identifiable {
 
     var title: String {
         switch self {
-        case .automatic: return "VoiceOver when running, otherwise system voice"
+        case .automatic: return "VoiceOver if it's running, otherwise the system voice"
         case .voiceOver: return "VoiceOver only"
         case .systemVoice: return "System voice only"
         }

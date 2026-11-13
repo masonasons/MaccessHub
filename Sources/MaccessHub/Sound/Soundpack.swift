@@ -176,7 +176,7 @@ final class SoundpackLibrary {
             case .invalidName: return "Enter a name that can be used as a folder name."
             case .alreadyExists(let n): return "A soundpack named \(n) already exists."
             case .notAPack(let u): return "\(u.lastPathComponent) does not contain any supported sound files."
-            case .builtIn: return "Built-in soundpacks cannot be changed. Duplicate it first."
+            case .builtIn: return "Built-in soundpacks can't be changed. Duplicate it first, then change the copy."
             }
         }
     }

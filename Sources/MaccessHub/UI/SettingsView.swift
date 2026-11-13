@@ -13,7 +13,7 @@ struct SettingsView: View {
             KeyClicksSettingsView(store: store, library: library)
                 .tabItem { Label("Key Clicks", systemImage: "keyboard") }
             FocusSoundsSettingsView(store: store, library: library)
-                .tabItem { Label("Focus", systemImage: "scope") }
+                .tabItem { Label("Focus Sounds", systemImage: "scope") }
             ToolsSettingsView(store: store)
                 .tabItem { Label("Tools", systemImage: "wrench.and.screwdriver") }
             ShortcutsSettingsView(store: store)
@@ -83,7 +83,7 @@ struct GeneralSettingsView: View {
                 Button("Test Speech") {
                     AppController.shared.speaker.speak("This is MaccessHub.")
                 }
-                Text("With VoiceOver output, messages use your VoiceOver voice and can be interrupted like any other VoiceOver speech. macOS will ask you once to allow MaccessHub to control VoiceOver.")
+                Text("Through VoiceOver, messages use your VoiceOver voice and can be interrupted like any other VoiceOver speech. The system voice settings are only used when VoiceOver isn't. The first time, macOS asks you to let MaccessHub control VoiceOver.")
                     .font(.callout).foregroundStyle(.secondary)
             }
             Section("Permissions") {
@@ -92,14 +92,15 @@ struct GeneralSettingsView: View {
                         Text(accessibilityTrusted ? "Granted" : "Not granted")
                             .foregroundStyle(accessibilityTrusted ? .green : .red)
                         if !accessibilityTrusted {
-                            Button("Request") {
+                            Button("Request Access") {
                                 AccessibilityPermission.request()
                                 AccessibilityPermission.openSystemSettings()
                             }
+                            .accessibilityHint("Asks macOS for Accessibility access and opens the settings page where you turn it on.")
                         }
                     }
                 }
-                Text("Accessibility access is needed for key clicks, position information, menu extras, and window and menu sounds. If key clicks stay silent after granting it, also allow MaccessHub under Input Monitoring.")
+                Text("Accessibility access is needed for key clicks, focus sounds, position info, menu extras, and window and menu sounds. If key clicks stay silent after you allow it, also turn on MaccessHub in Input Monitoring. Automation is what lets MaccessHub speak through VoiceOver.")
                     .font(.callout).foregroundStyle(.secondary)
                 HStack {
                     Button("Open Accessibility Settings") { AccessibilityPermission.openSystemSettings() }
@@ -196,10 +197,10 @@ struct SoundEventRow: View {
             .accessibilityLabel("Preview \(event.title)")
             .disabled(source == nil)
             Button("Choose…") { choose() }
-                .accessibilityLabel("Choose sound for \(event.title)")
+                .accessibilityLabel("Choose a sound file for \(event.title)")
             if store.data.soundOverrides[event.id] != nil {
-                Button("Use Pack") { store.data.soundOverrides[event.id] = nil }
-                    .accessibilityLabel("Use pack sound for \(event.title)")
+                Button("Use Pack Sound") { store.data.soundOverrides[event.id] = nil }
+                    .accessibilityLabel("Go back to the pack's sound for \(event.title)")
             }
         }
     }
@@ -241,20 +242,23 @@ struct EventSoundsSettingsView: View {
                 SoundpackPicker(title: "Soundpack", packID: $store.data.eventSounds.packID, library: library)
                 Slider(value: $store.data.eventSounds.volume, in: 0...1) { Text("Volume") }
                     .accessibilityValue("\(Int(store.data.eventSounds.volume * 100)) percent")
-                Toggle("Use Classic sounds for events the pack does not cover", isOn: $store.data.eventSounds.fillMissingFromClassic)
+                Toggle("Use the Classic sound when this pack has none", isOn: $store.data.eventSounds.fillMissingFromClassic)
                 HStack {
-                    Button("Enable All") {
+                    Button("Turn All On") {
                         setAll(true)
                         announce("All event sounds on")
                     }
-                    Button("Disable All") {
+                    .accessibilityLabel("Turn all event sounds on")
+                    Button("Turn All Off") {
                         setAll(false)
                         announce("All event sounds off")
                     }
+                    .accessibilityLabel("Turn all event sounds off")
                     Button("Reset to Defaults") {
                         store.data.eventSounds.eventStates = [:]
                         announce("Event sounds reset to defaults")
                     }
+                    .accessibilityHint("Puts back which events play when MaccessHub is first installed. Your soundpack and chosen sound files stay.")
                 }
             }
             ForEach(SoundGroup.eventGroups) { group in
@@ -286,7 +290,7 @@ struct KeyClicksSettingsView: View {
                 SoundpackPicker(title: "Soundpack", packID: $store.data.keyClicks.packID, library: library)
                 Slider(value: $store.data.keyClicks.volume, in: 0...1) { Text("Volume") }
                     .accessibilityValue("\(Int(store.data.keyClicks.volume * 100)) percent")
-                Toggle("Use Classic sounds for keys the pack does not cover", isOn: $store.data.keyClicks.fillMissingFromClassic)
+                Toggle("Use the Classic sound when this pack has none", isOn: $store.data.keyClicks.fillMissingFromClassic)
                 Button("Preview Typing") { AppController.shared.previewTyping() }
                     .help("Plays the pack as if you typed a short phrase. Press again to stop.")
             }
@@ -294,21 +298,23 @@ struct KeyClicksSettingsView: View {
                 Picker("Play clicks", selection: $store.data.keyClicks.scope) {
                     ForEach(KeyClickScope.allCases) { Text($0.title).tag($0) }
                 }
-                Toggle("Click while a key repeats", isOn: $store.data.keyClicks.playOnRepeat)
-                Toggle("Silent when Command is held", isOn: $store.data.keyClicks.ignoreWithCommand)
-                Toggle("Silent when Control is held", isOn: $store.data.keyClicks.ignoreWithControl)
-                Toggle("Silent when Option is held", isOn: $store.data.keyClicks.ignoreWithOption)
+                Toggle("Keep clicking while a key is held down and repeats", isOn: $store.data.keyClicks.playOnRepeat)
+                Toggle("No clicks while Command is held", isOn: $store.data.keyClicks.ignoreWithCommand)
+                Toggle("No clicks while Control is held", isOn: $store.data.keyClicks.ignoreWithControl)
+                Toggle("No clicks while Option is held", isOn: $store.data.keyClicks.ignoreWithOption)
             }
-            Section("Key sounds") {
+            Section("Sound for each kind of key") {
                 HStack {
-                    Button("Enable All") {
+                    Button("Turn All On") {
                         for event in SoundEvent.events(in: .keys) { store.data.keyClicks.eventStates[event.id] = true }
                         announce("All key sounds on")
                     }
-                    Button("Disable All") {
+                    .accessibilityLabel("Turn all key sounds on")
+                    Button("Turn All Off") {
                         for event in SoundEvent.events(in: .keys) { store.data.keyClicks.eventStates[event.id] = false }
                         announce("All key sounds off")
                     }
+                    .accessibilityLabel("Turn all key sounds off")
                     Button("Reset to Defaults") {
                         store.data.keyClicks.eventStates = [:]
                         announce("Key sounds reset to defaults")
@@ -336,43 +342,43 @@ struct FocusSoundsSettingsView: View {
                 SoundpackPicker(title: "Soundpack", packID: $store.data.focusSounds.packID, library: library)
                 Slider(value: $store.data.focusSounds.volume, in: 0...1) { Text("Volume") }
                     .accessibilityValue("\(Int(store.data.focusSounds.volume * 100)) percent")
-                Toggle("Use Classic sounds for controls the pack does not cover", isOn: $store.data.focusSounds.fillMissingFromClassic)
+                Toggle("Use the Classic sound when this pack has none", isOn: $store.data.focusSounds.fillMissingFromClassic)
                 Button("Preview Focus Sounds") { AppController.shared.previewFocusSounds() }
                     .help("Plays each control's sound in turn. Press again to stop.")
-                Text("Like the Unspoken add-on for NVDA: each kind of control has its own sound.")
+                Text("Each kind of control, such as a button, checkbox or link, has its own sound. If you've used NVDA, it's like the Unspoken add-on.")
                     .font(.callout).foregroundStyle(.secondary)
             }
-            Section("Position") {
-                Toggle("Place each sound where the control is on screen (HRTF)", isOn: $store.data.focusSounds.spatial)
-                Picker("Room", selection: $store.data.focusSounds.reverb) {
+            Section("Where sounds come from") {
+                Toggle("Play sounds from where the control is on screen (3D audio)", isOn: $store.data.focusSounds.spatial)
+                Picker("Room reverb", selection: $store.data.focusSounds.reverb) {
                     ForEach(SoundEngine.Reverb.allCases) { Text($0.title).tag($0) }
                 }
                 .disabled(!store.data.focusSounds.spatial)
                 Slider(value: $store.data.focusSounds.reverbAmount, in: 0...1) {
                     Text("Reverb amount")
-                } minimumValueLabel: { Text("Dry") } maximumValueLabel: { Text("Wet") }
+                } minimumValueLabel: { Text("Less") } maximumValueLabel: { Text("More") }
                 .accessibilityValue("\(Int(store.data.focusSounds.reverbAmount * 100)) percent")
                 .disabled(!store.data.focusSounds.spatial || store.data.focusSounds.reverb == .none)
-                Button("Test Left, Centre, Right") { AppController.shared.previewSpatialPositions() }
+                Button("Play Test: Left, Center, Right") { AppController.shared.previewSpatialPositions() }
                     .disabled(!store.data.focusSounds.spatial)
-                Text("Left to right follows the control's horizontal position across all displays; controls near the top of the screen sound slightly higher than those at the bottom. Headphones are needed to hear the placement.")
+                Text("A control on the left of the screen sounds on your left, and so on across all your displays. Controls near the top sound a little higher up than those near the bottom. You need headphones to hear this.")
                     .font(.callout).foregroundStyle(.secondary)
             }
-            Section("Play for") {
+            Section("Play focus sounds for") {
                 Toggle("Keyboard focus changes", isOn: $store.data.focusSounds.keyboardFocus)
                 Toggle("Menu items", isOn: $store.data.focusSounds.menuItems)
-                Toggle("List, table and outline rows", isOn: $store.data.focusSounds.rows)
-                Toggle("The VoiceOver cursor (experimental, slows VoiceOver)", isOn: $store.data.focusSounds.followVoiceOverCursor)
-                Text("Asks VoiceOver for its cursor position a few times a second and sounds the item under it, covering items that never take keyboard focus. Each request costs VoiceOver time and can make it noticeably sluggish, so this is off by default.")
+                Toggle("Selected rows in lists, tables and outlines", isOn: $store.data.focusSounds.rows)
+                Toggle("The VoiceOver cursor (experimental, can slow VoiceOver down)", isOn: $store.data.focusSounds.followVoiceOverCursor)
+                Text("Plays a sound for whatever the VoiceOver cursor is on, even items that never get keyboard focus. To do this, MaccessHub asks VoiceOver where its cursor is a few times a second, which can make VoiceOver noticeably sluggish. That's why it's off by default.")
                     .font(.callout).foregroundStyle(.secondary)
             }
             Section("Progress bars") {
-                Picker("Progress bar output", selection: $store.data.progress.output) {
+                Picker("Report progress bars by", selection: $store.data.progress.output) {
                     ForEach(ProgressOutput.allCases) { Text($0.title).tag($0) }
                 }
-                Toggle("Report bars in other windows of the active app", isOn: $store.data.progress.backgroundWindows)
+                Toggle("Also report bars in the app's other windows", isOn: $store.data.progress.backgroundWindows)
                     .disabled(store.data.progress.output == .off)
-                Toggle("Report bars in background apps", isOn: $store.data.progress.backgroundApps)
+                Toggle("Also report bars in apps in the background", isOn: $store.data.progress.backgroundApps)
                     .disabled(store.data.progress.output == .off)
                 ForEach(store.data.progress.excludedApps, id: \.self) { bundleID in
                     HStack {
@@ -393,7 +399,7 @@ struct FocusSoundsSettingsView: View {
                 }
                 .disabled(store.data.progress.output == .off || store.data.progress.output == .speak)
                 Stepper(value: $store.data.progress.beepMinHz, in: 55...880, step: 5) {
-                    Text("Beep pitch at 0 percent: \(store.data.progress.beepMinHz) Hz")
+                    Text("Starting beep pitch, at 0 percent: \(store.data.progress.beepMinHz) hertz")
                 }
                 .disabled(store.data.progress.output == .off || store.data.progress.output == .speak)
                 Slider(value: $store.data.progress.beepVolume, in: 0...1) { Text("Beep volume") }
@@ -401,19 +407,21 @@ struct FocusSoundsSettingsView: View {
                     .disabled(store.data.progress.output == .off || store.data.progress.output == .speak)
                 Button("Test Beeps") { AppController.shared.previewProgressBeeps() }
                     .disabled(store.data.progress.output == .off || store.data.progress.output == .speak)
-                Text("NVDA's progress beeps, sample for sample: 40 ms, pitch doubling every 25 percent, and speech at each interval. With HRTF on, beeps come from the bar's position on screen. Defaults match NVDA's.")
+                Text("These work like NVDA's progress beeps: a short beep that rises in pitch as the bar fills, an octave every 25 percent. The defaults match NVDA. With 3D audio on, beeps come from where the bar is on screen.")
                     .font(.callout).foregroundStyle(.secondary)
             }
-            Section("Control sounds") {
+            Section("Sound for each kind of control") {
                 HStack {
-                    Button("Enable All") {
+                    Button("Turn All On") {
                         for event in SoundEvent.events(in: .focus) { store.data.focusSounds.eventStates[event.id] = true }
                         announce("All control sounds on")
                     }
-                    Button("Disable All") {
+                    .accessibilityLabel("Turn all control sounds on")
+                    Button("Turn All Off") {
                         for event in SoundEvent.events(in: .focus) { store.data.focusSounds.eventStates[event.id] = false }
                         announce("All control sounds off")
                     }
+                    .accessibilityLabel("Turn all control sounds off")
                     Button("Reset to Defaults") {
                         store.data.focusSounds.eventStates = [:]
                         announce("Control sounds reset to defaults")
@@ -459,35 +467,35 @@ struct ToolsSettingsView: View {
             Section("Audio Devices") {
                 Toggle("Wrap around from the last device to the first", isOn: $store.data.audioDevices.wrapAround)
                 Toggle("Speak the device's volume after switching", isOn: $store.data.audioDevices.speakVolume)
-                Picker("Microphone mute feedback", selection: $store.data.audioDevices.muteFeedback) {
+                Picker("When you mute or unmute the microphone", selection: $store.data.audioDevices.muteFeedback) {
                     ForEach(MuteFeedback.allCases) { Text($0.title).tag($0) }
                 }
-                Text("Choose the sounds under Event Sounds → Audio Devices. If no sound is assigned, the mute shortcut speaks instead.")
+                Text("You can pick the mute sounds in the Event Sounds tab, under Audio Devices. If there's no sound, the mute shortcut speaks instead.")
                     .font(.callout).foregroundStyle(.secondary)
             }
             Section("Menu Extras") {
-                Toggle("Enable menu extra shortcuts (Option-Shift-1 to 0)", isOn: $store.data.menuExtras.enabled)
+                Toggle("Turn on menu extra shortcuts (Option-Shift-1 through 0)", isOn: $store.data.menuExtras.enabled)
                 Button("Speak All Menu Extras Now") { AppController.shared.menuExtras.speakAll() }
-                Text("Items are numbered from left to right across the menu bar, hidden items excluded. Press a shortcut once to hear the item, twice to open it.")
+                Text("Menu extras are the status icons on the right side of the menu bar, like Wi-Fi and Battery. They're numbered from left to right, skipping hidden ones. Press a shortcut once to hear an item, twice to open it.")
                     .font(.callout).foregroundStyle(.secondary)
             }
             Section("Double Press") {
                 Slider(value: $store.data.general.doublePressInterval, in: 0.2...0.8, step: 0.05) {
                     Text("Time allowed between presses")
-                } minimumValueLabel: { Text("Fast") } maximumValueLabel: { Text("Slow") }
+                } minimumValueLabel: { Text("Short") } maximumValueLabel: { Text("Long") }
                 .accessibilityValue("\(Int(store.data.general.doublePressInterval * 1000)) milliseconds")
-                Text("CPU, memory and menu extra shortcuts wait this long for a second press. Pressing twice speaks the top processes or opens the menu extra.")
+                Text("Some shortcuts do something extra when pressed twice, like naming the top processes or opening a menu extra. They wait this long for the second press.")
                     .font(.callout).foregroundStyle(.secondary)
             }
             Section("System Information") {
                 Stepper(value: $store.data.systemInfo.clipboardReadLimit, in: 100...20_000, step: 100) {
-                    Text("Summarise clipboard text longer than \(store.data.systemInfo.clipboardReadLimit) characters")
+                    Text("Summarize clipboard text longer than \(store.data.systemInfo.clipboardReadLimit) characters")
                 }
-                Toggle("Only report volumes shown in Finder", isOn: $store.data.systemInfo.browsableVolumesOnly)
+                Toggle("Disk usage: only include disks shown in Finder", isOn: $store.data.systemInfo.browsableVolumesOnly)
                 Stepper(value: $store.data.systemInfo.topProcessCount, in: 1...20) {
-                    Text("Processes named by a double press: \(store.data.systemInfo.topProcessCount)")
+                    Text("Top processes to name on a double press: \(store.data.systemInfo.topProcessCount)")
                 }
-                Toggle("Include the top GPU processes in the CPU double press", isOn: $store.data.systemInfo.includeGPUProcesses)
+                Toggle("Include top GPU processes when you double press CPU", isOn: $store.data.systemInfo.includeGPUProcesses)
                 LabeledContent("Wi-Fi network name") {
                     HStack {
                         Text(AppController.shared.network.locationAuthorized ? "Available" : "Needs Location access")
@@ -538,7 +546,7 @@ struct ShortcutsSettingsView: View {
     var body: some View {
         Form {
             Section {
-                Text("Activate a shortcut field, press the new keys, then it saves automatically. Escape cancels, Delete removes the shortcut.")
+                Text("To change a shortcut, press its button, then press the new keys. It saves right away. Escape cancels, and Delete removes the shortcut.")
                     .font(.callout).foregroundStyle(.secondary)
                 Button("Reset All Shortcuts") {
                     store.data.hotkeys = [:]
@@ -630,9 +638,9 @@ struct SoundpacksSettingsView: View {
                 Button("New…") { newSheetSource = nil; exportMode = false; showNewSheet = true }
                 Button("Duplicate…") { newSheetSource = selectedPack; exportMode = false; showNewSheet = true }
                     .disabled(selectedPack == nil)
-                Button("Export Current Scheme…") { newSheetSource = nil; exportMode = true; showNewSheet = true }
-                    .help("Creates a pack from the sounds currently in use, custom files included.")
-                Button("Import Folder…") { importPack() }
+                Button("Save Current Sounds as Pack…") { newSheetSource = nil; exportMode = true; showNewSheet = true }
+                    .help("Makes a new pack from the sounds you're using now, including any sound files you chose yourself.")
+                Button("Import Soundpack Folder…") { importPack() }
                 Button("Import NVDA Sounds…") { importNVDA() }
                     .help("Imports a typing or navigation pack from the NVDA add-on Navigation Sounds, as a folder or a zip file.")
                 Spacer()
@@ -641,6 +649,7 @@ struct SoundpacksSettingsView: View {
                 }
                 .disabled(selectedPack == nil)
                 Button("Delete", role: .destructive) { deleteSelected() }
+                    .accessibilityLabel("Delete soundpack")
                     .disabled(selectedPack == nil || selectedPack?.isBuiltIn == true)
             }
             .padding([.horizontal, .bottom])
@@ -696,11 +705,11 @@ struct SoundpacksSettingsView: View {
                     if !missing.isEmpty {
                         DisclosureGroup("Events without a sound (\(missing.count))") {
                             ForEach(missing) { event in
-                                Text("\(event.title) — \(event.id)").font(.caption)
+                                Text("\(event.title), file name \(event.id)").font(.caption)
                             }
                         }
                     }
-                    Text("A soundpack is a folder of audio files named after event IDs, such as application.launched.wav or key.lower.wav, plus an optional pack.json. Add key.lower.2.wav, key.lower.3.wav and so on for variants, one picked at random each time. Drop files into the folder and they are picked up the next time the pack is used.")
+                    Text("A soundpack is a folder of audio files, each named after the event it plays for, such as application.launched.wav or key.lower.wav. An optional pack.json holds the name and author. To have a sound vary, add key.lower.2.wav, key.lower.3.wav and so on, and one is picked at random each time. Add files to the folder and they're used the next time the pack loads.")
                         .font(.callout).foregroundStyle(.secondary)
                 }
             }
@@ -827,7 +836,7 @@ struct NewSoundpackSheet: View {
     @State private var errorMessage: String?
 
     private var title: String {
-        if exportScheme { return "Export Current Sound Scheme" }
+        if exportScheme { return "Save Current Sounds as a Pack" }
         return source == nil ? "New Soundpack" : "Duplicate \(source!.name)"
     }
 
@@ -846,7 +855,7 @@ struct NewSoundpackSheet: View {
                 }
             }
             if exportScheme {
-                Text("Copies every sound currently in use, including custom files, into a new pack.")
+                Text("Copies every sound you're using now, including sound files you chose yourself, into a new pack.")
                     .font(.callout).foregroundStyle(.secondary)
             }
             if let errorMessage { Text(errorMessage).foregroundStyle(.red) }
