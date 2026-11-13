@@ -261,11 +261,80 @@ final class AppController {
 
     /// Sweeps the progress beep from 0 to 100 percent in steps of 10, like a bar filling.
     func previewProgressBeeps() {
+        playBeepSweep(Array(stride(from: 0, through: 100, by: 10)), spacing: 0.12)
+    }
+
+    /// A short rising sample (0, 25, 50, 75, 100 percent) with the current beep settings.
+    func playProgressBeepSample() {
+        playBeepSweep([0, 25, 50, 75, 100], spacing: 0.2)
+    }
+
+    var progressBeepPlacement: BeepPlacement {
+        settings.data.progress.placement(spatialFocus: settings.data.focusSounds.spatial)
+    }
+
+    /// Plays one progress beep exactly as a real bar would, so previews and
+    /// real bars always agree. `frame` is the bar's place on screen; previews
+    /// pass nil, which is the middle of the screen.
+    private func playProgressBeep(percent: Int, frame: CGRect?) {
         let progress = settings.data.progress
-        for (i, percent) in stride(from: 0, through: 100, by: 10).enumerated() {
-            DispatchQueue.main.asyncAfter(deadline: .now() + Double(i) * 0.12) { [engine] in
-                let frequency = Double(progress.beepMinHz) * pow(2, Double(percent) / 25)
-                engine.playTone(frequency: frequency, duration: 0.04, volume: Float(progress.beepVolume), at: nil)
+        let placement = progressBeepPlacement
+        let pan = progress.pan(percent: percent, placement: placement)
+        let position: AVAudio3DPoint?
+        if placement == .screen {
+            position = frame.map { SpatialMapper.position(for: $0) } ?? SpatialMapper.center
+        } else if settings.data.focusSounds.spatial {
+            // With 3D audio on, the other placements go through the 3D path too,
+            // at the matching spot on an arc in front of the listener, so they
+            // get the same room reverb as every other placed sound.
+            let angle = Double(pan) * .pi / 2
+            position = AVAudio3DPoint(x: Float(sin(angle)), y: 0, z: Float(-cos(angle)))
+        } else {
+            position = nil
+        }
+        engine.playTone(progress.beepTone(percent: percent), volume: Float(progress.beepVolume),
+                        pan: pan, at: position)
+    }
+
+    private var simulationTimer: Timer?
+    private var simulationFinish: (() -> Void)?
+
+    var isProgressSimulationRunning: Bool { simulationTimer != nil }
+
+    /// Pretends a bar fills from 0 to 100 percent over about four seconds,
+    /// beeping as a real one would (honouring "beep every N percent").
+    /// `onFinish` runs on the main thread when it ends or is stopped.
+    func startProgressSimulation(onFinish: @escaping () -> Void) {
+        stopProgressSimulation()
+        simulationFinish = onFinish
+        var percent = 0
+        var lastBeep: Int?
+        simulationTimer = Timer.scheduledTimer(withTimeInterval: 0.04, repeats: true) { [weak self] _ in
+            guard let self else { return }
+            let progress = self.settings.data.progress
+            if lastBeep == nil || percent - lastBeep! >= max(1, progress.beepEvery) || percent == 100 {
+                lastBeep = percent
+                self.playProgressBeep(percent: percent, frame: nil)
+            }
+            percent += 1
+            if percent > 100 { self.stopProgressSimulation() }
+        }
+    }
+
+    func stopProgressSimulation() {
+        simulationTimer?.invalidate()
+        simulationTimer = nil
+        let finish = simulationFinish
+        simulationFinish = nil
+        finish?()
+    }
+
+    private func playBeepSweep(_ percents: [Int], spacing: TimeInterval) {
+        let progress = settings.data.progress
+        let spacing = max(spacing, progress.beepTone(percent: 0).duration + 0.04)
+        for (i, percent) in percents.enumerated() {
+            DispatchQueue.main.asyncAfter(deadline: .now() + Double(i) * spacing) { [weak self] in
+                self?.playProgressBeep(percent: percent, frame: nil)
             }
         }
     }
@@ -303,11 +372,7 @@ final class AppController {
             let last = lastBeepProgress[key]
             if last == nil || abs(update.percent - last!) >= max(1, progress.beepEvery) {
                 lastBeepProgress[key] = update.percent
-                // NVDA: beepMinHZ * 2 ** (percentage / 25), 40 ms.
-                let frequency = Double(progress.beepMinHz) * pow(2, Double(update.percent) / 25)
-                let position: AVAudio3DPoint? = data.focusSounds.spatial
-                    ? (update.frame.map { SpatialMapper.position(for: $0) } ?? SpatialMapper.center) : nil
-                engine.playTone(frequency: frequency, duration: 0.04, volume: Float(progress.beepVolume), at: position)
+                playProgressBeep(percent: update.percent, frame: update.frame)
             }
         }
         if progress.output == .speak || progress.output == .both {
@@ -516,6 +581,7 @@ final class AppController {
         case .toggleEventSounds: toggleEventSounds()
         case .toggleKeyClicks: toggleKeyClicks()
         case .toggleFocusSounds: toggleFocusSounds()
+        case .toggleProgressBeepStyle: toggleProgressBeepStyle()
         case .speakStatus: speakStatus()
         case .openSettings: SettingsWindowController.shared.show()
         default:
@@ -536,6 +602,12 @@ final class AppController {
     func toggleKeyClicks() {
         settings.data.keyClicks.enabled.toggle()
         speaker.speak(settings.data.keyClicks.enabled ? "Key clicks on" : "Key clicks off")
+    }
+
+    func toggleProgressBeepStyle() {
+        let next: ProgressBeepStyle = settings.data.progress.beepStyle == .pleasant ? .classic : .pleasant
+        settings.data.progress.beepStyle = next
+        speaker.speak(next == .pleasant ? "Pleasant progress beeps" : "Classic progress beeps")
     }
 
     /// One sentence covering every sound feature's master switch.

@@ -328,6 +328,7 @@ struct KeyClicksSettingsView: View {
 struct FocusSoundsSettingsView: View {
     @Bindable var store: SettingsStore
     var library: SoundpackLibrary
+    @State private var simulating = false
 
     var body: some View {
         Form {
@@ -392,16 +393,90 @@ struct FocusSoundsSettingsView: View {
                     Text("Beep every \(store.data.progress.beepEvery) percent")
                 }
                 .disabled(store.data.progress.output == .off || store.data.progress.output == .speak)
-                Stepper(value: $store.data.progress.beepMinHz, in: 55...880, step: 5) {
-                    Text("Beep pitch at 0 percent: \(store.data.progress.beepMinHz) Hz")
+                let beepsOff = store.data.progress.output == .off || store.data.progress.output == .speak
+                Picker("Beep sound", selection: $store.data.progress.beepStyle) {
+                    ForEach(ProgressBeepStyle.allCases) { Text($0.title).tag($0) }
                 }
-                .disabled(store.data.progress.output == .off || store.data.progress.output == .speak)
+                .disabled(beepsOff)
+                if store.data.progress.beepStyle == .classic {
+                    Stepper(value: $store.data.progress.beepMinHz, in: 55...880, step: 5) {
+                        Text("Beep pitch at 0 percent: \(store.data.progress.beepMinHz) Hz")
+                    }
+                    .accessibilityLabel("Beep pitch at 0 percent")
+                    .accessibilityValue("\(store.data.progress.beepMinHz) hertz")
+                    .disabled(beepsOff)
+                } else {
+                    Picker("Wave shape", selection: $store.data.progress.beepWaveform) {
+                        ForEach(BeepWaveform.allCases) { Text($0.title).tag($0) }
+                    }
+                    .disabled(beepsOff)
+                    Picker("Fade", selection: $store.data.progress.beepEnvelope) {
+                        ForEach(BeepEnvelope.allCases) { Text($0.title).tag($0) }
+                    }
+                    .disabled(beepsOff)
+                    Text("Wave shape sets the tone of the beep. Fade sets how each beep swells in and dies away. If high beeps are hard to hear, lower the pitch at 100 percent.")
+                        .font(.callout).foregroundStyle(.secondary)
+                    Stepper(value: $store.data.progress.beepLengthMs, in: ProgressSettings.beepLengthRange, step: 5) {
+                        Text("Beep length: \(store.data.progress.beepLengthMs) ms")
+                    }
+                    .accessibilityLabel("Beep length")
+                    .accessibilityValue("\(store.data.progress.beepLengthMs) milliseconds")
+                    .disabled(beepsOff)
+                    Stepper(value: $store.data.progress.beepLowHz, in: ProgressSettings.beepLowRange, step: 5) {
+                        Text("Pitch at 0 percent: \(store.data.progress.beepLowHz) Hz")
+                    }
+                    .accessibilityLabel("Pitch at 0 percent")
+                    .accessibilityValue("\(store.data.progress.beepLowHz) hertz")
+                    .disabled(beepsOff)
+                    Stepper(value: $store.data.progress.beepHighHz, in: ProgressSettings.beepHighRange, step: 10) {
+                        Text("Pitch at 100 percent: \(store.data.progress.beepHighHz) Hz")
+                    }
+                    .accessibilityLabel("Pitch at 100 percent")
+                    .accessibilityValue("\(store.data.progress.beepHighHz) hertz")
+                    .disabled(beepsOff)
+                }
                 Slider(value: $store.data.progress.beepVolume, in: 0...1) { Text("Beep volume") }
                     .accessibilityValue("\(Int(store.data.progress.beepVolume * 100)) percent")
-                    .disabled(store.data.progress.output == .off || store.data.progress.output == .speak)
-                Button("Test Beeps") { AppController.shared.previewProgressBeeps() }
-                    .disabled(store.data.progress.output == .off || store.data.progress.output == .speak)
-                Text("NVDA's progress beeps, sample for sample: 40 ms, pitch doubling every 25 percent, and speech at each interval. With HRTF on, beeps come from the bar's position on screen. Defaults match NVDA's.")
+                    .disabled(beepsOff)
+                let placement = store.data.progress.placement(spatialFocus: store.data.focusSounds.spatial)
+                Picker("Beep position", selection: Binding(get: { placement },
+                                                           set: { store.data.progress.beepPlacement = $0 })) {
+                    ForEach(BeepPlacement.allCases) { Text($0.title).tag($0) }
+                }
+                .disabled(beepsOff)
+                if placement == .fixed {
+                    Slider(value: Binding(get: { Double(store.data.progress.beepPan) },
+                                          set: { store.data.progress.beepPan = Int($0.rounded()) }),
+                           in: -100...100, step: 10) {
+                        Text("Beep pan")
+                    } minimumValueLabel: { Text("Left") } maximumValueLabel: { Text("Right") }
+                    .accessibilityValue(ProgressSettings.panDescription(store.data.progress.beepPan))
+                    .disabled(beepsOff)
+                }
+                Text(placement == .screen
+                     ? "Beeps come from the bar's place on screen, in 3D. Best with headphones. The previews play from the middle of the screen."
+                     : "Left and right need headphones or two speakers. With 3D audio on for focus sounds, these beeps are placed in 3D too and get the same room reverb.")
+                    .font(.callout).foregroundStyle(.secondary)
+                HStack {
+                    Button("Play Sample") { AppController.shared.playProgressBeepSample() }
+                        .accessibilityHint("Plays beeps for 0, 25, 50, 75 and 100 percent with these settings")
+                    Button("Test Beeps") { AppController.shared.previewProgressBeeps() }
+                        .accessibilityHint("Plays a beep every 10 percent from 0 to 100")
+                    Button(simulating ? "Stop" : "Hear in Context") {
+                        if simulating {
+                            AppController.shared.stopProgressSimulation()
+                        } else {
+                            simulating = true
+                            AppController.shared.startProgressSimulation { simulating = false }
+                        }
+                    }
+                    .accessibilityLabel(simulating ? "Stop progress bar simulation" : "Hear in context")
+                    .accessibilityHint(simulating ? "" : "Simulates a progress bar filling from 0 to 100 percent over about four seconds, beeping as a real one would")
+                }
+                .disabled(beepsOff)
+                Text(store.data.progress.beepStyle == .classic
+                     ? "NVDA's progress beeps, sample for sample: 40 ms, pitch doubling every 25 percent, and speech at each interval. Defaults match NVDA's."
+                     : "Pleasant beeps fade in and out and rise from the low pitch to the high pitch as the bar fills. Inspired by the Pleasant Progress Bar add-on for NVDA.")
                     .font(.callout).foregroundStyle(.secondary)
             }
             Section("Control sounds") {
@@ -425,6 +500,8 @@ struct FocusSoundsSettingsView: View {
             }
         }
         .formStyle(.grouped)
+        // A preview never outlives the window it was started from.
+        .onDisappear { AppController.shared.stopProgressSimulation() }
     }
 
     /// The app's name for a bundle ID, or the ID itself if the app isn't installed.

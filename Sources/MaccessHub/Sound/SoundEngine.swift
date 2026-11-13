@@ -15,14 +15,20 @@ final class SoundEngine {
     private let format = AVAudioFormat(standardFormatWithSampleRate: 48_000, channels: 2)!
     private let monoFormat = AVAudioFormat(standardFormatWithSampleRate: 48_000, channels: 1)!
     private var nodes: [AVAudioPlayerNode] = []
-    private var nextNode = 1
+    /// Player nodes at the start of each pool reserved for progress beeps. A
+    /// Pleasant beep fades out on its own, so rather than cutting it (a click
+    /// at full level) each new one starts on the next of these and the old one
+    /// finishes its fade. Three cover beeps up to 100 ms arriving every 40 ms.
+    /// Classic beeps use only the first, cut each time, as NVDA does.
+    static let beepVoices = 3
+    private var nextNode = SoundEngine.beepVoices
     private var buffers: [URL: AVAudioPCMBuffer] = [:]
     private var monoBuffers: [URL: AVAudioPCMBuffer] = [:]
     private var activeNode: [URL: AVAudioPlayerNode] = [:]
     /// HRTF path: mono players feeding an environment node that renders binaurally.
     private let environment = AVAudioEnvironmentNode()
     private var spatialNodes: [AVAudioPlayerNode] = []
-    private var nextSpatialNode = 1
+    private var nextSpatialNode = SoundEngine.beepVoices
     private var activeSpatialNode: [URL: AVAudioPlayerNode] = [:]
     private let lock = NSLock()
     private var configObserver: NSObjectProtocol?
@@ -36,12 +42,15 @@ final class SoundEngine {
     /// (several times through dark wakes), so the engine is left stopped and
     /// configuration changes are ignored until `resume()`.
     private var suspended = false
-    /// Progress beeps go through one node per path so each beep cuts the previous.
+    /// Classic beeps go through one node per path so each beep cuts the previous.
     private lazy var toneNode: AVAudioPlayerNode = nodes[0]
     private lazy var spatialToneNode: AVAudioPlayerNode = spatialNodes[0]
+    /// Which reserved beep node the next Pleasant beep uses.
+    private var nextBeepVoice = 0
 
+    /// `voices` is the pool for ordinary sounds; the beep nodes come on top.
     init(voices: Int = 12) {
-        for _ in 0..<voices {
+        for _ in 0..<(voices + Self.beepVoices - 1) {
             let node = AVAudioPlayerNode()
             engine.attach(node)
             engine.connect(node, to: engine.mainMixerNode, format: format)
@@ -56,7 +65,7 @@ final class SoundEngine {
         environment.distanceAttenuationParameters.referenceDistance = 1
         environment.distanceAttenuationParameters.maximumDistance = 100
         environment.outputType = .headphones
-        for _ in 0..<6 {
+        for _ in 0..<(6 + Self.beepVoices - 1) {
             let node = AVAudioPlayerNode()
             engine.attach(node)
             engine.connect(node, to: environment, format: monoFormat)
@@ -237,7 +246,7 @@ final class SoundEngine {
             node = previous
         } else {
             node = nodes[nextNode]
-            nextNode = nextNode % (nodes.count - 1) + 1 // skip index 0, the beep node
+            nextNode = Self.nextPoolIndex(after: nextNode, count: nodes.count) // skips the beep nodes
         }
         activeNode[url] = node
         lock.unlock()
@@ -296,7 +305,7 @@ final class SoundEngine {
             node = previous
         } else {
             node = spatialNodes[nextSpatialNode]
-            nextSpatialNode = nextSpatialNode % (spatialNodes.count - 1) + 1 // skip index 0, the beep node
+            nextSpatialNode = Self.nextPoolIndex(after: nextSpatialNode, count: spatialNodes.count) // skips the beep nodes
         }
         activeSpatialNode[url] = node
         lock.unlock()
@@ -329,7 +338,7 @@ final class SoundEngine {
     /// crossing. Amplitude 14000/32767 at full pan; NVDA's default pan of 50
     /// corresponds to a volume of 0.5 here.
     private func toneBuffer(frequency: Double, duration: TimeInterval, format: AVAudioFormat) -> AVAudioPCMBuffer? {
-        let key = "\(Int(frequency.rounded()))/\(Int(duration * 1000))/\(format.channelCount)"
+        let key = Tone.classic(frequency: frequency, duration: duration).cacheKey(channels: format.channelCount)
         lock.lock(); if let cached = toneBuffers[key] { lock.unlock(); return cached }; lock.unlock()
         let rate = format.sampleRate
         let samplesPerCycle = max(1, Int(rate / frequency))
@@ -349,14 +358,85 @@ final class SoundEngine {
 
     /// Plays a beep, binaurally at `position` when given, otherwise through the plain mixer.
     func playTone(frequency: Double, duration: TimeInterval = 0.04, volume: Float, at position: AVAudio3DPoint?) {
-        guard let buffer = toneBuffer(frequency: frequency, duration: duration,
-                                      format: position == nil ? format : monoFormat),
-              startIfNeeded() else { return }
-        // One node per path: scheduling with .interrupts on it cuts the previous beep.
-        let node = position == nil ? toneNode : spatialToneNode
-        if let position { node.position = position }
+        playTone(.classic(frequency: frequency, duration: duration), volume: volume, pan: 0, at: position)
+    }
+
+    /// What a progress beep sounds like.
+    struct Tone {
+        var style: ProgressBeepStyle
+        var waveform: BeepWaveform = .sine
+        var envelope: BeepEnvelope = .cosine
+        var frequency: Double
+        var duration: TimeInterval
+
+        static func classic(frequency: Double, duration: TimeInterval = 0.04) -> Tone {
+            Tone(style: .classic, frequency: frequency, duration: duration)
+        }
+
+        /// Everything that changes the samples, so differently shaped beeps never share a cache entry.
+        func cacheKey(channels: AVAudioChannelCount) -> String {
+            let ms = Int((duration * 1000).rounded())
+            switch style {
+            case .classic: return "classic/\(Int(frequency.rounded()))/\(ms)/\(channels)"
+            case .pleasant: return "pleasant/\(waveform.rawValue)/\(envelope.rawValue)/\(Int(frequency.rounded()))/\(ms)/\(channels)"
+            }
+        }
+    }
+
+    private func pleasantBuffer(_ tone: Tone, format: AVAudioFormat) -> AVAudioPCMBuffer? {
+        let key = tone.cacheKey(channels: format.channelCount)
+        lock.lock(); if let cached = toneBuffers[key] { lock.unlock(); return cached }; lock.unlock()
+        let samples = ToneSynth.render(waveform: tone.waveform, envelope: tone.envelope,
+                                       frequency: tone.frequency, duration: tone.duration,
+                                       sampleRate: format.sampleRate)
+        guard let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: AVAudioFrameCount(samples.count)) else { return nil }
+        buffer.frameLength = AVAudioFrameCount(samples.count)
+        for channel in 0..<Int(format.channelCount) {
+            samples.withUnsafeBufferPointer { src in
+                buffer.floatChannelData![channel].update(from: src.baseAddress!, count: samples.count)
+            }
+        }
+        lock.lock()
+        // Settings can be changed freely, so keep the cache from growing without bound.
+        if toneBuffers.count > 600 { toneBuffers.removeAll() }
+        toneBuffers[key] = buffer
+        lock.unlock()
+        return buffer
+    }
+
+    /// Plays a beep, binaurally at `position` when given, otherwise through the
+    /// plain mixer panned by `pan` (-1 left ... 1 right; ignored when spatial).
+    func playTone(_ tone: Tone, volume: Float, pan: Float, at position: AVAudio3DPoint?) {
+        let format = position == nil ? self.format : monoFormat
+        let buffer: AVAudioPCMBuffer?
+        switch tone.style {
+        case .classic: buffer = toneBuffer(frequency: tone.frequency, duration: tone.duration, format: format)
+        case .pleasant: buffer = pleasantBuffer(tone, format: format)
+        }
+        guard let buffer, startIfNeeded() else { return }
+        let node: AVAudioPlayerNode
+        switch tone.style {
+        case .classic:
+            // One node per path: scheduling with .interrupts on it cuts the previous beep.
+            node = position == nil ? toneNode : spatialToneNode
+        case .pleasant:
+            // Rotate through the reserved nodes so the previous beep fades out by itself.
+            lock.lock()
+            nextBeepVoice = (nextBeepVoice + 1) % Self.beepVoices
+            let index = nextBeepVoice
+            lock.unlock()
+            node = position == nil ? nodes[index] : spatialNodes[index]
+        }
+        if let position { node.position = position } else { node.pan = max(-1, min(1, pan)) }
         node.volume = max(0, min(1, volume))
         node.scheduleBuffer(buffer, at: nil, options: [.interrupts], completionHandler: nil)
+    }
+
+    /// Round-robin over the pool after the reserved beep nodes.
+    static func nextPoolIndex(after index: Int, count: Int) -> Int {
+        let free = count - beepVoices
+        guard free > 0 else { return 0 }
+        return beepVoices + (max(0, index - beepVoices) + 1) % free
     }
 
     func stopAll() {
