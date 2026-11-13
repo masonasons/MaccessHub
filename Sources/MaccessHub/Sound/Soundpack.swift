@@ -12,8 +12,14 @@ struct SoundpackManifest: Codable {
 
 /// A folder of sound files named after event IDs (`application.launched.wav`).
 /// Any extension AVFoundation can decode is accepted.
+///
+/// An event can have several variants, one of which is picked at random each
+/// time it plays: `key.lower.wav`, `key.lower.2.wav`, `key.lower.3.wav`, …
+/// A final, purely numeric dot component after a known event ID marks a variant.
 struct Soundpack: Identifiable, Hashable {
-    static func == (a: Soundpack, b: Soundpack) -> Bool { a.id == b.id && a.url == b.url && a.files == b.files }
+    static func == (a: Soundpack, b: Soundpack) -> Bool {
+        a.id == b.id && a.url == b.url && a.files == b.files && a.variants == b.variants
+    }
     func hash(into hasher: inout Hasher) { hasher.combine(id); hasher.combine(url) }
 
     static let builtInClassicID = "Classic"
@@ -25,13 +31,41 @@ struct Soundpack: Identifiable, Hashable {
     let url: URL
     let manifest: SoundpackManifest
     let isBuiltIn: Bool
-    /// event ID → file URL
+    /// event ID → the primary file (the unnumbered one, or the lowest-numbered variant).
     let files: [String: URL]
+    /// event ID → every file for the event, primary first. Always contains at
+    /// least the entry in `files`.
+    let variants: [String: [URL]]
 
     var name: String { manifest.name }
     var eventCount: Int { files.count }
+    /// Every sound file in the pack, variants included.
+    var fileCount: Int { variants.values.reduce(0) { $0 + $1.count } }
 
     func url(for eventID: String) -> URL? { files[eventID] }
+    func urls(for eventID: String) -> [URL] { variants[eventID] ?? [] }
+    func variantCount(for eventID: String) -> Int { variants[eventID]?.count ?? 0 }
+
+    /// Splits a file name stem into its event ID and variant number.
+    /// `key.lower` → (key.lower, 1); `key.lower.3` → (key.lower, 3). A numeric
+    /// suffix only counts when what precedes it is a known event ID, so stems of
+    /// unknown events are kept whole, as before.
+    static func parseStem(_ stem: String) -> (eventID: String, index: Int) {
+        if let dot = stem.lastIndex(of: ".") {
+            let base = String(stem[..<dot])
+            let suffix = stem[stem.index(after: dot)...]
+            if !suffix.isEmpty, suffix.allSatisfy({ $0.isASCII && $0.isNumber }),
+               SoundEvent.byID[base] != nil, let n = Int(suffix), n >= 1 {
+                return (base, n)
+            }
+        }
+        return (stem, 1)
+    }
+
+    /// The file name for variant `index` of an event (1 is the unnumbered primary).
+    static func fileName(for eventID: String, index: Int, ext: String) -> String {
+        index <= 1 ? "\(eventID).\(ext)" : "\(eventID).\(index).\(ext)"
+    }
 
     static func load(from url: URL, isBuiltIn: Bool) -> Soundpack? {
         let fm = FileManager.default
@@ -44,18 +78,44 @@ struct Soundpack: Identifiable, Hashable {
            let decoded = try? JSONDecoder().decode(SoundpackManifest.self, from: data) {
             manifest = decoded
         }
-        var files: [String: URL] = [:]
+        // event ID → variant index → file
+        var found: [String: [Int: URL]] = [:]
         let contents = (try? fm.contentsOfDirectory(at: url, includingPropertiesForKeys: nil,
                                                     options: [.skipsHiddenFiles])) ?? []
         for file in contents.sorted(by: { $0.lastPathComponent < $1.lastPathComponent }) {
             let ext = file.pathExtension.lowercased()
             guard supportedExtensions.contains(ext) else { continue }
-            let eventID = file.deletingPathExtension().lastPathComponent
+            let (eventID, index) = parseStem(file.deletingPathExtension().lastPathComponent)
             // First match wins so the choice is deterministic when a pack has
             // both `x.wav` and `x.mp3`.
-            if files[eventID] == nil { files[eventID] = file }
+            if found[eventID]?[index] == nil { found[eventID, default: [:]][index] = file }
         }
-        return Soundpack(id: id, url: url, manifest: manifest, isBuiltIn: isBuiltIn, files: files)
+        var files: [String: URL] = [:]
+        var variants: [String: [URL]] = [:]
+        for (eventID, byIndex) in found {
+            let ordered = byIndex.keys.sorted().compactMap { byIndex[$0] }
+            variants[eventID] = ordered
+            files[eventID] = ordered.first
+        }
+        return Soundpack(id: id, url: url, manifest: manifest, isBuiltIn: isBuiltIn, files: files, variants: variants)
+    }
+}
+
+/// Picks one of an event's variants at random, never the same file twice in a
+/// row when there are two or more (two simply alternate).
+final class VariantPicker {
+    private var last: [URL: URL] = [:]
+    private let lock = NSLock()
+
+    func pick(from urls: [URL]) -> URL? {
+        guard let key = urls.first else { return nil }
+        guard urls.count > 1 else { return key }
+        lock.lock(); defer { lock.unlock() }
+        var choices = urls
+        if let previous = last[key] { choices.removeAll { $0 == previous } }
+        let chosen = choices.randomElement() ?? key
+        last[key] = chosen
+        return chosen
     }
 }
 
@@ -137,7 +197,7 @@ final class SoundpackLibrary {
         if FileManager.default.fileExists(atPath: dest.path) { throw LibraryError.alreadyExists(folder) }
         try FileManager.default.createDirectory(at: dest, withIntermediateDirectories: true)
         if let source {
-            for (_, file) in source.files {
+            for file in Set(source.variants.values.flatMap { $0 }) {
                 try FileManager.default.copyItem(at: file, to: dest.appendingPathComponent(file.lastPathComponent))
             }
         }
@@ -153,13 +213,25 @@ final class SoundpackLibrary {
     @discardableResult
     func createPack(named name: String, author: String?, description: String?,
                     files: [String: URL]) throws -> Soundpack {
+        try createPack(named: name, author: author, description: description,
+                       variants: files.mapValues { [$0] })
+    }
+
+    /// Like `createPack(files:)`, but each event can carry several variants,
+    /// written as `event.ext`, `event.2.ext`, `event.3.ext`, …
+    @discardableResult
+    func createPack(named name: String, author: String?, description: String?,
+                    variants: [String: [URL]]) throws -> Soundpack {
         guard let folder = Self.sanitizedFolderName(name) else { throw LibraryError.invalidName }
         let dest = Self.userPacksDirectory.appendingPathComponent(folder, isDirectory: true)
         if FileManager.default.fileExists(atPath: dest.path) { throw LibraryError.alreadyExists(folder) }
         try FileManager.default.createDirectory(at: dest, withIntermediateDirectories: true)
-        for (eventID, file) in files {
-            let target = dest.appendingPathComponent(eventID).appendingPathExtension(file.pathExtension)
-            try FileManager.default.copyItem(at: file, to: target)
+        for (eventID, urls) in variants {
+            for (i, file) in urls.enumerated() {
+                let target = dest.appendingPathComponent(
+                    Soundpack.fileName(for: eventID, index: i + 1, ext: file.pathExtension))
+                try FileManager.default.copyItem(at: file, to: target)
+            }
         }
         let manifest = SoundpackManifest(name: folder, author: author, description: description, version: "1.0")
         try writeManifest(manifest, to: dest)
@@ -184,6 +256,16 @@ final class SoundpackLibrary {
         return pack
     }
 
+    /// Converts an NVDA Navigation Sounds pack (a folder, or a .zip that may hold
+    /// several packs) into MaccessHub packs in the user packs directory.
+    func importNavigationSoundsPacks(from source: URL) throws -> [NavSoundsImporter.Result] {
+        let builtIns = packs.filter(\.isBuiltIn).map(\.id)
+        let results = try NavSoundsImporter.importPacks(from: source, into: Self.userPacksDirectory,
+                                                        reservedNames: Set(builtIns))
+        reload()
+        return results
+    }
+
     /// Moves a user pack to the Trash.
     func deletePack(_ pack: Soundpack) throws {
         guard !pack.isBuiltIn else { throw LibraryError.builtIn }
@@ -191,13 +273,17 @@ final class SoundpackLibrary {
         reload()
     }
 
-    /// Replaces (or adds) one event's file inside a user pack.
+    /// Replaces (or adds) one event's sound inside a user pack. Its variants
+    /// are replaced too: the event ends up with exactly this one file.
     func setSound(_ file: URL, for eventID: String, in pack: Soundpack) throws {
         guard !pack.isBuiltIn else { throw LibraryError.builtIn }
         // Remove any existing file for this event regardless of extension.
         for ext in Soundpack.supportedExtensions {
             let old = pack.url.appendingPathComponent(eventID).appendingPathExtension(ext)
             if FileManager.default.fileExists(atPath: old.path) { try FileManager.default.removeItem(at: old) }
+        }
+        for old in pack.urls(for: eventID) where FileManager.default.fileExists(atPath: old.path) {
+            try FileManager.default.removeItem(at: old)
         }
         let target = pack.url.appendingPathComponent(eventID).appendingPathExtension(file.pathExtension)
         try FileManager.default.copyItem(at: file, to: target)
@@ -206,7 +292,7 @@ final class SoundpackLibrary {
 
     func removeSound(for eventID: String, in pack: Soundpack) throws {
         guard !pack.isBuiltIn else { throw LibraryError.builtIn }
-        if let existing = pack.url(for: eventID) { try FileManager.default.removeItem(at: existing) }
+        for existing in pack.urls(for: eventID) { try FileManager.default.removeItem(at: existing) }
         reload()
     }
 

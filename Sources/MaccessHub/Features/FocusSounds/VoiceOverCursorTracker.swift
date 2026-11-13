@@ -13,14 +13,12 @@ final class VoiceOverCursorTracker {
 
     private let log = Logger(subsystem: "com.maccesshub.app", category: "vocursor")
     private var thread: Thread?
-    private var running = false
     private let activeInterval: TimeInterval = 0.3
     private let idleInterval: TimeInterval = 0.8
     private let idleAfter: TimeInterval = 3
 
     func start() {
         guard thread == nil else { return }
-        running = true
         let thread = Thread { [weak self] in self?.loop() }
         thread.name = "com.maccesshub.vocursor"
         thread.qualityOfService = .userInteractive
@@ -29,7 +27,10 @@ final class VoiceOverCursorTracker {
     }
 
     func stop() {
-        running = false
+        // Cancel this thread specifically. A shared flag would be set true again
+        // by a start() that follows straight away, and the old loop would carry
+        // on beside the new one.
+        thread?.cancel()
         thread = nil
     }
 
@@ -38,7 +39,7 @@ final class VoiceOverCursorTracker {
         var lastChange = Date()
         log.debug("tracker loop started")
         var failures = 0
-        while running {
+        while !Thread.current.isCancelled {
             guard Speaker.isVoiceOverRunning else {
                 last = nil
                 Thread.sleep(forTimeInterval: 2)

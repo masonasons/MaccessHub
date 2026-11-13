@@ -25,6 +25,15 @@ struct SettingsView: View {
     }
 }
 
+// MARK: - Announcements
+
+/// Confirms a button whose effect is elsewhere on the page, so VoiceOver users
+/// hear that it worked instead of the button being read again.
+func announce(_ message: String) {
+    NSAccessibility.post(element: NSApp as Any, notification: .announcementRequested,
+                         userInfo: [.announcement: message, .priority: NSAccessibilityPriorityLevel.high.rawValue])
+}
+
 // MARK: - General
 
 struct GeneralSettingsView: View {
@@ -39,6 +48,11 @@ struct GeneralSettingsView: View {
 
     @State private var accessibilityTrusted = AccessibilityPermission.isTrusted
     @State private var voices = SpeechVoices.available()
+    // Sparkle's settings aren't observable, so mirror them here and re-read
+    // after every change; otherwise the toggles never redraw.
+    @State private var automaticallyChecks = Updater.shared.automaticallyChecks
+    @State private var automaticallyDownloads = Updater.shared.automaticallyDownloads
+    @State private var lastCheck = Updater.shared.lastCheck
 
     var body: some View {
         Form {
@@ -49,6 +63,9 @@ struct GeneralSettingsView: View {
                 Picker("Speak messages with", selection: $store.data.general.speechOutput) {
                     ForEach(SpeechOutput.allCases) { Text($0.title).tag($0) }
                 }
+                .help(store.data.general.speechOutput.help)
+                Text(store.data.general.speechOutput.help)
+                    .font(.callout).foregroundStyle(.secondary)
                 Picker("System voice", selection: $store.data.general.speechVoice) {
                     Text("Default").tag(String?.none)
                     ForEach(voices, id: \.identifier) { voice in
@@ -93,15 +110,15 @@ struct GeneralSettingsView: View {
             }
             Section("Updates") {
                 Toggle("Check for updates automatically", isOn: Binding(
-                    get: { Updater.shared.automaticallyChecks },
-                    set: { Updater.shared.automaticallyChecks = $0 }))
+                    get: { automaticallyChecks },
+                    set: { Updater.shared.automaticallyChecks = $0; readUpdaterSettings() }))
                 Toggle("Download and install updates automatically", isOn: Binding(
-                    get: { Updater.shared.automaticallyDownloads },
-                    set: { Updater.shared.automaticallyDownloads = $0 }))
+                    get: { automaticallyDownloads },
+                    set: { Updater.shared.automaticallyDownloads = $0; readUpdaterSettings() }))
                 LabeledContent("Installed version", value: Self.versionString)
                 HStack {
                     Button("Check for Updates Now") { Updater.shared.checkForUpdates() }
-                    if let last = Updater.shared.lastCheck {
+                    if let last = lastCheck {
                         Text("Last checked \(last.formatted(date: .abbreviated, time: .shortened))")
                             .font(.callout).foregroundStyle(.secondary)
                     }
@@ -117,8 +134,18 @@ struct GeneralSettingsView: View {
         .formStyle(.grouped)
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
             accessibilityTrusted = AccessibilityPermission.isTrusted
+            readUpdaterSettings()
         }
-        .onAppear { accessibilityTrusted = AccessibilityPermission.isTrusted }
+        .onAppear {
+            accessibilityTrusted = AccessibilityPermission.isTrusted
+            readUpdaterSettings()
+        }
+    }
+
+    private func readUpdaterSettings() {
+        automaticallyChecks = Updater.shared.automaticallyChecks
+        automaticallyDownloads = Updater.shared.automaticallyDownloads
+        lastCheck = Updater.shared.lastCheck
     }
 }
 
@@ -180,7 +207,10 @@ struct SoundEventRow: View {
 
     private var statusText: String {
         var parts: [String] = []
-        if let source { parts.append(source.description) } else { parts.append("No sound") }
+        if let source {
+            parts.append(source.description)
+            if source.variantCount > 1 { parts.append("\(source.variantCount) variants, one picked at random") }
+        } else { parts.append("No sound") }
         if let note = event.note { parts.append(note) }
         return parts.joined(separator: " · ")
     }
@@ -214,12 +244,21 @@ struct EventSoundsSettingsView: View {
                     .accessibilityValue("\(Int(store.data.eventSounds.volume * 100)) percent")
                 Toggle("Use the Classic sound when this pack has none", isOn: $store.data.eventSounds.fillMissingFromClassic)
                 HStack {
-                    Button("Turn All On") { setAll(true) }
-                        .accessibilityLabel("Turn all event sounds on")
-                    Button("Turn All Off") { setAll(false) }
-                        .accessibilityLabel("Turn all event sounds off")
-                    Button("Reset to Defaults") { store.data.eventSounds.eventStates = [:] }
-                        .accessibilityHint("Puts back which events play when MaccessHub is first installed. Your soundpack and chosen sound files stay.")
+                    Button("Turn All On") {
+                        setAll(true)
+                        announce("All event sounds on")
+                    }
+                    .accessibilityLabel("Turn all event sounds on")
+                    Button("Turn All Off") {
+                        setAll(false)
+                        announce("All event sounds off")
+                    }
+                    .accessibilityLabel("Turn all event sounds off")
+                    Button("Reset to Defaults") {
+                        store.data.eventSounds.eventStates = [:]
+                        announce("Event sounds reset to defaults")
+                    }
+                    .accessibilityHint("Puts back which events play when MaccessHub is first installed. Your soundpack and chosen sound files stay.")
                 }
             }
             ForEach(SoundGroup.eventGroups) { group in
@@ -252,6 +291,8 @@ struct KeyClicksSettingsView: View {
                 Slider(value: $store.data.keyClicks.volume, in: 0...1) { Text("Volume") }
                     .accessibilityValue("\(Int(store.data.keyClicks.volume * 100)) percent")
                 Toggle("Use the Classic sound when this pack has none", isOn: $store.data.keyClicks.fillMissingFromClassic)
+                Button("Preview Typing") { AppController.shared.previewTyping() }
+                    .help("Plays the pack as if you typed a short phrase. Press again to stop.")
             }
             Section("When to click") {
                 Picker("Play clicks", selection: $store.data.keyClicks.scope) {
@@ -263,6 +304,22 @@ struct KeyClicksSettingsView: View {
                 Toggle("No clicks while Option is held", isOn: $store.data.keyClicks.ignoreWithOption)
             }
             Section("Sound for each kind of key") {
+                HStack {
+                    Button("Turn All On") {
+                        for event in SoundEvent.events(in: .keys) { store.data.keyClicks.eventStates[event.id] = true }
+                        announce("All key sounds on")
+                    }
+                    .accessibilityLabel("Turn all key sounds on")
+                    Button("Turn All Off") {
+                        for event in SoundEvent.events(in: .keys) { store.data.keyClicks.eventStates[event.id] = false }
+                        announce("All key sounds off")
+                    }
+                    .accessibilityLabel("Turn all key sounds off")
+                    Button("Reset to Defaults") {
+                        store.data.keyClicks.eventStates = [:]
+                        announce("Key sounds reset to defaults")
+                    }
+                }
                 ForEach(SoundEvent.events(in: .keys)) { event in
                     SoundEventRow(event: event, store: store, library: library)
                 }
@@ -286,6 +343,8 @@ struct FocusSoundsSettingsView: View {
                 Slider(value: $store.data.focusSounds.volume, in: 0...1) { Text("Volume") }
                     .accessibilityValue("\(Int(store.data.focusSounds.volume * 100)) percent")
                 Toggle("Use the Classic sound when this pack has none", isOn: $store.data.focusSounds.fillMissingFromClassic)
+                Button("Preview Focus Sounds") { AppController.shared.previewFocusSounds() }
+                    .help("Plays each control's sound in turn. Press again to stop.")
                 Text("Each kind of control, such as a button, checkbox or link, has its own sound. If you've used NVDA, it's like the Unspoken add-on.")
                     .font(.callout).foregroundStyle(.secondary)
             }
@@ -321,6 +380,16 @@ struct FocusSoundsSettingsView: View {
                     .disabled(store.data.progress.output == .off)
                 Toggle("Also report bars in apps in the background", isOn: $store.data.progress.backgroundApps)
                     .disabled(store.data.progress.output == .off)
+                ForEach(store.data.progress.excludedApps, id: \.self) { bundleID in
+                    HStack {
+                        Text("Never report bars in \(Self.appName(bundleID))")
+                        Spacer()
+                        Button("Remove") { store.data.progress.excludedApps.removeAll { $0 == bundleID } }
+                            .accessibilityLabel("Report bars in \(Self.appName(bundleID)) again")
+                    }
+                }
+                Button("Leave Out an App…") { chooseExcludedApps() }
+                    .disabled(store.data.progress.output == .off)
                 Stepper(value: $store.data.progress.speakEvery, in: 1...50) {
                     Text("Speak every \(store.data.progress.speakEvery) percent")
                 }
@@ -342,12 +411,49 @@ struct FocusSoundsSettingsView: View {
                     .font(.callout).foregroundStyle(.secondary)
             }
             Section("Sound for each kind of control") {
+                HStack {
+                    Button("Turn All On") {
+                        for event in SoundEvent.events(in: .focus) { store.data.focusSounds.eventStates[event.id] = true }
+                        announce("All control sounds on")
+                    }
+                    .accessibilityLabel("Turn all control sounds on")
+                    Button("Turn All Off") {
+                        for event in SoundEvent.events(in: .focus) { store.data.focusSounds.eventStates[event.id] = false }
+                        announce("All control sounds off")
+                    }
+                    .accessibilityLabel("Turn all control sounds off")
+                    Button("Reset to Defaults") {
+                        store.data.focusSounds.eventStates = [:]
+                        announce("Control sounds reset to defaults")
+                    }
+                }
                 ForEach(SoundEvent.events(in: .focus)) { event in
                     SoundEventRow(event: event, store: store, library: library)
                 }
             }
         }
         .formStyle(.grouped)
+    }
+
+    /// The app's name for a bundle ID, or the ID itself if the app isn't installed.
+    static func appName(_ bundleID: String) -> String {
+        guard let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundleID) else { return bundleID }
+        let name = FileManager.default.displayName(atPath: url.path)
+        return name.hasSuffix(".app") ? String(name.dropLast(4)) : name
+    }
+
+    private func chooseExcludedApps() {
+        let panel = NSOpenPanel()
+        panel.title = "Choose apps whose progress bars should never be reported"
+        panel.allowedContentTypes = [.application]
+        panel.allowsMultipleSelection = true
+        panel.directoryURL = URL(fileURLWithPath: "/Applications")
+        guard panel.runModal() == .OK else { return }
+        for url in panel.urls {
+            guard let id = Bundle(url: url)?.bundleIdentifier,
+                  !store.data.progress.excludedApps.contains(id) else { continue }
+            store.data.progress.excludedApps.append(id)
+        }
     }
 }
 
@@ -413,6 +519,17 @@ struct ToolsSettingsView: View {
 
 struct ShortcutsSettingsView: View {
     @Bindable var store: SettingsStore
+    @State private var search = ""
+
+    /// Matches the action's name or its current keys, spoken ("Control-Shift-1") or as symbols.
+    private func matches(_ action: HotKeyAction) -> Bool {
+        let query = search.trimmingCharacters(in: .whitespaces)
+        guard !query.isEmpty else { return true }
+        if action.title.localizedCaseInsensitiveContains(query) { return true }
+        guard let combo = store.data.combo(for: action) else { return false }
+        return combo.spokenString.localizedCaseInsensitiveContains(query)
+            || combo.displayString.localizedCaseInsensitiveContains(query)
+    }
 
     private var conflicts: [HotKeyAction: [HotKeyAction]] {
         var byCombo: [KeyCombo: [HotKeyAction]] = [:]
@@ -434,12 +551,21 @@ struct ShortcutsSettingsView: View {
                 Button("Reset All Shortcuts") {
                     store.data.hotkeys = [:]
                     store.data.disabledHotkeys = []
+                    announce("All shortcuts reset to defaults")
+                }
+                TextField("Search shortcuts", text: $search)
+                if !search.trimmingCharacters(in: .whitespaces).isEmpty {
+                    let count = HotKeyAction.allCases.filter(matches).count
+                    Text(count == 1 ? "1 shortcut matches" : "\(count) shortcuts match")
                 }
             }
             ForEach(HotKeyAction.Group.allCases) { group in
-                Section(group.rawValue) {
-                    ForEach(group.actions) { action in
-                        row(for: action)
+                let actions = group.actions.filter(matches)
+                if !actions.isEmpty {
+                    Section(group.rawValue) {
+                        ForEach(actions) { action in
+                            row(for: action)
+                        }
                     }
                 }
             }
@@ -481,6 +607,9 @@ struct SoundpacksSettingsView: View {
     @State private var newSheetSource: Soundpack?
     @State private var exportMode = false
     @State private var errorMessage: String?
+    /// What the last NVDA import did, shown until dismissed.
+    @State private var importResults: [NavSoundsImporter.Result] = []
+    @State private var importSummary: String?
 
     private var selectedPack: Soundpack? { selection.flatMap { library.pack(id: $0) } }
 
@@ -489,11 +618,12 @@ struct SoundpacksSettingsView: View {
             Text("Soundpacks")
                 .font(.headline)
                 .padding(.horizontal)
+            if let importSummary { importBanner(importSummary) }
             HSplitView {
                 List(library.packs, selection: $selection) { pack in
                     VStack(alignment: .leading) {
                         Text(pack.name)
-                        Text("\(pack.eventCount) sounds\(pack.isBuiltIn ? ", built-in" : "")")
+                        Text("\(pack.eventCount) sounds\(pack.fileCount > pack.eventCount ? " (\(pack.fileCount) files with variants)" : "")\(pack.isBuiltIn ? ", built-in" : "")")
                             .font(.caption).foregroundStyle(.secondary)
                     }
                     .tag(pack.id)
@@ -511,6 +641,8 @@ struct SoundpacksSettingsView: View {
                 Button("Save Current Sounds as Pack…") { newSheetSource = nil; exportMode = true; showNewSheet = true }
                     .help("Makes a new pack from the sounds you're using now, including any sound files you chose yourself.")
                 Button("Import Soundpack Folder…") { importPack() }
+                Button("Import NVDA Sounds…") { importNVDA() }
+                    .help("Imports a typing or navigation pack from the NVDA add-on Navigation Sounds, as a folder or a zip file.")
                 Spacer()
                 Button("Show in Finder") {
                     if let pack = selectedPack { NSWorkspace.shared.activateFileViewerSelecting([pack.url]) }
@@ -545,11 +677,30 @@ struct SoundpacksSettingsView: View {
                     if let description = pack.manifest.description { Text(description) }
                     LabeledContent("Folder", value: pack.url.path)
                     LabeledContent("Sounds", value: "\(pack.eventCount) of \(SoundEvent.all.count) events")
+                    if pack.fileCount > pack.eventCount {
+                        let varied = SoundEvent.all.filter { pack.variantCount(for: $0.id) > 1 }
+                        LabeledContent("Variants", value: varied.map { "\($0.title): \(pack.variantCount(for: $0.id))" }
+                            .joined(separator: ", "))
+                    }
                     HStack {
                         Button("Use for Event Sounds") { store.data.eventSounds.packID = pack.id }
                             .disabled(store.data.eventSounds.packID == pack.id)
                         Button("Use for Key Clicks") { store.data.keyClicks.packID = pack.id }
                             .disabled(store.data.keyClicks.packID == pack.id)
+                        Button("Use for Focus Sounds") { store.data.focusSounds.packID = pack.id }
+                            .disabled(store.data.focusSounds.packID == pack.id)
+                    }
+                    HStack {
+                        if Self.hasSounds(pack, in: .keys) {
+                            Button("Preview Typing") { AppController.shared.previewTyping(packID: pack.id) }
+                                .accessibilityLabel("Preview typing with \(pack.name)")
+                                .help("Plays this pack as if you typed a short phrase. Press again to stop.")
+                        }
+                        if Self.hasSounds(pack, in: .focus) {
+                            Button("Preview Focus Sounds") { AppController.shared.previewFocusSounds(packID: pack.id) }
+                                .accessibilityLabel("Preview focus sounds of \(pack.name)")
+                                .help("Plays each control's sound from this pack in turn. Press again to stop.")
+                        }
                     }
                     if !missing.isEmpty {
                         DisclosureGroup("Events without a sound (\(missing.count))") {
@@ -558,7 +709,7 @@ struct SoundpacksSettingsView: View {
                             }
                         }
                     }
-                    Text("A soundpack is a folder of audio files, each named after the event it plays for, such as application.launched.wav or key.lower.wav. An optional pack.json holds the name and author. Add files to the folder and they're used the next time the pack loads.")
+                    Text("A soundpack is a folder of audio files, each named after the event it plays for, such as application.launched.wav or key.lower.wav. An optional pack.json holds the name and author. To have a sound vary, add key.lower.2.wav, key.lower.3.wav and so on, and one is picked at random each time. Add files to the folder and they're used the next time the pack loads.")
                         .font(.callout).foregroundStyle(.secondary)
                 }
             }
@@ -582,6 +733,77 @@ struct SoundpacksSettingsView: View {
         }
     }
 
+    static func hasSounds(_ pack: Soundpack, in group: SoundGroup) -> Bool {
+        SoundEvent.events(in: group).contains { pack.url(for: $0.id) != nil }
+    }
+
+    private func importNVDA() {
+        let panel = NSOpenPanel()
+        panel.title = "Choose a Navigation Sounds pack folder or zip file"
+        panel.message = "Choose a typing or navigation pack from the NVDA add-on Navigation Sounds: a folder of wav files, a folder of packs, or a zip file."
+        panel.prompt = "Import"
+        panel.canChooseDirectories = true
+        panel.canChooseFiles = true
+        panel.allowedContentTypes = [.zip, .folder]
+        panel.allowsMultipleSelection = false
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+        do {
+            let results = try library.importNavigationSoundsPacks(from: url)
+            importResults = results
+            let summary = Self.describe(results)
+            importSummary = summary
+            if let first = results.first { selection = first.name }
+            AppController.shared.speaker.speak(summary)
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    static func describe(_ results: [NavSoundsImporter.Result]) -> String {
+        if results.count == 1, let r = results.first {
+            var text = "Imported \(r.name), a \(r.kind.noun) pack with \(r.soundCount) sound\(r.soundCount == 1 ? "" : "s")."
+            if !r.skipped.isEmpty {
+                text += " Left out \(r.skipped.count) sound\(r.skipped.count == 1 ? "" : "s") for controls MaccessHub does not use."
+            }
+            if !r.unreadable.isEmpty {
+                text += " \(r.unreadable.count) file\(r.unreadable.count == 1 ? " was" : "s were") not playable audio and \(r.unreadable.count == 1 ? "was" : "were") skipped."
+            }
+            return text
+        }
+        let names = results.map(\.name).joined(separator: ", ")
+        return "Imported \(results.count) packs: \(names). Select one in the list to preview it."
+    }
+
+    @ViewBuilder
+    private func importBanner(_ summary: String) -> some View {
+        HStack(alignment: .firstTextBaseline) {
+            Text(summary)
+                .fixedSize(horizontal: false, vertical: true)
+                .accessibilityAddTraits(.isStaticText)
+            Spacer()
+            if importResults.count == 1, let result = importResults.first, library.pack(id: result.name) != nil {
+                if result.kind == .typing {
+                    Button("Preview") { AppController.shared.previewTyping(packID: result.name) }
+                        .accessibilityLabel("Preview typing with \(result.name)")
+                    Button("Use for Key Clicks") { store.data.keyClicks.packID = result.name }
+                        .disabled(store.data.keyClicks.packID == result.name)
+                        .accessibilityLabel("Use \(result.name) for key clicks")
+                } else {
+                    Button("Preview") { AppController.shared.previewFocusSounds(packID: result.name) }
+                        .accessibilityLabel("Preview focus sounds of \(result.name)")
+                    Button("Use for Focus Sounds") { store.data.focusSounds.packID = result.name }
+                        .disabled(store.data.focusSounds.packID == result.name)
+                        .accessibilityLabel("Use \(result.name) for focus sounds")
+                }
+            }
+            Button("Dismiss") { importSummary = nil; importResults = [] }
+                .accessibilityLabel("Dismiss import message")
+        }
+        .padding(8)
+        .background(.quaternary, in: RoundedRectangle(cornerRadius: 6))
+        .padding(.horizontal)
+    }
+
     private func deleteSelected() {
         guard let pack = selectedPack else { return }
         let alert = NSAlert()
@@ -592,6 +814,7 @@ struct SoundpacksSettingsView: View {
         guard alert.runModal() == .alertFirstButtonReturn else { return }
         do {
             try library.deletePack(pack)
+            if importResults.contains(where: { $0.name == pack.id }) { importSummary = nil; importResults = [] }
             selection = library.packs.first?.id
         } catch {
             errorMessage = error.localizedDescription
@@ -656,9 +879,12 @@ struct NewSoundpackSheet: View {
             let pack: Soundpack
             if exportScheme {
                 let scheme = AppController.shared.scheme
-                var files: [String: URL] = [:]
-                for event in SoundEvent.all { if let url = scheme.url(for: event) { files[event.id] = url } }
-                pack = try library.createPack(named: name, author: author, description: description, files: files)
+                var variants: [String: [URL]] = [:]
+                for event in SoundEvent.all {
+                    let urls = scheme.urls(for: event)
+                    if !urls.isEmpty { variants[event.id] = urls }
+                }
+                pack = try library.createPack(named: name, author: author, description: description, variants: variants)
             } else {
                 pack = try library.createPack(named: name, author: author, description: description,
                                               copying: library.pack(id: copyFrom))
