@@ -13,7 +13,7 @@ enum HotKeyAction: String, CaseIterable, Codable, Identifiable {
     case menuExtra1, menuExtra2, menuExtra3, menuExtra4, menuExtra5
     case menuExtra6, menuExtra7, menuExtra8, menuExtra9, menuExtra10
     // App control
-    case toggleEventSounds, toggleKeyClicks, toggleFocusSounds, toggleProgressBeepStyle, openSettings
+    case toggleEventSounds, toggleKeyClicks, toggleFocusSounds, toggleProgressBeepStyle, speakStatus, openSettings
 
     var id: String { rawValue }
 
@@ -39,7 +39,7 @@ enum HotKeyAction: String, CaseIterable, Codable, Identifiable {
         case .menuExtra1, .menuExtra2, .menuExtra3, .menuExtra4, .menuExtra5,
              .menuExtra6, .menuExtra7, .menuExtra8, .menuExtra9, .menuExtra10:
             return .menuExtras
-        case .toggleEventSounds, .toggleKeyClicks, .toggleFocusSounds, .toggleProgressBeepStyle, .openSettings:
+        case .toggleEventSounds, .toggleKeyClicks, .toggleFocusSounds, .toggleProgressBeepStyle, .speakStatus, .openSettings:
             return .app
         }
     }
@@ -80,6 +80,7 @@ enum HotKeyAction: String, CaseIterable, Codable, Identifiable {
         case .toggleKeyClicks: return "Toggle key clicks"
         case .toggleFocusSounds: return "Toggle focus sounds"
         case .toggleProgressBeepStyle: return "Switch progress beeps between Classic and Pleasant"
+        case .speakStatus: return "Speak which sounds are on"
         case .openSettings: return "Open MaccessHub settings"
         }
     }
@@ -121,7 +122,7 @@ enum HotKeyAction: String, CaseIterable, Codable, Identifiable {
         case .menuExtra9: return KeyCombo("9", os)
         case .menuExtra10: return KeyCombo("0", os)
         case .openSettings: return KeyCombo("=", cs)
-        case .toggleEventSounds, .toggleKeyClicks, .toggleFocusSounds, .toggleProgressBeepStyle: return nil
+        case .toggleEventSounds, .toggleKeyClicks, .toggleFocusSounds, .toggleProgressBeepStyle, .speakStatus: return nil
         }
     }
 
