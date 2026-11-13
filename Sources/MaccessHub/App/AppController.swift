@@ -89,7 +89,9 @@ final class AppController {
         // Feedback sounds for the mute toggle bypass the event-sounds master switch.
         audioSwitch.playSound = { [weak self] id in
             guard let self, let event = SoundEvent.byID[id], let url = scheme.url(for: event) else { return false }
-            engine.play(url, volume: Float(settings.data.eventSounds.volume))
+            // Exclusive, so toggling the microphone quickly restarts the sound
+            // instead of stacking copies of it on separate voices.
+            engine.play(url, volume: Float(settings.data.eventSounds.volume), exclusive: true)
             return true
         }
         settings.onChange = { [weak self] _ in self?.applySettings() }
