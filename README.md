@@ -27,6 +27,36 @@ Every shortcut can be changed or removed in **Settings → Shortcuts** (⌃⇧=
 opens it). There are also unbound shortcuts for toggling event sounds and key
 clicks.
 
+## Sound processing
+
+**Settings → Sound Processing** gives each group of sounds its own volume,
+tone and reverb. The groups are event sounds, focus sounds, key clicks and
+progress beeps, so you can put reverb on focus sounds and keep key clicks dry,
+or make progress beeps brighter without touching anything else.
+
+For each group:
+
+- **Volume**, 0 to 100 percent. It works together with the volume on the
+  group's own tab.
+- **Bass, Middle and Treble**, each from minus 12 to plus 12 decibels (around
+  200 Hz, 1,500 Hz and 5,000 Hz). **Clearer** turns bass down and middle and
+  treble up, which can help if high sounds are hard to hear; **Warmer** does the
+  opposite; **Flat** puts them back. A limiter stops boosted sounds from
+  distorting.
+- **Reverb**: small, medium or large room, medium or large hall, plate or
+  cathedral, with an amount from dry to fully wet. Focus sounds and progress
+  beeps with HRTF on also keep the Room setting on the Focus tab; this reverb
+  is added on top.
+- **Play Sample** plays one typical sound from the group and **Hear in
+  Context** plays a few seconds of everyday use (apps opening, tabbing through
+  a dialog, typing, a progress bar filling). Press again to stop. Moving a
+  control while a preview plays changes what you hear. Nothing plays on its own.
+- **Reset This Group** goes back to full volume, flat tone and no reverb.
+
+Everything starts at full volume, flat and dry, so nothing sounds different
+until you change it, and the processing is switched off entirely while a
+group is at its defaults.
+
 ## Improvements over the spoons
 
 - Memory usage is implemented (it was a stub in recmon), and a double press

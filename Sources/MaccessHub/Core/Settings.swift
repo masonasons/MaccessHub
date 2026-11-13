@@ -246,6 +246,8 @@ struct SettingsData: Codable {
     var audioDevices = AudioDeviceSettings()
     var menuExtras = MenuExtraSettings()
     var systemInfo = SystemInfoSettings()
+    /// Volume, EQ and reverb for each sound group. Defaults change nothing.
+    var soundProcessing = SoundProcessingSettings()
     /// event ID → absolute file path chosen by the user; beats any pack.
     var soundOverrides: [String: String] = [:]
     /// action raw value → combo; absent means the default binding.
@@ -263,6 +265,7 @@ struct SettingsData: Codable {
         audioDevices = c.value(.audioDevices, default: AudioDeviceSettings())
         menuExtras = c.value(.menuExtras, default: MenuExtraSettings())
         systemInfo = c.value(.systemInfo, default: SystemInfoSettings())
+        soundProcessing = c.value(.soundProcessing, default: SoundProcessingSettings())
         soundOverrides = c.value(.soundOverrides, default: [:])
         hotkeys = c.value(.hotkeys, default: [:])
         disabledHotkeys = c.value(.disabledHotkeys, default: [])
