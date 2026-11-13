@@ -35,6 +35,13 @@ final class AppController {
     private var spokenProgress: [String: Int] = [:]
     private var lastBeepProgress: [String: Int] = [:]
 
+    /// The app in front and its sound rule, kept up to date from activation
+    /// notifications so a key press never has to ask the system.
+    private var frontmostPID: pid_t = 0
+    private var frontmostBundleID: String?
+    private var frontRule: AppSoundRule?
+    private var activationObserver: NSObjectProtocol?
+
     private let workspaceMonitor = WorkspaceMonitor()
     private let eventMonitors: [EventMonitor]
     private var monitorsRunning = false
@@ -93,7 +100,28 @@ final class AppController {
             return true
         }
         settings.onChange = { [weak self] _ in self?.applySettings() }
+
+        if let app = NSWorkspace.shared.frontmostApplication { noteFrontmost(app) }
+        activationObserver = NSWorkspace.shared.notificationCenter.addObserver(
+            forName: NSWorkspace.didActivateApplicationNotification, object: nil, queue: .main
+        ) { [weak self] note in
+            guard let app = note.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication else { return }
+            MainActor.assumeIsolated { self?.noteFrontmost(app) }
+        }
         observeSleep()
+    }
+
+    private func noteFrontmost(_ app: NSRunningApplication) {
+        frontmostPID = app.processIdentifier
+        frontmostBundleID = app.bundleIdentifier
+        frontRule = settings.data.appRule(for: frontmostBundleID)
+    }
+
+    /// The rule for the app that owns a process, if the user made one.
+    private func appRule(forPID pid: pid_t?) -> AppSoundRule? {
+        guard let pid, !settings.data.appSoundRules.isEmpty else { return nil }
+        if pid == frontmostPID { return frontRule }
+        return settings.data.appRule(for: NSRunningApplication(processIdentifier: pid)?.bundleIdentifier)
     }
 
     /// Keeps the audio engine down while the Mac sleeps. Restarting it while
@@ -154,6 +182,7 @@ final class AppController {
 
     func applySettings() {
         let data = settings.data
+        frontRule = data.appRule(for: frontmostBundleID)
 
         speaker.output = data.general.speechOutput
         speaker.rate = data.general.speechRate
@@ -249,13 +278,20 @@ final class AppController {
 
     private func handleFocus(_ slot: String, element: AXElement?, frame: CGRect?) {
         let data = settings.data
+        // A per-app rule can silence or lower focus sounds while that app is in front.
+        var scale = 1.0
+        if let rule = frontRule {
+            guard let ruleScale = rule.focusScale else { return }
+            scale = ruleScale
+        }
         guard data.focusSounds.enabled, let event = SoundEvent.byID["focus.\(slot)"],
               data.focusSounds.isEnabled(event), let url = variants.pick(from: scheme.urls(for: event)) else { return }
+        let volume = Float(data.focusSounds.volume * scale)
         if data.focusSounds.spatial {
             let position = (frame ?? element?.frame).map { SpatialMapper.position(for: $0) } ?? SpatialMapper.center
-            engine.playSpatial(url, volume: Float(data.focusSounds.volume), at: position)
+            engine.playSpatial(url, volume: volume, at: position)
         } else {
-            engine.play(url, volume: Float(data.focusSounds.volume), exclusive: true)
+            engine.play(url, volume: volume, exclusive: true)
         }
     }
 
@@ -294,6 +330,8 @@ final class AppController {
         guard progress.output != .off else { return }
         if !update.inFrontmostApp && !progress.backgroundApps { return }
         if !update.inFocusedWindow && !progress.backgroundWindows && update.inFrontmostApp { return }
+        // A per-app rule can turn off reports for bars that belong to that app.
+        if appRule(forPID: update.element.pid)?.progress == .off { return }
         log.debug("progress \(update.percent, privacy: .public)% focusedWindow=\(update.inFocusedWindow, privacy: .public) frontmost=\(update.inFrontmostApp, privacy: .public)")
 
         // NVDA reports when the change since the last report reaches the interval,
@@ -323,13 +361,19 @@ final class AppController {
 
     private func handleKey(_ category: KeyCategory) {
         let data = settings.data
+        // A per-app rule can silence or lower key clicks while that app is in front.
+        var scale = 1.0
+        if let rule = frontRule {
+            guard let ruleScale = rule.keyClickScale else { return }
+            scale = ruleScale
+        }
         guard data.keyClicks.enabled, let event = SoundEvent.byID[category.eventID],
               data.keyClicks.isEnabled(event), let url = variants.pick(from: scheme.urls(for: event)) else {
             log.debug("key click skipped: enabled=\(data.keyClicks.enabled, privacy: .public) event=\(category.eventID, privacy: .public)")
             return
         }
         log.debug("key click play \(url.lastPathComponent, privacy: .public)")
-        engine.play(url, volume: Float(data.keyClicks.volume), exclusive: true)
+        engine.play(url, volume: Float(data.keyClicks.volume * scale), exclusive: true)
     }
 
     /// Plays the event's sound. `ignoreEnabledState` is used by the preview buttons.
