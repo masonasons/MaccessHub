@@ -38,6 +38,9 @@ final class AppController {
     private let workspaceMonitor = WorkspaceMonitor()
     private let eventMonitors: [EventMonitor]
     private var monitorsRunning = false
+    /// Bluetooth and USB sounds stay quiet until this uptime. Devices drop and
+    /// reconnect in a burst around sleep, and the sounds would pile up on wake.
+    private var deviceSoundsQuietUntil: TimeInterval = 0
     /// Between `willSleep` and `didWake` (dark wakes included, which post neither).
     private var isAsleep = false
     private var lastWake: TimeInterval = 0
@@ -241,9 +244,21 @@ final class AppController {
 
     private func handleEvent(_ id: String) {
         guard settings.data.eventSounds.enabled else { return }
+        // systemUptime doesn't advance while the Mac sleeps, so the window set
+        // at sleep still covers the first seconds after waking, whichever
+        // arrives first: the wake notification or the queued device events.
+        let now = ProcessInfo.processInfo.systemUptime
+        switch id {
+        case "system.willSleep":
+            deviceSoundsQuietUntil = now + 10
+        case "system.didWake":
+            deviceSoundsQuietUntil = max(deviceSoundsQuietUntil, now + 5)
+        default:
+            if now < deviceSoundsQuietUntil, id.hasPrefix("bluetooth.") || id.hasPrefix("usb.") { return }
+        }
         if isAsleep, id != "system.willSleep" { return }
         if id.hasPrefix("network."),
-           ProcessInfo.processInfo.systemUptime - lastWake < networkSettleAfterWake { return }
+           now - lastWake < networkSettleAfterWake { return }
         play(id, ignoreEnabledState: false)
     }
 
