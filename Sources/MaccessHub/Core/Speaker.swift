@@ -7,6 +7,7 @@ import os
 enum SpeechOutput: String, Codable, CaseIterable, Identifiable {
     /// VoiceOver when it is running, otherwise the system voice.
     case automatic
+    /// Only through VoiceOver; nothing is spoken when VoiceOver is off.
     case voiceOver
     case systemVoice
 
@@ -17,6 +18,14 @@ enum SpeechOutput: String, Codable, CaseIterable, Identifiable {
         case .automatic: return "VoiceOver when running, otherwise system voice"
         case .voiceOver: return "VoiceOver only"
         case .systemVoice: return "System voice only"
+        }
+    }
+
+    var help: String {
+        switch self {
+        case .automatic: return "Speaks through VoiceOver when it is running, otherwise with the system voice."
+        case .voiceOver: return "Speaks only through VoiceOver. Nothing is spoken when VoiceOver is off."
+        case .systemVoice: return "Always speaks with the system voice, even when VoiceOver is running."
         }
     }
 }
@@ -47,6 +56,15 @@ final class Speaker {
         DispatchQueue.main.async { [self] in
             switch output {
             case .voiceOver:
+                // "VoiceOver only" means exactly that: with VoiceOver off,
+                // nothing is spoken. The system voice is used only when
+                // VoiceOver is running but refuses the AppleScript request
+                // (control not allowed yet), so the message isn't lost while
+                // VoiceOver is on and the user is expecting speech.
+                guard Self.isVoiceOverRunning else {
+                    log.debug("VoiceOver is off; not speaking (VoiceOver only): \(message)")
+                    return
+                }
                 if !speakWithVoiceOver(message) { speakWithSystemVoice(message) }
             case .automatic:
                 if Self.isVoiceOverRunning, speakWithVoiceOver(message) { return }
