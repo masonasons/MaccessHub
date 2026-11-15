@@ -5,7 +5,7 @@ import Foundation
 /// reverb, so each group can sound different (reverb on focus sounds but not on
 /// key clicks, more treble on progress beeps, and so on).
 enum SoundBus: String, Codable, CaseIterable, Identifiable {
-    case events, focus, keys, progress
+    case events, focus, keys, progress, disk
 
     var id: String { rawValue }
 
@@ -15,6 +15,7 @@ enum SoundBus: String, Codable, CaseIterable, Identifiable {
         case .focus: return "Focus sounds"
         case .keys: return "Key clicks"
         case .progress: return "Progress beeps"
+        case .disk: return "Disk sounds"
         }
     }
 }
@@ -119,6 +120,7 @@ struct SoundProcessingSettings: Codable, Equatable {
     var focus = AudioBusSettings()
     var keys = AudioBusSettings()
     var progress = AudioBusSettings()
+    var disk = AudioBusSettings()
 
     init() {}
     init(from decoder: Decoder) throws {
@@ -127,6 +129,7 @@ struct SoundProcessingSettings: Codable, Equatable {
         focus = c.value(.focus, default: AudioBusSettings())
         keys = c.value(.keys, default: AudioBusSettings())
         progress = c.value(.progress, default: AudioBusSettings())
+        disk = c.value(.disk, default: AudioBusSettings())
     }
 
     subscript(bus: SoundBus) -> AudioBusSettings {
@@ -136,6 +139,7 @@ struct SoundProcessingSettings: Codable, Equatable {
             case .focus: return focus
             case .keys: return keys
             case .progress: return progress
+            case .disk: return disk
             }
         }
         set {
@@ -144,6 +148,7 @@ struct SoundProcessingSettings: Codable, Equatable {
             case .focus: focus = newValue
             case .keys: keys = newValue
             case .progress: progress = newValue
+            case .disk: disk = newValue
             }
         }
     }

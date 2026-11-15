@@ -98,6 +98,20 @@ final class BusPreviewer {
         (time, { [app] in app.playProgressBeep(percent: percent, frame: nil) })
     }
 
+    /// The mixes of the connected disks that are turned on, or the default mix
+    /// if there are none, so the preview sounds like the user's own disks.
+    private var diskClicks: [DiskClick.Pair] {
+        let settings = data.diskSounds
+        let mixes = app.diskSounds.disks.map { settings.mix(for: $0.id) }.filter(\.audible)
+        return (mixes.isEmpty ? [DiskMix()] : mixes).map { DiskClick.Pair($0) }
+    }
+
+    /// One tick's worth of disk clicks, mixed as the real feature mixes them.
+    private func disk(_ active: [(DiskActivity, DiskClick.Pair)], at time: TimeInterval) -> Step {
+        let pcm = DiskClick.render(active)
+        return (time, { [app] in app.engine.playStream(pcm, interrupt: false) })
+    }
+
     /// One representative sound (a few for clicks and beeps, which are too short to judge alone).
     private func sample(_ bus: SoundBus) -> [Step] {
         switch bus {
@@ -111,6 +125,12 @@ final class BusPreviewer {
             return [key("key.lower", at: 0), key("key.lower", at: 0.25), key("key.lower", at: 0.5)].compactMap { $0 }
         case .progress:
             return [beep(percent: 0, at: 0), beep(percent: 50, at: 0.3), beep(percent: 100, at: 0.6)]
+        case .disk:
+            // Read, read, write, write, then both together.
+            let click = diskClicks[0]
+            return [disk([(.read, click)], at: 0), disk([(.read, click)], at: 0.2),
+                    disk([(.write, click)], at: 0.4), disk([(.write, click)], at: 0.6),
+                    disk([([.read, .write], click)], at: 0.9)]
         }
     }
 
@@ -151,6 +171,31 @@ final class BusPreviewer {
             return stride(from: 0, through: 100, by: 5).enumerated().map { i, percent in
                 beep(percent: percent, at: Double(i) * 0.1)
             }
+        case .disk:
+            // An app opening (a burst of reads), a pause, then a file being
+            // saved (writes with a few reads), sampled every 25 ms as for real.
+            // With more than one disk on, the second joins in during the save.
+            let clicks = diskClicks
+            var generator = SystemRandomNumberGenerator()
+            var steps: [Step] = []
+            for tick in 0..<140 {
+                let time = Double(tick) * 0.025
+                var active: [(DiskActivity, DiskClick.Pair)] = []
+                switch time {
+                case ..<0.8:
+                    if Double.random(in: 0..<1, using: &generator) < 0.6 { active.append((.read, clicks[0])) }
+                case 1.4..<3.5:
+                    let roll = Double.random(in: 0..<1, using: &generator)
+                    if roll < 0.45 { active.append((.write, clicks[0])) } else if roll < 0.55 { active.append((.read, clicks[0])) }
+                    if clicks.count > 1, Double.random(in: 0..<1, using: &generator) < 0.3 {
+                        active.append((.write, clicks[1]))
+                    }
+                default:
+                    break
+                }
+                if !active.isEmpty { steps.append(disk(active, at: time)) }
+            }
+            return steps
         }
     }
 }

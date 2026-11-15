@@ -37,7 +37,7 @@ final class SoundEngine {
     private var allNodes: [AVAudioPlayerNode] = []
     private var allSpatialNodes: [AVAudioPlayerNode] = []
     /// Disk sounds: batches queue one after another here instead of cutting
-    /// each other off. Straight to the output, as each disk has its own mix.
+    /// each other off. Feeds the Disk group's chain; the group has no pool.
     private let streamNode = AVAudioPlayerNode()
     /// Batches scheduled on `streamNode` and not yet played. Guarded by `lock`.
     private var streamQueued = 0
@@ -87,7 +87,7 @@ final class SoundEngine {
 
     /// Plain players per group: events overlap the most, key clicks cut each
     /// other off, progress beeps get `beepVoices` (see there).
-    private static let plainVoices: [SoundBus: Int] = [.events: 6, .keys: 4, .focus: 3, .progress: beepVoices]
+    private static let plainVoices: [SoundBus: Int] = [.events: 6, .keys: 4, .focus: 3, .progress: beepVoices, .disk: 0]
     /// HRTF players per group.
     private static let spatialVoices: [SoundBus: Int] = [.focus: 5, .progress: beepVoices]
 
@@ -104,7 +104,7 @@ final class SoundEngine {
                 engine.connect(node, to: chain.input, format: format)
                 plain.append(node)
             }
-            pools[bus] = PlayerPool(plain)
+            if !plain.isEmpty { pools[bus] = PlayerPool(plain) }
             allNodes += plain
 
             // Spatial players. The environment node only spatialises mono inputs.
@@ -132,7 +132,7 @@ final class SoundEngine {
             allSpatialNodes += spatial
         }
         engine.attach(streamNode)
-        engine.connect(streamNode, to: engine.mainMixerNode, format: format)
+        engine.connect(streamNode, to: chains[.disk]?.input ?? engine.mainMixerNode, format: format)
         allNodes.append(streamNode)
         setReverb(.smallRoom)
         // Self-check meter: after each play, log the peak that actually reached the output.
@@ -702,8 +702,10 @@ final class SoundEngine {
     /// Silences whatever is playing in one group (used to stop a preview).
     /// The players are restarted at once so the next sound is still instant.
     func stop(_ bus: SoundBus) {
-        let nodes = (pools[bus]?.nodes ?? []) + (spatialPools[bus]?.nodes ?? [])
+        var nodes = (pools[bus]?.nodes ?? []) + (spatialPools[bus]?.nodes ?? [])
+        if bus == .disk { nodes.append(streamNode) }
         for node in nodes { node.stop() }
+        if bus == .disk { resetStream() }
         startIfNeeded()
     }
 

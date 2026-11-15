@@ -33,8 +33,8 @@ clicks and focus sounds on or off.
 ## Sound processing
 
 **Settings → Sound Processing** gives each group of sounds its own volume,
-tone and reverb. The groups are event sounds, focus sounds, key clicks and
-progress beeps, so you can put reverb on focus sounds and keep key clicks dry,
+tone and reverb. The groups are event sounds, focus sounds, key clicks,
+progress beeps and disk sounds, so you can put reverb on focus sounds and keep key clicks dry,
 or make progress beeps brighter without touching anything else.
 
 For each group:
@@ -107,6 +107,8 @@ bar menu turns the sounds on and off.
   seconds.
 - A busy disk can't build up a backlog: at most two batches of clicks wait to
   play, so the clicking stops when the activity does.
+- Disk sounds are also a group on **Settings → Sound Processing**, for reverb
+  or an overall volume and tone on top of each disk's own mix.
 - The sounds are sample-for-sample Plattersong's; `make check` verifies them
   against Plattersong's reference.
 

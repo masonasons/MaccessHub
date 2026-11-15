@@ -18,7 +18,7 @@ struct DiskSoundsSettingsView: View {
         Form {
             Section {
                 Toggle("Play disk sounds", isOn: $store.data.diskSounds.enabled)
-                Text("A short click each time a physical disk reads, and a lower one when it writes, so you can hear the Mac working. Control-Shift-K turns disk sounds on or off; you can change that under Shortcuts.")
+                Text("A short click each time a physical disk reads, and a lower one when it writes, so you can hear the Mac working. Control-Shift-K turns disk sounds on or off; you can change that under Shortcuts. For reverb, or a volume and tone for all disks at once, choose Disk sounds on the Sound Processing tab.")
                     .font(.callout).foregroundStyle(.secondary)
             }
             if let disk = selected {

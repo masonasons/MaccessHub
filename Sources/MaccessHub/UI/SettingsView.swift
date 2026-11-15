@@ -665,6 +665,7 @@ struct SoundProcessingSettingsView: View {
         case .focus: return "Plays focus sounds as if tabbing through a dialog."
         case .keys: return "Plays key clicks as if typing a short phrase, with a correction."
         case .progress: return "Plays beeps as if a progress bar fills from 0 to 100 percent."
+        case .disk: return "Plays disk clicks as if an app opens and then a file is saved, with your disks' own sounds."
         }
     }
 
