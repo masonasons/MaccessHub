@@ -36,6 +36,13 @@ final class SoundEngine {
     /// Every player node, for start, stop and rebuild.
     private var allNodes: [AVAudioPlayerNode] = []
     private var allSpatialNodes: [AVAudioPlayerNode] = []
+    /// Disk sounds: batches queue one after another here instead of cutting
+    /// each other off. Straight to the output, as each disk has its own mix.
+    private let streamNode = AVAudioPlayerNode()
+    /// Batches scheduled on `streamNode` and not yet played. Guarded by `lock`.
+    private var streamQueued = 0
+    /// Bumped whenever `streamNode` is stopped, so completions from before don't count.
+    private var streamGeneration = 0
     private let lock = NSLock()
     private var configObserver: NSObjectProtocol?
     private var defaultDeviceListener: AudioObjectPropertyListenerBlock?
@@ -124,6 +131,9 @@ final class SoundEngine {
             spatialPools[bus] = PlayerPool(spatial)
             allSpatialNodes += spatial
         }
+        engine.attach(streamNode)
+        engine.connect(streamNode, to: engine.mainMixerNode, format: format)
+        allNodes.append(streamNode)
         setReverb(.smallRoom)
         // Self-check meter: after each play, log the peak that actually reached the output.
         engine.mainMixerNode.installTap(onBus: 0, bufferSize: 2048, format: nil) { [weak self] buffer, _ in
@@ -192,6 +202,7 @@ final class SoundEngine {
         // Player nodes can report isPlaying after a restart while being idle;
         // cycle them so the state is real.
         for node in allNodes + allSpatialNodes { node.stop() }
+        resetStream()
         startIfNeeded()
         log.info("Engine rebuilt: running=\(self.engine.isRunning, privacy: .public) output \(self.engine.outputNode.outputFormat(forBus: 0).sampleRate, privacy: .public) Hz")
     }
@@ -641,6 +652,51 @@ final class SoundEngine {
 
     func stopAll() {
         for node in allNodes + allSpatialNodes { node.stop() }
+        resetStream()
+    }
+
+    private func resetStream() {
+        lock.lock(); streamQueued = 0; streamGeneration += 1; lock.unlock()
+    }
+
+    /// Plays interleaved 48 kHz stereo 16-bit samples on the stream player (disk
+    /// sounds). With `interrupt` it cuts off whatever that player has (a
+    /// preview). Otherwise the batch queues after the one playing, and is
+    /// dropped while two are already waiting, so a busy disk never builds up a
+    /// backlog that keeps clicking after the activity stops.
+    func playStream(_ pcm: [Int16], interrupt: Bool) {
+        lock.lock()
+        let full = !interrupt && streamQueued >= 2
+        lock.unlock()
+        guard !full, !pcm.isEmpty, startIfNeeded(),
+              let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: AVAudioFrameCount(pcm.count / 2)),
+              let channels = buffer.floatChannelData else { return }
+        buffer.frameLength = buffer.frameCapacity
+        for frame in 0..<Int(buffer.frameLength) {
+            channels[0][frame] = Float(pcm[2 * frame]) / 32768
+            channels[1][frame] = Float(pcm[2 * frame + 1]) / 32768
+        }
+        lock.lock()
+        if interrupt { streamQueued = 0; streamGeneration += 1 }
+        streamQueued += 1
+        let queued = streamQueued
+        let token = streamGeneration
+        lock.unlock()
+        let duration = Double(buffer.frameLength) / buffer.format.sampleRate
+        markBusy(until: ProcessInfo.processInfo.systemUptime + duration * Double(queued))
+        do {
+            try ObjCExceptionCatcher.run {
+                streamNode.scheduleBuffer(buffer, at: nil, options: interrupt ? [.interrupts] : [],
+                                          completionCallbackType: .dataPlayedBack) { [weak self] _ in
+                    guard let self else { return }
+                    lock.lock()
+                    if token == streamGeneration { streamQueued = max(0, streamQueued - 1) }
+                    lock.unlock()
+                }
+            }
+        } catch {
+            playerFailed(error)
+        }
     }
 
     /// Silences whatever is playing in one group (used to stop a preview).

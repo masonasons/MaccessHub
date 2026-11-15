@@ -52,3 +52,6 @@ check:
 	swiftc -Onone -parse-as-library -o $(BUILD)/speech-history-check Tests/SpeechHistoryCheck.swift \
 	  Sources/MaccessHub/Core/Speaker.swift Sources/MaccessHub/Features/SpeechHistory/SpeechHistoryFeature.swift
 	$(BUILD)/speech-history-check
+	swiftc -Onone -parse-as-library -o $(BUILD)/disk-click-check Tests/DiskClickCheck.swift \
+	  Sources/MaccessHub/Features/DiskSounds/DiskClick.swift
+	$(BUILD)/disk-click-check

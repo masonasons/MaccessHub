@@ -347,6 +347,22 @@ struct SpeechHistorySettings: Codable {
     }
 }
 
+/// Disk sounds (from Plattersong): a click for each physical disk read and write.
+struct DiskSoundSettings: Codable, Equatable {
+    var enabled = false
+    /// Disk ID → its mix. A disk not listed uses the default mix, which is on.
+    var disks: [String: DiskMix] = [:]
+
+    func mix(for id: String) -> DiskMix { disks[id] ?? DiskMix() }
+
+    init() {}
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        enabled = c.value(.enabled, default: false)
+        disks = c.value(.disks, default: [:])
+    }
+}
+
 struct SettingsData: Codable {
     var general = GeneralSettings()
     var eventSounds = EventSoundSettings()
@@ -359,6 +375,7 @@ struct SettingsData: Codable {
     /// Volume, EQ and reverb for each sound group. Defaults change nothing.
     var soundProcessing = SoundProcessingSettings()
     var speechHistory = SpeechHistorySettings()
+    var diskSounds = DiskSoundSettings()
     /// event ID → absolute file path chosen by the user; beats any pack.
     var soundOverrides: [String: String] = [:]
     /// action raw value → combo; absent means the default binding.
@@ -380,6 +397,7 @@ struct SettingsData: Codable {
         systemInfo = c.value(.systemInfo, default: SystemInfoSettings())
         soundProcessing = c.value(.soundProcessing, default: SoundProcessingSettings())
         speechHistory = c.value(.speechHistory, default: SpeechHistorySettings())
+        diskSounds = c.value(.diskSounds, default: DiskSoundSettings())
         soundOverrides = c.value(.soundOverrides, default: [:])
         hotkeys = c.value(.hotkeys, default: [:])
         disabledHotkeys = c.value(.disabledHotkeys, default: [])

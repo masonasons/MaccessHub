@@ -16,6 +16,8 @@ struct SettingsView: View {
                 .tabItem { Label("Focus Sounds", systemImage: "scope") }
             AppSoundsSettingsView(store: store)
                 .tabItem { Label("Apps", systemImage: "app.badge") }
+            DiskSoundsSettingsView(store: store)
+                .tabItem { Label("Disk Sounds", systemImage: "internaldrive") }
             SoundProcessingSettingsView(store: store)
                 .tabItem { Label("Sound Processing", systemImage: "slider.horizontal.3") }
             ToolsSettingsView(store: store)

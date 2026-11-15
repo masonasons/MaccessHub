@@ -24,6 +24,7 @@ VoiceOver it falls back to the system voice.
 | **Position info** – "42 percent, item 5 of 12" in tables, outlines and lists; character and line position in text. | PositionInfo | ⌃⇧P |
 | **Menu extras** – press once to hear the Nth status item in the menu bar, twice to open it. Off by default. | MenuExt | ⌥⇧1 … ⌥⇧0 |
 | **Speech history** – like the Speech History add-on for NVDA: keeps the last 500 things VoiceOver said (adjustable), steps back and forth through them, copies the current one, and records a run of announcements to the clipboard. See [Speech history](#speech-history). | Speech History | ⇧F11 ⇧F12 F12 |
+| **Disk sounds** – from [Plattersong](https://github.com/OnjLouis/Plattersong): a short click whenever a physical disk reads, a lower one when it writes. Each disk has its own on/off switch, volume, pan, bass, middle and treble, with Preview Read and Preview Write. Off until you turn it on. See [Disk sounds](#disk-sounds). | Plattersong | ⌃⇧K |
 
 Every shortcut can be changed or removed in **Settings → Shortcuts** (⌃⇧=
 opens it). There are also unbound shortcuts for turning event sounds, key
@@ -87,6 +88,30 @@ record is left out of the history.
 **Limitation:** VoiceOver only exposes the text of its last phrase, with no
 identifier or timestamp, so the same announcement spoken twice in a row (for
 example "Button", "Button") is stored once.
+
+## Disk sounds
+
+Ported from Onj's [Plattersong](https://github.com/OnjLouis/Plattersong), so
+you can hear a Mac's disks working the way you would hear a hard drive's
+platters. **Settings → Disk Sounds** has the on/off switch and a mix for each
+physical disk; ⌃⇧K (as in Plattersong, changeable under Shortcuts) or the menu
+bar menu turns the sounds on and off.
+
+- Every physical disk is found automatically, internal and external; disk
+  images and virtual disks are skipped. Each keeps its own mix, recognised by
+  model, size and serial number, whichever port it is plugged into.
+- New disks are on by default at 30 percent volume, so the shortcut works
+  straight away. Turn off any disk you don't want to hear.
+- While disk sounds are on, each disk's read and write counters are checked
+  every 25 ms. When off, MaccessHub only looks for connected disks every few
+  seconds.
+- A busy disk can't build up a backlog: at most two batches of clicks wait to
+  play, so the clicking stops when the activity does.
+- The sounds are sample-for-sample Plattersong's; `make check` verifies them
+  against Plattersong's reference.
+
+If you used Plattersong, quit it (or clear its shortcut) so ⌃⇧K isn't claimed
+twice.
 
 ## Improvements over the spoons
 
@@ -244,3 +269,9 @@ soundpack is their sound set. MIT licensed.
 Speech history is based on Mikołaj Hołysz's
 [SpeechHistory spoon](https://github.com/mikolysz/speech-history) (MIT), which
 introduced polling VoiceOver's last phrase to keep a history.
+
+Disk sounds are ported from Onj's
+[Plattersong](https://github.com/OnjLouis/Plattersong) (MIT), including its
+disk discovery and its click synthesis, which Plattersong adapted from Sensor
+Readout 6.6.1 (MIT, © 2026 Sensor Readout contributors). The licence ships in
+the app as `Plattersong-LICENSE.txt`.

@@ -29,6 +29,7 @@ final class AppController {
     let network: NetworkInfoFeature
     let processInfo: ProcessInfoFeature
     let speechHistory: SpeechHistoryFeature
+    let diskSounds: DiskSoundsFeature
     private let speechMonitor = VoiceOverSpeechMonitor()
     let keyClicks = KeyClickMonitor()
     let focusMonitor = FocusMonitor()
@@ -82,6 +83,7 @@ final class AppController {
         network = NetworkInfoFeature(speaker: speaker)
         processInfo = ProcessInfoFeature(speaker: speaker)
         speechHistory = SpeechHistoryFeature(speaker: speaker)
+        diskSounds = DiskSoundsFeature(engine: engine)
         eventMonitors = [workspaceMonitor, PowerMonitor(), NetworkMonitor(), USBMonitor(),
                          BluetoothMonitor(), UIEventMonitor()]
 
@@ -253,6 +255,7 @@ final class AppController {
         speechHistory.trimLeadingWhitespace = data.speechHistory.trimLeadingWhitespace
         speechHistory.trimTrailingWhitespace = data.speechHistory.trimTrailingWhitespace
         if data.speechHistory.enabled { speechMonitor.start() } else { speechMonitor.stop() }
+        diskSounds.configure(data.diskSounds)
         progressMonitor.watchBackgroundApps = data.progress.backgroundApps
         progressMonitor.excludedBundleIDs = Set(data.progress.excludedApps)
         if data.progress.output != .off, !progressMonitorRunning {
@@ -659,6 +662,7 @@ final class AppController {
         case .toggleKeyClicks: toggleKeyClicks()
         case .toggleFocusSounds: toggleFocusSounds()
         case .toggleProgressBeepStyle: toggleProgressBeepStyle()
+        case .toggleDiskSounds: toggleDiskSounds()
         case .speakStatus: speakStatus()
         case .openSettings: SettingsWindowController.shared.show()
         case .speechHistoryPrevious: speechHistory.previous()
@@ -694,6 +698,18 @@ final class AppController {
         speaker.speak(next == .pleasant ? "Pleasant progress beeps" : "Classic progress beeps")
     }
 
+    func toggleDiskSounds() {
+        settings.data.diskSounds.enabled.toggle()
+        let data = settings.data.diskSounds
+        if !data.enabled {
+            speaker.speak("Disk sounds off")
+        } else if diskSounds.hasAudibleDisk(in: data) {
+            speaker.speak("Disk sounds on")
+        } else {
+            speaker.speak("Disk sounds on, but no connected disk is turned on. Choose disks in Settings, Disk Sounds.")
+        }
+    }
+
     /// One sentence covering every sound feature's master switch.
     func speakStatus() {
         let data = settings.data
@@ -702,6 +718,7 @@ final class AppController {
             "key clicks \(data.keyClicks.enabled ? "on" : "off")",
             "focus sounds \(data.focusSounds.enabled ? "on" : "off")",
             "progress bars \(data.progress.output.title.lowercased())",
+            "disk sounds \(data.diskSounds.enabled ? "on" : "off")",
         ]
         speaker.speak(parts.joined(separator: ", ") + ".")
     }

@@ -17,7 +17,7 @@ enum HotKeyAction: String, CaseIterable, Codable, Identifiable {
     case speechHistoryPrevious, speechHistoryNext, speechHistoryCopy
     case speechHistoryStartRecording, speechHistoryStopRecording, speechHistoryShow, speechHistoryClear
     // App control
-    case toggleEventSounds, toggleKeyClicks, toggleFocusSounds, toggleProgressBeepStyle, speakStatus, openSettings
+    case toggleEventSounds, toggleKeyClicks, toggleFocusSounds, toggleProgressBeepStyle, toggleDiskSounds, speakStatus, openSettings
 
     var id: String { rawValue }
 
@@ -47,7 +47,8 @@ enum HotKeyAction: String, CaseIterable, Codable, Identifiable {
         case .speechHistoryPrevious, .speechHistoryNext, .speechHistoryCopy, .speechHistoryStartRecording,
              .speechHistoryStopRecording, .speechHistoryShow, .speechHistoryClear:
             return .speechHistory
-        case .toggleEventSounds, .toggleKeyClicks, .toggleFocusSounds, .toggleProgressBeepStyle, .speakStatus, .openSettings:
+        case .toggleEventSounds, .toggleKeyClicks, .toggleFocusSounds, .toggleProgressBeepStyle, .toggleDiskSounds,
+             .speakStatus, .openSettings:
             return .app
         }
     }
@@ -88,6 +89,7 @@ enum HotKeyAction: String, CaseIterable, Codable, Identifiable {
         case .toggleKeyClicks: return "Turn key clicks on or off"
         case .toggleFocusSounds: return "Turn focus sounds on or off"
         case .toggleProgressBeepStyle: return "Switch progress beeps between Classic and Pleasant"
+        case .toggleDiskSounds: return "Turn disk sounds on or off"
         case .speakStatus: return "Speak which sounds are on"
         case .speechHistoryPrevious: return "Previous announcement"
         case .speechHistoryNext: return "Next announcement"
@@ -137,6 +139,8 @@ enum HotKeyAction: String, CaseIterable, Codable, Identifiable {
         case .menuExtra9: return KeyCombo("9", os)
         case .menuExtra10: return KeyCombo("0", os)
         case .openSettings: return KeyCombo("=", cs)
+        // Plattersong's toggle.
+        case .toggleDiskSounds: return KeyCombo("k", cs)
         // As in the NVDA add-on.
         case .speechHistoryPrevious: return KeyCombo(keyCode: UInt16(kVK_F11), modifiers: .shift)
         case .speechHistoryNext: return KeyCombo(keyCode: UInt16(kVK_F12), modifiers: .shift)

@@ -8,6 +8,7 @@ final class StatusItemController: NSObject, NSMenuDelegate {
     private let eventSoundsItem = NSMenuItem(title: "Event Sounds", action: #selector(toggleEventSounds), keyEquivalent: "")
     private let keyClicksItem = NSMenuItem(title: "Key Clicks", action: #selector(toggleKeyClicks), keyEquivalent: "")
     private let focusSoundsItem = NSMenuItem(title: "Focus Sounds", action: #selector(toggleFocusSounds), keyEquivalent: "")
+    private let diskSoundsItem = NSMenuItem(title: "Disk Sounds", action: #selector(toggleDiskSounds), keyEquivalent: "")
 
     override init() {
         super.init()
@@ -19,10 +20,12 @@ final class StatusItemController: NSObject, NSMenuDelegate {
         eventSoundsItem.target = self
         keyClicksItem.target = self
         focusSoundsItem.target = self
+        diskSoundsItem.target = self
         menu.delegate = self
         menu.addItem(eventSoundsItem)
         menu.addItem(keyClicksItem)
         menu.addItem(focusSoundsItem)
+        menu.addItem(diskSoundsItem)
         menu.addItem(.separator())
         menu.addItem(withTitle: "Speak Menu Extras", action: #selector(speakMenuExtras), keyEquivalent: "").target = self
         menu.addItem(withTitle: "Speech History…", action: #selector(showSpeechHistory), keyEquivalent: "").target = self
@@ -41,12 +44,14 @@ final class StatusItemController: NSObject, NSMenuDelegate {
         eventSoundsItem.state = data.eventSounds.enabled ? .on : .off
         keyClicksItem.state = data.keyClicks.enabled ? .on : .off
         focusSoundsItem.state = data.focusSounds.enabled ? .on : .off
+        diskSoundsItem.state = data.diskSounds.enabled ? .on : .off
     }
 
     // The same toggles the shortcuts use, so the menu confirms the change out loud too.
     @objc private func toggleEventSounds() { AppController.shared.toggleEventSounds() }
     @objc private func toggleKeyClicks() { AppController.shared.toggleKeyClicks() }
     @objc private func toggleFocusSounds() { AppController.shared.toggleFocusSounds() }
+    @objc private func toggleDiskSounds() { AppController.shared.toggleDiskSounds() }
     @objc private func speakMenuExtras() { AppController.shared.menuExtras.speakAll() }
     @objc private func showSpeechHistory() { SpeechHistoryWindowController.shared.show() }
     @objc private func openSettings() { SettingsWindowController.shared.show() }
