@@ -224,23 +224,38 @@ final class SoundEngine {
     /// PreventUserIdleSystemSleep assertion for it, so the Mac never sleeps on
     /// its own. Pause the engine after this long without a sound; the next
     /// sound starts it again. 0 never pauses it.
-    var idleTimeout: TimeInterval = 30 {
-        didSet {
-            guard idleTimeout != oldValue else { return }
+    var idleTimeout: TimeInterval {
+        get { lock.lock(); defer { lock.unlock() }; return idleSeconds }
+        set {
+            lock.lock()
+            guard newValue != idleSeconds else { lock.unlock(); return }
+            idleSeconds = newValue
             // A check already waiting was timed for the old value; start over.
             idleCheck?.cancel()
             idleCheck = nil
+            lock.unlock()
             scheduleIdleCheck(after: 0)
         }
     }
+    // Key clicks play from their own queue, so the idle state below is
+    // guarded by `lock`. The check itself always runs on the main queue.
+    private var idleSeconds: TimeInterval = 30
     /// Uptime at which the last scheduled sound finishes.
     private var busyUntil: TimeInterval = 0
     private var idleCheck: DispatchWorkItem?
+
+    /// Notes that a sound plays until `until`, so the idle check leaves the engine alone.
+    private func markBusy(until: TimeInterval = ProcessInfo.processInfo.systemUptime) {
+        lock.lock(); busyUntil = max(busyUntil, until); lock.unlock()
+    }
 
     /// Returns whether the engine is running and the players can take buffers.
     @discardableResult
     private func startIfNeeded() -> Bool {
         guard !suspended, !waitingToRetry else { return false }
+        // Before the running check, so an idle check on the main queue can't
+        // pause the engine between that check and the buffer being scheduled.
+        markBusy()
         if !engine.isRunning {
             // While the output device is going away (sleep, unplugging) its
             // format reads as empty and starting would fail or half-succeed.
@@ -281,7 +296,6 @@ final class SoundEngine {
             }
         }
         lock.lock(); retryDelay = 0; lock.unlock()
-        busyUntil = max(busyUntil, ProcessInfo.processInfo.systemUptime)
         scheduleIdleCheck(after: idleTimeout)
         return true
     }
@@ -290,13 +304,17 @@ final class SoundEngine {
     /// stop: it releases the device but keeps the graph and the player nodes
     /// running, so restarting costs no more than the first start did.
     private func scheduleIdleCheck(after delay: TimeInterval) {
-        guard idleCheck == nil, idleTimeout > 0 else { return }
+        lock.lock(); defer { lock.unlock() }
+        guard idleCheck == nil, idleSeconds > 0 else { return }
         let check = DispatchWorkItem { [weak self] in
             guard let self else { return }
+            lock.lock()
             idleCheck = nil
             let idle = ProcessInfo.processInfo.systemUptime - busyUntil
-            if idle < idleTimeout {
-                scheduleIdleCheck(after: idleTimeout - idle)
+            let timeout = idleSeconds
+            lock.unlock()
+            if idle < timeout {
+                scheduleIdleCheck(after: timeout - idle)
             } else if !suspended, engine.isRunning {
                 engine.pause()
                 log.debug("Audio engine paused after \(Int(idle), privacy: .public) s idle")
@@ -413,7 +431,7 @@ final class SoundEngine {
         node.volume = max(0, min(1, volume))
         guard schedule(buffer, on: node) else { return 0 }
         let duration = Double(buffer.frameLength) / buffer.format.sampleRate
-        busyUntil = max(busyUntil, ProcessInfo.processInfo.systemUptime + duration)
+        markBusy(until: ProcessInfo.processInfo.systemUptime + duration)
         return duration
     }
 
@@ -477,7 +495,7 @@ final class SoundEngine {
         node.volume = max(0, min(1, volume))
         guard schedule(buffer, on: node) else { return 0 }
         let duration = Double(buffer.frameLength) / buffer.format.sampleRate
-        busyUntil = max(busyUntil, ProcessInfo.processInfo.systemUptime + duration)
+        markBusy(until: ProcessInfo.processInfo.systemUptime + duration)
         return duration
     }
 
