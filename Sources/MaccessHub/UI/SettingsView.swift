@@ -14,6 +14,8 @@ struct SettingsView: View {
                 .tabItem { Label("Key Clicks", systemImage: "keyboard") }
             FocusSoundsSettingsView(store: store, library: library)
                 .tabItem { Label("Focus", systemImage: "scope") }
+            AppSoundsSettingsView(store: store)
+                .tabItem { Label("Apps", systemImage: "app.badge") }
             ToolsSettingsView(store: store)
                 .tabItem { Label("Tools", systemImage: "wrench.and.screwdriver") }
             ShortcutsSettingsView(store: store)
