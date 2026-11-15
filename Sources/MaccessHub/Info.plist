@@ -25,7 +25,7 @@
 	<key>LSUIElement</key>
 	<true/>
 	<key>NSAppleEventsUsageDescription</key>
-	<string>MaccessHub asks VoiceOver to speak messages when VoiceOver is running.</string>
+	<string>MaccessHub asks VoiceOver to speak messages, and reads what VoiceOver last said to keep a speech history.</string>
 	<key>NSBluetoothAlwaysUsageDescription</key>
 	<string>MaccessHub plays a sound when Bluetooth devices connect or disconnect.</string>
 	<key>NSHumanReadableCopyright</key>

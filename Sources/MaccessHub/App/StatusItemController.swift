@@ -25,6 +25,7 @@ final class StatusItemController: NSObject, NSMenuDelegate {
         menu.addItem(focusSoundsItem)
         menu.addItem(.separator())
         menu.addItem(withTitle: "Speak Menu Extras", action: #selector(speakMenuExtras), keyEquivalent: "").target = self
+        menu.addItem(withTitle: "Speech History…", action: #selector(showSpeechHistory), keyEquivalent: "").target = self
         menu.addItem(.separator())
         let settings = menu.addItem(withTitle: "Settings…", action: #selector(openSettings), keyEquivalent: ",")
         settings.target = self
@@ -47,6 +48,7 @@ final class StatusItemController: NSObject, NSMenuDelegate {
     @objc private func toggleKeyClicks() { AppController.shared.toggleKeyClicks() }
     @objc private func toggleFocusSounds() { AppController.shared.toggleFocusSounds() }
     @objc private func speakMenuExtras() { AppController.shared.menuExtras.speakAll() }
+    @objc private func showSpeechHistory() { SpeechHistoryWindowController.shared.show() }
     @objc private func openSettings() { SettingsWindowController.shared.show() }
     @objc private func openSoundpacksFolder() {
         NSWorkspace.shared.activateFileViewerSelecting([SoundpackLibrary.userPacksDirectory])

@@ -682,6 +682,11 @@ struct SoundProcessingSettingsView: View {
 struct ToolsSettingsView: View {
     @Bindable var store: SettingsStore
 
+    /// Preset sizes, plus the stored value if it was hand-edited to something else.
+    static func historySizes(including current: Int) -> [Int] {
+        Array(Set([50, 100, 250, 500, 1000, 2500, 5000, current])).sorted()
+    }
+
     var body: some View {
         Form {
             Section("Audio Devices") {
@@ -697,6 +702,22 @@ struct ToolsSettingsView: View {
                 Toggle("Turn on menu extra shortcuts (Option-Shift-1 through 0)", isOn: $store.data.menuExtras.enabled)
                 Button("Speak All Menu Extras Now") { AppController.shared.menuExtras.speakAll() }
                 Text("Menu extras are the status icons on the right side of the menu bar, like Wi-Fi and Battery. They're numbered from left to right, skipping hidden ones. Press a shortcut once to hear an item, twice to open it.")
+                    .font(.callout).foregroundStyle(.secondary)
+            }
+            Section("Speech History") {
+                Toggle("Keep a history of VoiceOver speech", isOn: $store.data.speechHistory.enabled)
+                Picker("Maximum announcements", selection: $store.data.speechHistory.maximumEntries) {
+                    ForEach(Self.historySizes(including: store.data.speechHistory.maximumEntries), id: \.self) {
+                        Text("\($0)").tag($0)
+                    }
+                }
+                Toggle("Trim whitespace from the beginning", isOn: $store.data.speechHistory.trimLeadingWhitespace)
+                Toggle("Trim whitespace from the end", isOn: $store.data.speechHistory.trimTrailingWhitespace)
+                HStack {
+                    Button("Open Speech History…") { SpeechHistoryWindowController.shared.show() }
+                    Button("Clear Speech History") { AppController.shared.speechHistory.clear() }
+                }
+                Text("Review what VoiceOver said with Shift-F11 and Shift-F12, and copy the current announcement with F12. Recording and the history window can be given shortcuts under Shortcuts. VoiceOver cannot tell MaccessHub when the same announcement is spoken twice in a row, so repeats are stored once.")
                     .font(.callout).foregroundStyle(.secondary)
             }
             Section("Double Press") {
