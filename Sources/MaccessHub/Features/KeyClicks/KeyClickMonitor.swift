@@ -7,6 +7,18 @@ import os
 enum KeyCategory: String {
     case lower, upper, digit, punctuation, space, enter, tab, delete, navigation, function, other
     var eventID: String { "key.\(rawValue)" }
+
+    /// The category to play in a password field, where a distinct sound per
+    /// kind of character would tell anyone listening (or any recording) what
+    /// is being typed. Every key that enters a character gets the lowercase
+    /// sound. Return, Delete, Tab, arrows and function keys keep their own:
+    /// they reveal nothing about the password's characters.
+    var masked: KeyCategory {
+        switch self {
+        case .lower, .upper, .digit, .punctuation, .space, .other: return .lower
+        case .enter, .tab, .delete, .navigation, .function: return self
+        }
+    }
 }
 
 /// Listens to key presses system-wide with a passive event tap and classifies
@@ -22,6 +34,8 @@ final class KeyClickMonitor {
     var ignoreWithCommand = true
     var ignoreWithControl = false
     var ignoreWithOption = false
+    /// Play the same click for every character key in a password field.
+    var maskSecureFields = true
 
     /// Called on a background queue with the category of each qualifying key press.
     var onKey: ((KeyCategory) -> Void)?
@@ -86,12 +100,15 @@ final class KeyClickMonitor {
         let characters = NSEvent(cgEvent: event)?.characters ?? ""
         let category = Self.classify(keyCode: keyCode, characters: characters)
         let scope = self.scope
+        let maskSecureFields = self.maskSecureFields
         queue.async { [weak self] in
             guard let self else { return }
-            let inField = Self.isTypingInTextField()
-            self.log.debug("key \(category.rawValue, privacy: .public) scope=\(scope.rawValue, privacy: .public) inTextField=\(inField, privacy: .public)")
-            if scope == .textFieldsOnly, !inField { return }
-            self.onKey?(category)
+            let field = Self.focusedField()
+            if scope == .textFieldsOnly, !field.isText { return }
+            let played = maskSecureFields && field.isSecure ? category.masked : category
+            // Log the category actually played, so a password's shape never reaches the log.
+            self.log.debug("key \(played.rawValue, privacy: .public) scope=\(scope.rawValue, privacy: .public) inTextField=\(field.isText, privacy: .public) secure=\(field.isSecure, privacy: .public)")
+            self.onKey?(played)
         }
     }
 
@@ -134,17 +151,24 @@ final class KeyClickMonitor {
         kAXTextFieldRole, kAXTextAreaRole, kAXComboBoxRole, "AXSearchField", "AXSecureTextField",
     ]
 
-    static func isTypingInTextField() -> Bool {
-        guard let focused = AXElement.focused, let role = focused.role else { return false }
-        if textRoles.contains(role) { return true }
+    static let secureTextFieldRole = "AXSecureTextField"
+
+    /// One lookup of the focused element answers both questions: is it a text
+    /// field, and is it a password field. Native password fields report the
+    /// role AXSecureTextField; web password inputs (Safari, Chrome) usually
+    /// report the role AXTextField with the subrole AXSecureTextField.
+    static func focusedField() -> (isText: Bool, isSecure: Bool) {
+        guard let focused = AXElement.focused, let role = focused.role else { return (false, false) }
+        let isSecure = role == secureTextFieldRole || focused.subrole == secureTextFieldRole
+        if isSecure || textRoles.contains(role) { return (true, isSecure) }
         // Editable web content reports a generic role with an editable flag,
         // or a selected text range it lets us read.
         if role == "AXWebArea" || role == kAXGroupRole || role == kAXStaticTextRole {
-            if focused.bool("AXEditable") == true { return true }
+            if focused.bool("AXEditable") == true { return (true, false) }
             if focused.range(kAXSelectedTextRangeAttribute) != nil, focused.int(kAXNumberOfCharactersAttribute) != nil {
-                return true
+                return (true, false)
             }
         }
-        return false
+        return (false, false)
     }
 }
