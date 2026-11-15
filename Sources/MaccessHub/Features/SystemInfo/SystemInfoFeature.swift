@@ -65,7 +65,7 @@ final class SystemInfoFeature {
 
     func speakDisks() {
         let volumes = SystemStats.volumes(browsableOnly: browsableVolumesOnly)
-        guard !volumes.isEmpty else { speaker.speak("No volumes found."); return }
+        guard !volumes.isEmpty else { speaker.speak("No disks found."); return }
         let parts = volumes.map {
             "\($0.name) (\($0.format)): \(SystemStats.bytesToHuman($0.used)) of \(SystemStats.bytesToHuman($0.total)) used, \($0.percentUsed) percent."
         }
@@ -89,7 +89,7 @@ final class SystemInfoFeature {
 
     func speakOSVersion() { speaker.speak(SystemStats.osVersionDescription()) }
 
-    func speakUptime() { speaker.speak("Up \(SystemStats.uptimeDescription()).") }
+    func speakUptime() { speaker.speak("Up for \(SystemStats.uptimeDescription()).") }
 
     func speakBattery() {
         guard let status = BatteryStatus.current(), status.hasBattery else {

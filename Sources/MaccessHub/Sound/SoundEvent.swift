@@ -11,7 +11,7 @@ enum SoundGroup: String, CaseIterable, Identifiable {
         case .application: return "Applications"
         case .system: return "System"
         case .power: return "Power & Battery"
-        case .storage: return "Disks & Volumes"
+        case .storage: return "Disks"
         case .usb: return "USB"
         case .bluetooth: return "Bluetooth"
         case .network: return "Network"
@@ -55,10 +55,10 @@ struct SoundEvent: Identifiable, Hashable {
 
     static let all: [SoundEvent] = [
         // Applications
-        SoundEvent("application.launching", "Application starting", .application),
-        SoundEvent("application.launched", "Application launched", .application),
-        SoundEvent("application.terminated", "Application quit", .application),
-        SoundEvent("application.activated", "Application came to front", .application, defaultEnabled: false,
+        SoundEvent("application.launching", "App starting to open", .application),
+        SoundEvent("application.launched", "App finished opening", .application),
+        SoundEvent("application.terminated", "App quit", .application),
+        SoundEvent("application.activated", "Switched to another app", .application, defaultEnabled: false,
                    note: "Plays every time you switch apps."),
 
         // System
@@ -68,14 +68,14 @@ struct SoundEvent: Identifiable, Hashable {
         SoundEvent("system.didWake", "Woke from sleep", .system),
         SoundEvent("system.screenLocked", "Screen locked", .system, defaultEnabled: false),
         SoundEvent("system.screenUnlocked", "Screen unlocked", .system, defaultEnabled: false),
-        SoundEvent("system.spaceChanged", "Desktop space changed", .system),
+        SoundEvent("system.spaceChanged", "Switched to another desktop (Space)", .system),
         SoundEvent("display.connected", "Display connected", .system),
         SoundEvent("display.disconnected", "Display disconnected", .system),
 
         // Power
-        SoundEvent("power.acPower", "Switched to AC power", .power),
+        SoundEvent("power.acPower", "Switched to the power adapter", .power),
         SoundEvent("power.batteryPower", "Switched to battery power", .power),
-        SoundEvent("power.upsPower", "Switched to UPS power", .power),
+        SoundEvent("power.upsPower", "Switched to UPS (backup battery) power", .power),
         SoundEvent("power.charging", "Battery started charging", .power),
         SoundEvent("power.charged", "Battery fully charged", .power),
         SoundEvent("power.battery20Minutes", "20 minutes of battery left", .power),
@@ -83,10 +83,10 @@ struct SoundEvent: Identifiable, Hashable {
         SoundEvent("power.battery5Minutes", "5 minutes of battery left", .power),
 
         // Storage
-        SoundEvent("storage.mounted", "Volume mounted", .storage),
-        SoundEvent("storage.willUnmount", "Volume about to unmount", .storage),
-        SoundEvent("storage.unmounted", "Volume unmounted", .storage),
-        SoundEvent("storage.renamed", "Volume renamed", .storage),
+        SoundEvent("storage.mounted", "Disk connected", .storage),
+        SoundEvent("storage.willUnmount", "Disk about to be ejected", .storage),
+        SoundEvent("storage.unmounted", "Disk ejected", .storage),
+        SoundEvent("storage.renamed", "Disk renamed", .storage),
 
         // USB
         SoundEvent("usb.connected", "USB device connected", .usb),
@@ -106,7 +106,7 @@ struct SoundEvent: Identifiable, Hashable {
 
         // Windows (accessibility observer on the frontmost app)
         SoundEvent("window.created", "Window opened", .window, defaultEnabled: false),
-        SoundEvent("window.focused", "Window focus changed", .window, defaultEnabled: false),
+        SoundEvent("window.focused", "Switched to another window", .window, defaultEnabled: false),
         SoundEvent("window.minimized", "Window minimized", .window, defaultEnabled: false),
         SoundEvent("window.restored", "Window restored from Dock", .window, defaultEnabled: false),
         SoundEvent("window.dialogOpened", "Dialog or sheet opened", .window, defaultEnabled: false),
@@ -118,7 +118,7 @@ struct SoundEvent: Identifiable, Hashable {
         SoundEvent("ui.rowExpanded", "Row expanded", .ui, defaultEnabled: false),
         SoundEvent("ui.rowCollapsed", "Row collapsed", .ui, defaultEnabled: false),
         SoundEvent("ui.selectedRowChanged", "Selected row changed", .ui, defaultEnabled: false,
-                   note: "Fires on every arrow key in tables and lists."),
+                   note: "Plays on every arrow key press in lists and tables."),
 
         // Music
         SoundEvent("media.playing", "Music started playing", .media),
@@ -128,17 +128,17 @@ struct SoundEvent: Identifiable, Hashable {
 
         // Audio devices (played by the mute shortcut when mute feedback is set to sound)
         SoundEvent("audio.inputMuted", "Microphone muted", .audio,
-                   note: "Used by the mute shortcut when its feedback is set to a sound."),
+                   note: "Plays when the mute shortcut is set to play a sound, in Tools."),
         SoundEvent("audio.inputUnmuted", "Microphone unmuted", .audio,
-                   note: "Used by the mute shortcut when its feedback is set to a sound."),
+                   note: "Plays when the mute shortcut is set to play a sound, in Tools."),
 
         // Focus sounds (Unspoken slots), played when focus lands on a control.
         SoundEvent("focus.button", "Button", .focus),
         SoundEvent("focus.checkbox", "Checkbox or switch", .focus),
         SoundEvent("focus.radioButton", "Radio button", .focus),
-        SoundEvent("focus.comboBox", "Pop-up or combo box", .focus),
+        SoundEvent("focus.comboBox", "Pop-up menu or combo box", .focus),
         SoundEvent("focus.splitButton", "Menu button", .focus),
-        SoundEvent("focus.editableText", "Text field or text", .focus),
+        SoundEvent("focus.editableText", "Text field or text area", .focus),
         SoundEvent("focus.link", "Link", .focus),
         SoundEvent("focus.listItem", "List or table row", .focus),
         SoundEvent("focus.treeItem", "Outline row", .focus),
@@ -151,7 +151,7 @@ struct SoundEvent: Identifiable, Hashable {
         // Key clicks. Fallbacks let a six-sound pack (like Classic) cover every category.
         SoundEvent("key.lower", "Lowercase letter", .keys),
         SoundEvent("key.upper", "Uppercase letter", .keys, fallbacks: ["key.lower"]),
-        SoundEvent("key.digit", "Digit", .keys, fallbacks: ["key.other"]),
+        SoundEvent("key.digit", "Number", .keys, fallbacks: ["key.other"]),
         SoundEvent("key.punctuation", "Punctuation or symbol", .keys, fallbacks: ["key.other"]),
         SoundEvent("key.space", "Space", .keys),
         SoundEvent("key.enter", "Return", .keys),

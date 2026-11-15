@@ -30,8 +30,8 @@ struct SoundScheme {
             switch self {
             case .override: return "Custom file"
             case .pack(_, let p): return p.name
-            case .fallback(_, let p, let via): return "\(p.name), using \(via)"
-            case .classic: return "Classic (fallback)"
+            case .fallback(_, let p, let via): return "\(p.name), same sound as \(SoundEvent.byID[via]?.title ?? via)"
+            case .classic: return "Classic (not in this pack)"
             }
         }
     }

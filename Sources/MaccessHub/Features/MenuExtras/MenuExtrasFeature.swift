@@ -27,7 +27,7 @@ final class MenuExtrasFeature {
         queue.async { [speaker] in
             let extras = Self.visibleExtras()
             guard index >= 1, index <= extras.count else {
-                speaker.speak(extras.isEmpty ? "No menu extras found." : "Only \(extras.count) menu extras.")
+                speaker.speak(extras.isEmpty ? "No menu extras found." : "There are only \(extras.count) menu extras.")
                 return
             }
             let extra = extras[index - 1]
