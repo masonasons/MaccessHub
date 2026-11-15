@@ -21,16 +21,27 @@ final class BluetoothMonitor: NSObject, EventMonitor {
         disconnectNotifications.removeAll()
     }
 
+    // IOBluetooth calls these on its own queue
+    // (com.apple.bluetooth.iobluetooth.coordinatorQueue on macOS 26), not the
+    // main thread. Everything downstream (the sound engine, settings, the
+    // disconnect list here) expects the main thread, so hop there first.
+
     @objc private func deviceConnected(_ notification: IOBluetoothUserNotification, device: IOBluetoothDevice) {
-        onEvent?("bluetooth.connected")
-        if let note = device.register(forDisconnectNotification: self, selector: #selector(deviceDisconnected(_:device:))) {
-            disconnectNotifications.append(note)
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            onEvent?("bluetooth.connected")
+            if let note = device.register(forDisconnectNotification: self, selector: #selector(deviceDisconnected(_:device:))) {
+                disconnectNotifications.append(note)
+            }
         }
     }
 
     @objc private func deviceDisconnected(_ notification: IOBluetoothUserNotification, device: IOBluetoothDevice) {
-        onEvent?("bluetooth.disconnected")
-        notification.unregister()
-        disconnectNotifications.removeAll { $0 == notification }
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            onEvent?("bluetooth.disconnected")
+            notification.unregister()
+            disconnectNotifications.removeAll { $0 == notification }
+        }
     }
 }
