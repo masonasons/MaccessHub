@@ -59,6 +59,17 @@ struct GeneralSettingsView: View {
             Section("Startup") {
                 Toggle("Launch MaccessHub at login", isOn: $store.data.general.launchAtLogin)
             }
+            Section("Audio") {
+                Picker("Release the audio device after", selection: $store.data.general.audioIdleTimeout) {
+                    Text("10 seconds of quiet").tag(10.0)
+                    Text("30 seconds of quiet").tag(30.0)
+                    Text("1 minute of quiet").tag(60.0)
+                    Text("5 minutes of quiet").tag(300.0)
+                    Text("Never (keeps the Mac awake)").tag(0.0)
+                }
+                Text("While MaccessHub holds the audio device, the Mac can't go to sleep on its own. Releasing it sooner saves battery. The first sound after a release can start a moment late.")
+                    .font(.callout).foregroundStyle(.secondary)
+            }
             Section("Speech") {
                 Picker("Speak messages with", selection: $store.data.general.speechOutput) {
                     ForEach(SpeechOutput.allCases) { Text($0.title).tag($0) }
