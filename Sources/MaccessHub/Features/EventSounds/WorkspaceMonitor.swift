@@ -14,6 +14,23 @@ final class WorkspaceMonitor: EventMonitor {
     private var lastTrack: String?
     private var lastPlayerState: String?
 
+    /// True for an app a person would think of as an app: an .app bundle that
+    /// is not tucked inside a framework. System helpers that put up UI for
+    /// someone else (authentication prompts, XPC services, plug-in hosts) are
+    /// .bundle or .xpc, or live inside a framework, like SecurityAgent.
+    /// When the notification carries no app, it is let through unchanged.
+    static func isUserFacingApp(_ note: Notification) -> Bool {
+        guard let app = note.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication,
+              let url = app.bundleURL else { return true }
+        return isUserFacingAppPath(url.path)
+    }
+
+    static func isUserFacingAppPath(_ path: String) -> Bool {
+        let url = URL(fileURLWithPath: path)
+        guard url.pathExtension.lowercased() == "app" else { return false }
+        return !path.contains(".framework/")
+    }
+
     private static func currentDisplayIDs() -> Set<CGDirectDisplayID> {
         Set(NSScreen.screens.compactMap { $0.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? CGDirectDisplayID })
     }
@@ -28,13 +45,24 @@ final class WorkspaceMonitor: EventMonitor {
             observe(name) { [weak self] _ in self?.onEvent?(eventID) }
         }
 
-        emit(NSWorkspace.willLaunchApplicationNotification, "application.launching")
-        emit(NSWorkspace.didLaunchApplicationNotification, "application.launched")
-        emit(NSWorkspace.didTerminateApplicationNotification, "application.terminated")
+        // App events only for real apps. A Touch ID or password prompt is drawn
+        // by system helpers (coreautha.bundle, LocalAuthenticationRemoteService.xpc)
+        // that start and quit with every prompt, and each one used to play
+        // "App finished opening" and "App quit", so one prompt sounded twice.
+        func emitApp(_ name: Notification.Name, _ eventID: String) {
+            observe(name) { [weak self] note in
+                guard Self.isUserFacingApp(note) else { return }
+                self?.onEvent?(eventID)
+            }
+        }
+        emitApp(NSWorkspace.willLaunchApplicationNotification, "application.launching")
+        emitApp(NSWorkspace.didLaunchApplicationNotification, "application.launched")
+        emitApp(NSWorkspace.didTerminateApplicationNotification, "application.terminated")
         observe(NSWorkspace.didActivateApplicationNotification) { [weak self] note in
             // Ignore our own activation (opening settings) to avoid a self-triggered sound.
             if let app = note.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication,
                app.processIdentifier == ProcessInfo.processInfo.processIdentifier { return }
+            guard Self.isUserFacingApp(note) else { return }
             self?.onEvent?("application.activated")
         }
 
