@@ -12,6 +12,13 @@ final class VoiceOverSpeechMonitor {
     private var timer: DispatchSourceTimer?
     private var lastPhrase: String?
     private var failureLogged = false
+    /// Uptime before which polls are skipped: while Automation access is
+    /// denied, and for a while after VoiceOver stops answering.
+    private var pausedUntil: TimeInterval = 0
+    /// Failed reads in a row, for the back-off.
+    private var failures = 0
+    /// The Automation prompt is shown at most once per launch.
+    private var askedForPermission = false
 
     /// Called on the main thread with each new phrase.
     var onPhrase: ((String) -> Void)?
@@ -36,6 +43,8 @@ final class VoiceOverSpeechMonitor {
     // Runs on `queue`. The timer does not fire again until this returns, so a
     // slow reply delays polling instead of stacking requests.
     private func poll() {
+        let now = ProcessInfo.processInfo.systemUptime
+        guard now >= pausedUntil else { return }
         // Addressed by PID, not bundle ID, so a poll racing VoiceOver's exit
         // cannot relaunch it.
         guard let pid = NSRunningApplication.runningApplications(withBundleIdentifier: "com.apple.VoiceOver")
@@ -43,10 +52,52 @@ final class VoiceOverSpeechMonitor {
             lastPhrase = nil
             return
         }
-        guard let phrase = Self.readLastPhrase(pid: pid, log: log, failureLogged: &failureLogged),
-              phrase != lastPhrase else { return }
+        guard mayAutomate(pid: pid) else { return }
+        guard let phrase = Self.readLastPhrase(pid: pid, log: log, failureLogged: &failureLogged) else {
+            // Back off while VoiceOver isn't answering (1, 2, 4 ... up to 30 s)
+            // rather than asking ten times a second.
+            failures += 1
+            if failures >= 3 {
+                pausedUntil = ProcessInfo.processInfo.systemUptime + min(30, pow(2, Double(failures - 3)))
+            }
+            return
+        }
+        failures = 0
+        guard phrase != lastPhrase else { return }
         lastPhrase = phrase
         DispatchQueue.main.async { [weak self] in self?.onPhrase?(phrase) }
+    }
+
+    /// Whether MaccessHub may send Apple Events to VoiceOver. Checked without
+    /// prompting on every poll. When macOS hasn't asked yet, asks once and
+    /// waits for the answer: polling stops meanwhile, because the timer won't
+    /// fire again until this returns. Before, every poll sent the event itself
+    /// and gave up after a second, so the Automation prompt was put up and
+    /// withdrawn ten times a second and flashed in and out of focus.
+    private func mayAutomate(pid: pid_t) -> Bool {
+        let target = NSAppleEventDescriptor(processIdentifier: pid)
+        var status = AEDeterminePermissionToAutomateTarget(target.aeDesc, typeWildCard, typeWildCard, false)
+        if status == OSStatus(errAEEventWouldRequireUserConsent), !askedForPermission {
+            askedForPermission = true
+            log.info("Asking for Automation access to VoiceOver for speech history")
+            status = AEDeterminePermissionToAutomateTarget(target.aeDesc, typeWildCard, typeWildCard, true)
+        }
+        switch status {
+        case noErr:
+            return true
+        case OSStatus(errAEEventNotPermitted), OSStatus(errAEEventWouldRequireUserConsent):
+            // Denied, or the one prompt was dismissed. Check again now and then,
+            // silently, in case access is turned on in System Settings.
+            if !failureLogged {
+                log.error("Speech history has no Automation access to VoiceOver (status \(status, privacy: .public))")
+                failureLogged = true
+            }
+            pausedUntil = ProcessInfo.processInfo.systemUptime + 10
+            return false
+        default:
+            // VoiceOver quitting, say. The read decides.
+            return true
+        }
     }
 
     /// `get content of last phrase` sent as a raw Apple Event: unlike
@@ -61,7 +112,8 @@ final class VoiceOverSpeechMonitor {
                                            transactionID: AETransactionID(kAnyTransactionID))
         event.setParam(content, forKeyword: keyDirectObject)
         do {
-            let reply = try event.sendEvent(options: [.waitForReply], timeout: 1)
+            // Never interact: a poll must never put up a dialog.
+            let reply = try event.sendEvent(options: [.waitForReply, .neverInteract], timeout: 1)
             failureLogged = false
             return reply.paramDescriptor(forKeyword: keyDirectObject)?.stringValue
         } catch {
