@@ -257,6 +257,7 @@ struct EventSoundsSettingsView: View {
             Section {
                 Toggle("Play sounds for system events", isOn: $store.data.eventSounds.enabled)
                 SoundpackPicker(title: "Soundpack", packID: $store.data.eventSounds.packID, library: library)
+                GetMoreSoundpacksButton(library: library)
                 Slider(value: $store.data.eventSounds.volume, in: 0...1) { Text("Volume") }
                     .accessibilityValue("\(Int(store.data.eventSounds.volume * 100)) percent")
                 Toggle("Use the Classic sound when this pack has none", isOn: $store.data.eventSounds.fillMissingFromClassic)
@@ -887,6 +888,7 @@ struct SoundpacksSettingsView: View {
                 Button("Import Soundpack Folder…") { importPack() }
                 Button("Import NVDA Sounds…") { importNVDA() }
                     .help("Imports a typing or navigation pack from the NVDA add-on Navigation Sounds, as a folder or a zip file.")
+                GetMoreSoundpacksButton(library: library) { selection = $0 }
                 Spacer()
                 Button("Show in Finder") {
                     if let pack = selectedPack { NSWorkspace.shared.activateFileViewerSelecting([pack.url]) }

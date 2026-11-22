@@ -211,6 +211,40 @@ buttons to preview the new pack or start using it.
 checkout of Navigation Sounds into a temporary folder and prints what each
 pack turns into.
 
+### Get More Soundpacks (classic sound schemes)
+
+**Get More Soundpacks…**, on the Soundpacks and Event Sounds tabs, lists
+classic sound schemes: Windows 3.x through 11, the Plus! themes, the Mac OS 9
+Platinum sounds, Android's AOSP sounds and a couple of iPhone sets. Pick one,
+press Download, and MaccessHub fetches its sounds, maps each to an event and
+saves the result as an ordinary user pack. It doesn't switch you to the new
+pack; choose it as your soundpack when you want it.
+
+**MaccessHub doesn't include or host any of these sounds.** They're
+downloaded, at your request, from third-party public sources where they
+already live: the Internet Archive for the Microsoft and Apple sounds, and the
+Android Open Source Project's GitHub mirror for the Android ones. The
+Microsoft and Apple sounds belong to their makers and are for your own use.
+The Android sounds are Apache 2.0.
+
+What ships is `Resources/SoundCatalog/catalog.json`: for each pack, one URL per
+event, with its size and SHA-256. The download is refused unless it's https
+from archive.org or raw.githubusercontent.com and matches the hash. Files in
+formats MaccessHub doesn't read directly (QuickTime `.mov`, Ogg) are converted
+to `.caf` on your Mac. Downloads show progress, and the start, 25, 50 and 75
+percent, and the result are announced. A sound that can't be fetched is left
+out and named in the result.
+
+`scripts/make-sound-catalog.py` builds the catalog. The event mapping comes
+from [WinSounds](https://github.com/Matthew2244/winsounds), which works out each
+file's Windows event from its name; the script's `SLOTS` table turns those into
+MaccessHub events (Platinum's sounds are mapped by their Appearance Manager
+codes). A file is used only when a byte-identical copy is found online, and
+every URL is downloaded once more and checked before the catalog is written.
+`.7z` sources are skipped. `make check` checks the catalog, and
+`make check-catalog-download` downloads the two smallest packs into a scratch
+folder.
+
 ## Building
 
 Requires Xcode and [xcodegen](https://github.com/yonaskolb/XcodeGen).

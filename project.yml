@@ -31,6 +31,10 @@ targets:
       - path: Resources/Soundpacks
         type: folder
         buildPhase: resources
+      # The downloadable soundpack list (no audio; see scripts/make-sound-catalog.py).
+      - path: Resources/SoundCatalog
+        type: folder
+        buildPhase: resources
     dependencies:
       - package: Sparkle
     entitlements:
