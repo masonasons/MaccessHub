@@ -80,8 +80,14 @@ struct SoundCatalogCheck {
                 check(loaded?.eventCount == pack.files.count,
                       "\(pack.name): \(loaded?.eventCount ?? 0) of \(pack.files.count) sounds usable, skipped \(outcome.skipped)")
                 check(loaded?.manifest.name == outcome.folderName, "\(pack.name): pack.json names the pack")
+                library.reload()
                 check(FileManager.default.fileExists(atPath: folder.appendingPathComponent(SoundCatalog.markerName).path),
                       "\(pack.name): marked as downloaded")
+                let markerData = try? Data(contentsOf: folder.appendingPathComponent(SoundCatalog.markerName))
+                let decoder = JSONDecoder()
+                decoder.dateDecodingStrategy = .iso8601
+                check(markerData.flatMap { try? decoder.decode(SoundCatalog.Marker.self, from: $0) }?.catalogID == pack.id,
+                      "\(pack.name): marker names the catalog pack")
                 for (event, url) in (loaded?.files ?? [:]).sorted(by: { $0.key < $1.key }) {
                     print("    \(event) <- \(url.lastPathComponent)")
                 }

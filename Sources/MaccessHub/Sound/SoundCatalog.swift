@@ -87,10 +87,12 @@ struct SoundCatalog: Decodable {
     /// Catalog pack id → user pack folder name, for packs already downloaded.
     static func installed(in library: SoundpackLibrary) -> [String: String] {
         var result: [String: String] = [:]
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
         for pack in library.packs where !pack.isBuiltIn {
             let url = pack.url.appendingPathComponent(markerName)
             if let data = try? Data(contentsOf: url),
-               let marker = try? JSONDecoder().decode(Marker.self, from: data) {
+               let marker = try? decoder.decode(Marker.self, from: data) {
                 result[marker.catalogID] = pack.id
             }
         }
