@@ -1147,13 +1147,37 @@
    "sources": [
     "https://archive.org/details/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt"
    ],
-   "bytes": 392604,
+   "bytes": 946248,
    "files": [
     {
      "event": "application.terminated",
      "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/Architecture/ar_minim.wav",
      "bytes": 13774,
      "sha256": "be10ec4c41271f4c270fdb44566b5d88eec55a3c49710e9bc0397f78f9034765"
+    },
+    {
+     "event": "bluetooth.connected",
+     "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/Architecture/ar_syste.wav",
+     "bytes": 42588,
+     "sha256": "ba4bc0bc3db33d2378afb24b22f6a1dc5f2d561f83c7b099221771e24ca48b31"
+    },
+    {
+     "event": "bluetooth.disconnected",
+     "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/Architecture/ar_syste.wav",
+     "bytes": 42588,
+     "sha256": "ba4bc0bc3db33d2378afb24b22f6a1dc5f2d561f83c7b099221771e24ca48b31"
+    },
+    {
+     "event": "display.connected",
+     "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/Architecture/ar_syste.wav",
+     "bytes": 42588,
+     "sha256": "ba4bc0bc3db33d2378afb24b22f6a1dc5f2d561f83c7b099221771e24ca48b31"
+    },
+    {
+     "event": "display.disconnected",
+     "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/Architecture/ar_syste.wav",
+     "bytes": 42588,
+     "sha256": "ba4bc0bc3db33d2378afb24b22f6a1dc5f2d561f83c7b099221771e24ca48b31"
     },
     {
      "event": "media.paused",
@@ -1180,10 +1204,52 @@
      "sha256": "ba4bc0bc3db33d2378afb24b22f6a1dc5f2d561f83c7b099221771e24ca48b31"
     },
     {
+     "event": "power.acPower",
+     "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/Architecture/ar_syste.wav",
+     "bytes": 42588,
+     "sha256": "ba4bc0bc3db33d2378afb24b22f6a1dc5f2d561f83c7b099221771e24ca48b31"
+    },
+    {
+     "event": "power.battery10Minutes",
+     "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/Architecture/ar_syste.wav",
+     "bytes": 42588,
+     "sha256": "ba4bc0bc3db33d2378afb24b22f6a1dc5f2d561f83c7b099221771e24ca48b31"
+    },
+    {
+     "event": "power.battery20Minutes",
+     "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/Architecture/ar_syste.wav",
+     "bytes": 42588,
+     "sha256": "ba4bc0bc3db33d2378afb24b22f6a1dc5f2d561f83c7b099221771e24ca48b31"
+    },
+    {
      "event": "power.battery5Minutes",
      "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/Architecture/ar_criti.wav",
      "bytes": 19874,
      "sha256": "29b9826affa1c0731ae67e89894c9fa408ebfe78d72d698e7c1a682728b93b60"
+    },
+    {
+     "event": "power.batteryPower",
+     "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/Architecture/ar_syste.wav",
+     "bytes": 42588,
+     "sha256": "ba4bc0bc3db33d2378afb24b22f6a1dc5f2d561f83c7b099221771e24ca48b31"
+    },
+    {
+     "event": "power.upsPower",
+     "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/Architecture/ar_syste.wav",
+     "bytes": 42588,
+     "sha256": "ba4bc0bc3db33d2378afb24b22f6a1dc5f2d561f83c7b099221771e24ca48b31"
+    },
+    {
+     "event": "storage.mounted",
+     "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/Architecture/ar_syste.wav",
+     "bytes": 42588,
+     "sha256": "ba4bc0bc3db33d2378afb24b22f6a1dc5f2d561f83c7b099221771e24ca48b31"
+    },
+    {
+     "event": "storage.unmounted",
+     "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/Architecture/ar_syste.wav",
+     "bytes": 42588,
+     "sha256": "ba4bc0bc3db33d2378afb24b22f6a1dc5f2d561f83c7b099221771e24ca48b31"
     },
     {
      "event": "system.login",
@@ -1208,6 +1274,18 @@
      "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/Architecture/ar_menup.wav",
      "bytes": 8202,
      "sha256": "a1cc7bc94e865d391aa123f68af1de069ed35f54420e207561da5a76eeb15c7e"
+    },
+    {
+     "event": "usb.connected",
+     "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/Architecture/ar_syste.wav",
+     "bytes": 42588,
+     "sha256": "ba4bc0bc3db33d2378afb24b22f6a1dc5f2d561f83c7b099221771e24ca48b31"
+    },
+    {
+     "event": "usb.disconnected",
+     "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/Architecture/ar_syste.wav",
+     "bytes": 42588,
+     "sha256": "ba4bc0bc3db33d2378afb24b22f6a1dc5f2d561f83c7b099221771e24ca48b31"
     },
     {
      "event": "window.created",
@@ -1321,13 +1399,37 @@
    "sources": [
     "https://archive.org/details/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt"
    ],
-   "bytes": 400606,
+   "bytes": 895412,
    "files": [
     {
      "event": "application.terminated",
      "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/Cityscape/Cs_Minim.wav",
      "bytes": 13772,
      "sha256": "5ac110dfb9db89b750faff8001389f20cd22943c11ae2679df8fec4d4fae9052"
+    },
+    {
+     "event": "bluetooth.connected",
+     "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/Cityscape/Cs_Syste.wav",
+     "bytes": 38062,
+     "sha256": "b04480c7f8a3084f994180ae08162e7d657b56ff9794afd60edc6b67b7be8463"
+    },
+    {
+     "event": "bluetooth.disconnected",
+     "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/Cityscape/Cs_Syste.wav",
+     "bytes": 38062,
+     "sha256": "b04480c7f8a3084f994180ae08162e7d657b56ff9794afd60edc6b67b7be8463"
+    },
+    {
+     "event": "display.connected",
+     "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/Cityscape/Cs_Syste.wav",
+     "bytes": 38062,
+     "sha256": "b04480c7f8a3084f994180ae08162e7d657b56ff9794afd60edc6b67b7be8463"
+    },
+    {
+     "event": "display.disconnected",
+     "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/Cityscape/Cs_Syste.wav",
+     "bytes": 38062,
+     "sha256": "b04480c7f8a3084f994180ae08162e7d657b56ff9794afd60edc6b67b7be8463"
     },
     {
      "event": "media.paused",
@@ -1354,10 +1456,52 @@
      "sha256": "b04480c7f8a3084f994180ae08162e7d657b56ff9794afd60edc6b67b7be8463"
     },
     {
+     "event": "power.acPower",
+     "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/Cityscape/Cs_Syste.wav",
+     "bytes": 38062,
+     "sha256": "b04480c7f8a3084f994180ae08162e7d657b56ff9794afd60edc6b67b7be8463"
+    },
+    {
+     "event": "power.battery10Minutes",
+     "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/Cityscape/Cs_Syste.wav",
+     "bytes": 38062,
+     "sha256": "b04480c7f8a3084f994180ae08162e7d657b56ff9794afd60edc6b67b7be8463"
+    },
+    {
+     "event": "power.battery20Minutes",
+     "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/Cityscape/Cs_Syste.wav",
+     "bytes": 38062,
+     "sha256": "b04480c7f8a3084f994180ae08162e7d657b56ff9794afd60edc6b67b7be8463"
+    },
+    {
      "event": "power.battery5Minutes",
      "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/Cityscape/Cs_Criti.wav",
      "bytes": 53982,
      "sha256": "0156cdc0108c491f6d7e4b32a33426fc74158e470fc7be885d89da2884c8b520"
+    },
+    {
+     "event": "power.batteryPower",
+     "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/Cityscape/Cs_Syste.wav",
+     "bytes": 38062,
+     "sha256": "b04480c7f8a3084f994180ae08162e7d657b56ff9794afd60edc6b67b7be8463"
+    },
+    {
+     "event": "power.upsPower",
+     "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/Cityscape/Cs_Syste.wav",
+     "bytes": 38062,
+     "sha256": "b04480c7f8a3084f994180ae08162e7d657b56ff9794afd60edc6b67b7be8463"
+    },
+    {
+     "event": "storage.mounted",
+     "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/Cityscape/Cs_Syste.wav",
+     "bytes": 38062,
+     "sha256": "b04480c7f8a3084f994180ae08162e7d657b56ff9794afd60edc6b67b7be8463"
+    },
+    {
+     "event": "storage.unmounted",
+     "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/Cityscape/Cs_Syste.wav",
+     "bytes": 38062,
+     "sha256": "b04480c7f8a3084f994180ae08162e7d657b56ff9794afd60edc6b67b7be8463"
     },
     {
      "event": "system.login",
@@ -1382,6 +1526,18 @@
      "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/Cityscape/Cs_MenuP.wav",
      "bytes": 8200,
      "sha256": "6c0635687d6f86a6072678e03c42fccd5e3c2f1dbbab2063e39c424e006dc22f"
+    },
+    {
+     "event": "usb.connected",
+     "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/Cityscape/Cs_Syste.wav",
+     "bytes": 38062,
+     "sha256": "b04480c7f8a3084f994180ae08162e7d657b56ff9794afd60edc6b67b7be8463"
+    },
+    {
+     "event": "usb.disconnected",
+     "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/Cityscape/Cs_Syste.wav",
+     "bytes": 38062,
+     "sha256": "b04480c7f8a3084f994180ae08162e7d657b56ff9794afd60edc6b67b7be8463"
     },
     {
      "event": "window.created",
@@ -1417,13 +1573,37 @@
    "sources": [
     "https://archive.org/details/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt"
    ],
-   "bytes": 241730,
+   "bytes": 384366,
    "files": [
     {
      "event": "application.terminated",
      "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/Photography/cp_minim.wav",
      "bytes": 9156,
      "sha256": "2d97666fdaf78fca005fb5171fdfd446e577c7f88be8ed64c7553a87d5ea1b1c"
+    },
+    {
+     "event": "bluetooth.connected",
+     "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/Photography/cp_syste.wav",
+     "bytes": 10972,
+     "sha256": "18b5f42b92ce8ef290bde4b086cbbe8a63cf56c2f3041544c6e63c82f5ef19c3"
+    },
+    {
+     "event": "bluetooth.disconnected",
+     "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/Photography/cp_syste.wav",
+     "bytes": 10972,
+     "sha256": "18b5f42b92ce8ef290bde4b086cbbe8a63cf56c2f3041544c6e63c82f5ef19c3"
+    },
+    {
+     "event": "display.connected",
+     "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/Photography/cp_syste.wav",
+     "bytes": 10972,
+     "sha256": "18b5f42b92ce8ef290bde4b086cbbe8a63cf56c2f3041544c6e63c82f5ef19c3"
+    },
+    {
+     "event": "display.disconnected",
+     "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/Photography/cp_syste.wav",
+     "bytes": 10972,
+     "sha256": "18b5f42b92ce8ef290bde4b086cbbe8a63cf56c2f3041544c6e63c82f5ef19c3"
     },
     {
      "event": "media.paused",
@@ -1450,10 +1630,52 @@
      "sha256": "18b5f42b92ce8ef290bde4b086cbbe8a63cf56c2f3041544c6e63c82f5ef19c3"
     },
     {
+     "event": "power.acPower",
+     "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/Photography/cp_syste.wav",
+     "bytes": 10972,
+     "sha256": "18b5f42b92ce8ef290bde4b086cbbe8a63cf56c2f3041544c6e63c82f5ef19c3"
+    },
+    {
+     "event": "power.battery10Minutes",
+     "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/Photography/cp_syste.wav",
+     "bytes": 10972,
+     "sha256": "18b5f42b92ce8ef290bde4b086cbbe8a63cf56c2f3041544c6e63c82f5ef19c3"
+    },
+    {
+     "event": "power.battery20Minutes",
+     "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/Photography/cp_syste.wav",
+     "bytes": 10972,
+     "sha256": "18b5f42b92ce8ef290bde4b086cbbe8a63cf56c2f3041544c6e63c82f5ef19c3"
+    },
+    {
      "event": "power.battery5Minutes",
      "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/Photography/cp_criti.wav",
      "bytes": 8798,
      "sha256": "c68b5b074edbb0354c1c51ff48fceceb7027e0b1280610d4cf8c6c7060c4572a"
+    },
+    {
+     "event": "power.batteryPower",
+     "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/Photography/cp_syste.wav",
+     "bytes": 10972,
+     "sha256": "18b5f42b92ce8ef290bde4b086cbbe8a63cf56c2f3041544c6e63c82f5ef19c3"
+    },
+    {
+     "event": "power.upsPower",
+     "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/Photography/cp_syste.wav",
+     "bytes": 10972,
+     "sha256": "18b5f42b92ce8ef290bde4b086cbbe8a63cf56c2f3041544c6e63c82f5ef19c3"
+    },
+    {
+     "event": "storage.mounted",
+     "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/Photography/cp_syste.wav",
+     "bytes": 10972,
+     "sha256": "18b5f42b92ce8ef290bde4b086cbbe8a63cf56c2f3041544c6e63c82f5ef19c3"
+    },
+    {
+     "event": "storage.unmounted",
+     "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/Photography/cp_syste.wav",
+     "bytes": 10972,
+     "sha256": "18b5f42b92ce8ef290bde4b086cbbe8a63cf56c2f3041544c6e63c82f5ef19c3"
     },
     {
      "event": "system.login",
@@ -1478,6 +1700,18 @@
      "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/Photography/cp_menup.wav",
      "bytes": 2940,
      "sha256": "bb142a41c91cf2f1713f42b1b410a04e40e9e016c0987aa61143869d6987d36e"
+    },
+    {
+     "event": "usb.connected",
+     "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/Photography/cp_syste.wav",
+     "bytes": 10972,
+     "sha256": "18b5f42b92ce8ef290bde4b086cbbe8a63cf56c2f3041544c6e63c82f5ef19c3"
+    },
+    {
+     "event": "usb.disconnected",
+     "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/Photography/cp_syste.wav",
+     "bytes": 10972,
+     "sha256": "18b5f42b92ce8ef290bde4b086cbbe8a63cf56c2f3041544c6e63c82f5ef19c3"
     },
     {
      "event": "window.created",
@@ -1591,13 +1825,37 @@
    "sources": [
     "https://archive.org/details/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt"
    ],
-   "bytes": 1324692,
+   "bytes": 1667580,
    "files": [
     {
      "event": "application.terminated",
      "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/Falling%20Leaves/fl_minim.wav",
      "bytes": 13772,
      "sha256": "6d83698bfe737e6131b0535f76405d82a6dd67800d2ed098601dafc96dd3bad0"
+    },
+    {
+     "event": "bluetooth.connected",
+     "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/Falling%20Leaves/fl_error.wav",
+     "bytes": 26376,
+     "sha256": "507c43d0a60f46bd86bf3bf6cb5711ecd0c0c6480ef1e862f6c4840412557406"
+    },
+    {
+     "event": "bluetooth.disconnected",
+     "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/Falling%20Leaves/fl_error.wav",
+     "bytes": 26376,
+     "sha256": "507c43d0a60f46bd86bf3bf6cb5711ecd0c0c6480ef1e862f6c4840412557406"
+    },
+    {
+     "event": "display.connected",
+     "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/Falling%20Leaves/fl_error.wav",
+     "bytes": 26376,
+     "sha256": "507c43d0a60f46bd86bf3bf6cb5711ecd0c0c6480ef1e862f6c4840412557406"
+    },
+    {
+     "event": "display.disconnected",
+     "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/Falling%20Leaves/fl_error.wav",
+     "bytes": 26376,
+     "sha256": "507c43d0a60f46bd86bf3bf6cb5711ecd0c0c6480ef1e862f6c4840412557406"
     },
     {
      "event": "media.paused",
@@ -1624,10 +1882,52 @@
      "sha256": "507c43d0a60f46bd86bf3bf6cb5711ecd0c0c6480ef1e862f6c4840412557406"
     },
     {
+     "event": "power.acPower",
+     "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/Falling%20Leaves/fl_error.wav",
+     "bytes": 26376,
+     "sha256": "507c43d0a60f46bd86bf3bf6cb5711ecd0c0c6480ef1e862f6c4840412557406"
+    },
+    {
+     "event": "power.battery10Minutes",
+     "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/Falling%20Leaves/fl_error.wav",
+     "bytes": 26376,
+     "sha256": "507c43d0a60f46bd86bf3bf6cb5711ecd0c0c6480ef1e862f6c4840412557406"
+    },
+    {
+     "event": "power.battery20Minutes",
+     "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/Falling%20Leaves/fl_error.wav",
+     "bytes": 26376,
+     "sha256": "507c43d0a60f46bd86bf3bf6cb5711ecd0c0c6480ef1e862f6c4840412557406"
+    },
+    {
      "event": "power.battery5Minutes",
      "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/Falling%20Leaves/fl_criti.wav",
      "bytes": 30572,
      "sha256": "1500166265a3c352d4cbc94c611c0627fc5bc7be83e5150e85d009fbff722337"
+    },
+    {
+     "event": "power.batteryPower",
+     "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/Falling%20Leaves/fl_error.wav",
+     "bytes": 26376,
+     "sha256": "507c43d0a60f46bd86bf3bf6cb5711ecd0c0c6480ef1e862f6c4840412557406"
+    },
+    {
+     "event": "power.upsPower",
+     "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/Falling%20Leaves/fl_error.wav",
+     "bytes": 26376,
+     "sha256": "507c43d0a60f46bd86bf3bf6cb5711ecd0c0c6480ef1e862f6c4840412557406"
+    },
+    {
+     "event": "storage.mounted",
+     "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/Falling%20Leaves/fl_error.wav",
+     "bytes": 26376,
+     "sha256": "507c43d0a60f46bd86bf3bf6cb5711ecd0c0c6480ef1e862f6c4840412557406"
+    },
+    {
+     "event": "storage.unmounted",
+     "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/Falling%20Leaves/fl_error.wav",
+     "bytes": 26376,
+     "sha256": "507c43d0a60f46bd86bf3bf6cb5711ecd0c0c6480ef1e862f6c4840412557406"
     },
     {
      "event": "system.login",
@@ -1652,6 +1952,18 @@
      "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/Falling%20Leaves/fl_menup.wav",
      "bytes": 8200,
      "sha256": "59cd0d4c93363885211f9c4d93b8a8463fa27358b6bd730039071c8fbf89bb1b"
+    },
+    {
+     "event": "usb.connected",
+     "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/Falling%20Leaves/fl_error.wav",
+     "bytes": 26376,
+     "sha256": "507c43d0a60f46bd86bf3bf6cb5711ecd0c0c6480ef1e862f6c4840412557406"
+    },
+    {
+     "event": "usb.disconnected",
+     "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/Falling%20Leaves/fl_error.wav",
+     "bytes": 26376,
+     "sha256": "507c43d0a60f46bd86bf3bf6cb5711ecd0c0c6480ef1e862f6c4840412557406"
     },
     {
      "event": "window.created",
@@ -1843,13 +2155,37 @@
    "sources": [
     "https://archive.org/details/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt"
    ],
-   "bytes": 722632,
+   "bytes": 895428,
    "files": [
     {
      "event": "application.terminated",
      "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/Garfield/ga_minim.wav",
      "bytes": 13292,
      "sha256": "f2ce32a84e0482c71f3f0f94ae635c9263aa02bbacda86226a5097a87d8b569f"
+    },
+    {
+     "event": "bluetooth.connected",
+     "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/Garfield/ga_syste.wav",
+     "bytes": 13292,
+     "sha256": "3e9f83351b17d3e3590c3b5f2daeb132b3f2552e3130ccacf1c898213fff4cc9"
+    },
+    {
+     "event": "bluetooth.disconnected",
+     "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/Garfield/ga_syste.wav",
+     "bytes": 13292,
+     "sha256": "3e9f83351b17d3e3590c3b5f2daeb132b3f2552e3130ccacf1c898213fff4cc9"
+    },
+    {
+     "event": "display.connected",
+     "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/Garfield/ga_syste.wav",
+     "bytes": 13292,
+     "sha256": "3e9f83351b17d3e3590c3b5f2daeb132b3f2552e3130ccacf1c898213fff4cc9"
+    },
+    {
+     "event": "display.disconnected",
+     "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/Garfield/ga_syste.wav",
+     "bytes": 13292,
+     "sha256": "3e9f83351b17d3e3590c3b5f2daeb132b3f2552e3130ccacf1c898213fff4cc9"
     },
     {
      "event": "media.paused",
@@ -1876,10 +2212,52 @@
      "sha256": "3e9f83351b17d3e3590c3b5f2daeb132b3f2552e3130ccacf1c898213fff4cc9"
     },
     {
+     "event": "power.acPower",
+     "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/Garfield/ga_syste.wav",
+     "bytes": 13292,
+     "sha256": "3e9f83351b17d3e3590c3b5f2daeb132b3f2552e3130ccacf1c898213fff4cc9"
+    },
+    {
+     "event": "power.battery10Minutes",
+     "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/Garfield/ga_syste.wav",
+     "bytes": 13292,
+     "sha256": "3e9f83351b17d3e3590c3b5f2daeb132b3f2552e3130ccacf1c898213fff4cc9"
+    },
+    {
+     "event": "power.battery20Minutes",
+     "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/Garfield/ga_syste.wav",
+     "bytes": 13292,
+     "sha256": "3e9f83351b17d3e3590c3b5f2daeb132b3f2552e3130ccacf1c898213fff4cc9"
+    },
+    {
      "event": "power.battery5Minutes",
      "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/Garfield/ga_criti.wav",
      "bytes": 12556,
      "sha256": "b35b0b39f0f9b6da00ab10d936b6acc25ef3cb3e9557e318c5b7cdc3651ac149"
+    },
+    {
+     "event": "power.batteryPower",
+     "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/Garfield/ga_syste.wav",
+     "bytes": 13292,
+     "sha256": "3e9f83351b17d3e3590c3b5f2daeb132b3f2552e3130ccacf1c898213fff4cc9"
+    },
+    {
+     "event": "power.upsPower",
+     "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/Garfield/ga_syste.wav",
+     "bytes": 13292,
+     "sha256": "3e9f83351b17d3e3590c3b5f2daeb132b3f2552e3130ccacf1c898213fff4cc9"
+    },
+    {
+     "event": "storage.mounted",
+     "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/Garfield/ga_syste.wav",
+     "bytes": 13292,
+     "sha256": "3e9f83351b17d3e3590c3b5f2daeb132b3f2552e3130ccacf1c898213fff4cc9"
+    },
+    {
+     "event": "storage.unmounted",
+     "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/Garfield/ga_syste.wav",
+     "bytes": 13292,
+     "sha256": "3e9f83351b17d3e3590c3b5f2daeb132b3f2552e3130ccacf1c898213fff4cc9"
     },
     {
      "event": "system.login",
@@ -1904,6 +2282,18 @@
      "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/Garfield/ga_menup.wav",
      "bytes": 3756,
      "sha256": "3e7093b17322904a00928679465e94f85a19cdb4180908dd7792b9384ac57afa"
+    },
+    {
+     "event": "usb.connected",
+     "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/Garfield/ga_syste.wav",
+     "bytes": 13292,
+     "sha256": "3e9f83351b17d3e3590c3b5f2daeb132b3f2552e3130ccacf1c898213fff4cc9"
+    },
+    {
+     "event": "usb.disconnected",
+     "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/Garfield/ga_syste.wav",
+     "bytes": 13292,
+     "sha256": "3e9f83351b17d3e3590c3b5f2daeb132b3f2552e3130ccacf1c898213fff4cc9"
     },
     {
      "event": "window.created",
@@ -1939,13 +2329,37 @@
    "sources": [
     "https://archive.org/details/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt"
    ],
-   "bytes": 395802,
+   "bytes": 890608,
    "files": [
     {
      "event": "application.terminated",
      "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/Geometry/Ge_Minim.wav",
      "bytes": 13772,
      "sha256": "0be8ae644114a653acb5d4da62cdbf18af0e067586665714ea40f39ce7cabac0"
+    },
+    {
+     "event": "bluetooth.connected",
+     "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/Geometry/Ge_Defau.wav",
+     "bytes": 38062,
+     "sha256": "4aadb2b842d0b7100d4ef078f9c831c1d50f845e4dbcba0e78fcd94db4988fc6"
+    },
+    {
+     "event": "bluetooth.disconnected",
+     "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/Geometry/Ge_Defau.wav",
+     "bytes": 38062,
+     "sha256": "4aadb2b842d0b7100d4ef078f9c831c1d50f845e4dbcba0e78fcd94db4988fc6"
+    },
+    {
+     "event": "display.connected",
+     "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/Geometry/Ge_Defau.wav",
+     "bytes": 38062,
+     "sha256": "4aadb2b842d0b7100d4ef078f9c831c1d50f845e4dbcba0e78fcd94db4988fc6"
+    },
+    {
+     "event": "display.disconnected",
+     "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/Geometry/Ge_Defau.wav",
+     "bytes": 38062,
+     "sha256": "4aadb2b842d0b7100d4ef078f9c831c1d50f845e4dbcba0e78fcd94db4988fc6"
     },
     {
      "event": "media.paused",
@@ -1972,10 +2386,52 @@
      "sha256": "4aadb2b842d0b7100d4ef078f9c831c1d50f845e4dbcba0e78fcd94db4988fc6"
     },
     {
+     "event": "power.acPower",
+     "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/Geometry/Ge_Defau.wav",
+     "bytes": 38062,
+     "sha256": "4aadb2b842d0b7100d4ef078f9c831c1d50f845e4dbcba0e78fcd94db4988fc6"
+    },
+    {
+     "event": "power.battery10Minutes",
+     "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/Geometry/Ge_Defau.wav",
+     "bytes": 38062,
+     "sha256": "4aadb2b842d0b7100d4ef078f9c831c1d50f845e4dbcba0e78fcd94db4988fc6"
+    },
+    {
+     "event": "power.battery20Minutes",
+     "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/Geometry/Ge_Defau.wav",
+     "bytes": 38062,
+     "sha256": "4aadb2b842d0b7100d4ef078f9c831c1d50f845e4dbcba0e78fcd94db4988fc6"
+    },
+    {
      "event": "power.battery5Minutes",
      "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/Geometry/Ge_Criti.wav",
      "bytes": 40648,
      "sha256": "7bdcb84d6ef04186408828795657db3aa225b1d6d90c7dc101005d6861456d4c"
+    },
+    {
+     "event": "power.batteryPower",
+     "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/Geometry/Ge_Defau.wav",
+     "bytes": 38062,
+     "sha256": "4aadb2b842d0b7100d4ef078f9c831c1d50f845e4dbcba0e78fcd94db4988fc6"
+    },
+    {
+     "event": "power.upsPower",
+     "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/Geometry/Ge_Defau.wav",
+     "bytes": 38062,
+     "sha256": "4aadb2b842d0b7100d4ef078f9c831c1d50f845e4dbcba0e78fcd94db4988fc6"
+    },
+    {
+     "event": "storage.mounted",
+     "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/Geometry/Ge_Defau.wav",
+     "bytes": 38062,
+     "sha256": "4aadb2b842d0b7100d4ef078f9c831c1d50f845e4dbcba0e78fcd94db4988fc6"
+    },
+    {
+     "event": "storage.unmounted",
+     "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/Geometry/Ge_Defau.wav",
+     "bytes": 38062,
+     "sha256": "4aadb2b842d0b7100d4ef078f9c831c1d50f845e4dbcba0e78fcd94db4988fc6"
     },
     {
      "event": "system.login",
@@ -2000,6 +2456,18 @@
      "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/Geometry/Ge_MenuP.wav",
      "bytes": 8200,
      "sha256": "9ccb889008a08ad0e512d299b656b0e8113cf831be69d57ac9a3ea789afde48a"
+    },
+    {
+     "event": "usb.connected",
+     "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/Geometry/Ge_Defau.wav",
+     "bytes": 38062,
+     "sha256": "4aadb2b842d0b7100d4ef078f9c831c1d50f845e4dbcba0e78fcd94db4988fc6"
+    },
+    {
+     "event": "usb.disconnected",
+     "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/Geometry/Ge_Defau.wav",
+     "bytes": 38062,
+     "sha256": "4aadb2b842d0b7100d4ef078f9c831c1d50f845e4dbcba0e78fcd94db4988fc6"
     },
     {
      "event": "window.created",
@@ -2377,13 +2845,37 @@
    "sources": [
     "https://archive.org/details/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt"
    ],
-   "bytes": 4055770,
+   "bytes": 4595584,
    "files": [
     {
      "event": "application.terminated",
      "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/PhotoDisc/PD_MINIM.WAV",
      "bytes": 29730,
      "sha256": "10e71454e749f6a04181fb7ab68deca5fb843c4fea7326c0c978a357de368db4"
+    },
+    {
+     "event": "bluetooth.connected",
+     "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/PhotoDisc/PD_SYSTE.WAV",
+     "bytes": 49074,
+     "sha256": "58dca4d3cbceafdc198dd55bec39d077eb4f05d0b8a5390c2d85b37707f10795"
+    },
+    {
+     "event": "bluetooth.disconnected",
+     "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/PhotoDisc/PD_SYSTE.WAV",
+     "bytes": 49074,
+     "sha256": "58dca4d3cbceafdc198dd55bec39d077eb4f05d0b8a5390c2d85b37707f10795"
+    },
+    {
+     "event": "display.connected",
+     "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/PhotoDisc/PD_SYSTE.WAV",
+     "bytes": 49074,
+     "sha256": "58dca4d3cbceafdc198dd55bec39d077eb4f05d0b8a5390c2d85b37707f10795"
+    },
+    {
+     "event": "display.disconnected",
+     "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/PhotoDisc/PD_SYSTE.WAV",
+     "bytes": 49074,
+     "sha256": "58dca4d3cbceafdc198dd55bec39d077eb4f05d0b8a5390c2d85b37707f10795"
     },
     {
      "event": "media.paused",
@@ -2410,6 +2902,12 @@
      "sha256": "58dca4d3cbceafdc198dd55bec39d077eb4f05d0b8a5390c2d85b37707f10795"
     },
     {
+     "event": "power.acPower",
+     "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/PhotoDisc/PD_SYSTE.WAV",
+     "bytes": 49074,
+     "sha256": "58dca4d3cbceafdc198dd55bec39d077eb4f05d0b8a5390c2d85b37707f10795"
+    },
+    {
      "event": "power.battery10Minutes",
      "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/PhotoDisc/PD_RINGO.WAV",
      "bytes": 402580,
@@ -2426,6 +2924,30 @@
      "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/PhotoDisc/PD_RINGO.WAV",
      "bytes": 402580,
      "sha256": "db99dd8459d4528e8176cc5b01368ae46ca6a3e399ff4504e52e1c16c8c0f642"
+    },
+    {
+     "event": "power.batteryPower",
+     "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/PhotoDisc/PD_SYSTE.WAV",
+     "bytes": 49074,
+     "sha256": "58dca4d3cbceafdc198dd55bec39d077eb4f05d0b8a5390c2d85b37707f10795"
+    },
+    {
+     "event": "power.upsPower",
+     "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/PhotoDisc/PD_SYSTE.WAV",
+     "bytes": 49074,
+     "sha256": "58dca4d3cbceafdc198dd55bec39d077eb4f05d0b8a5390c2d85b37707f10795"
+    },
+    {
+     "event": "storage.mounted",
+     "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/PhotoDisc/PD_SYSTE.WAV",
+     "bytes": 49074,
+     "sha256": "58dca4d3cbceafdc198dd55bec39d077eb4f05d0b8a5390c2d85b37707f10795"
+    },
+    {
+     "event": "storage.unmounted",
+     "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/PhotoDisc/PD_SYSTE.WAV",
+     "bytes": 49074,
+     "sha256": "58dca4d3cbceafdc198dd55bec39d077eb4f05d0b8a5390c2d85b37707f10795"
     },
     {
      "event": "system.login",
@@ -2450,6 +2972,18 @@
      "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/PhotoDisc/PD_MENUP.WAV",
      "bytes": 17690,
      "sha256": "ab0b4ae35f2ff962e4212b06be7763c08f2e33a878b1bdccaaad9cf70bd699f1"
+    },
+    {
+     "event": "usb.connected",
+     "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/PhotoDisc/PD_SYSTE.WAV",
+     "bytes": 49074,
+     "sha256": "58dca4d3cbceafdc198dd55bec39d077eb4f05d0b8a5390c2d85b37707f10795"
+    },
+    {
+     "event": "usb.disconnected",
+     "url": "https://archive.org/download/amicrosoft_plus_sounds_for_xp_by_graywz-d31bobt/Plus%21/PhotoDisc/PD_SYSTE.WAV",
+     "bytes": 49074,
+     "sha256": "58dca4d3cbceafdc198dd55bec39d077eb4f05d0b8a5390c2d85b37707f10795"
     },
     {
      "event": "window.created",
@@ -3738,6 +4272,187 @@
    ]
   },
   {
+   "id": "windows-ce",
+   "name": "Windows CE",
+   "group": "Windows CE and Mobile",
+   "license": "Copyright belongs to its maker. Downloaded at your request from a public archive that MaccessHub does not run. For personal use.",
+   "sources": [
+    "https://archive.org/details/windows-xp-startup_202510",
+    "https://archive.org/details/wp75b7629sounds"
+   ],
+   "bytes": 18622,
+   "files": [
+    {
+     "event": "audio.inputMuted",
+     "url": "https://archive.org/download/wp75b7629sounds/congestion.wav",
+     "bytes": 2366,
+     "sha256": "2786fe40e4dc8f5ae39d48318ef5152238902735b9f616e5e598badc83d36ad4"
+    },
+    {
+     "event": "audio.inputUnmuted",
+     "url": "https://archive.org/download/wp75b7629sounds/special.wav",
+     "bytes": 2262,
+     "sha256": "57d547bbc8919385356d85cd98aa8c6488604bacc8f736f6a92077fd616838c3"
+    },
+    {
+     "event": "network.ethernetConnected",
+     "url": "https://archive.org/download/windows-xp-startup_202510/Windows%20XP%20Balloon.wav",
+     "bytes": 6400,
+     "sha256": "c9de87a87b68dd754fa29f2989c240949ad9b1f0423d019ca68afcd86e107639"
+    },
+    {
+     "event": "network.wifiConnected",
+     "url": "https://archive.org/download/windows-xp-startup_202510/Windows%20XP%20Balloon.wav",
+     "bytes": 6400,
+     "sha256": "c9de87a87b68dd754fa29f2989c240949ad9b1f0423d019ca68afcd86e107639"
+    },
+    {
+     "event": "ui.menuItemSelected",
+     "url": "https://archive.org/download/wp75b7629sounds/MenuSel.wav",
+     "bytes": 360,
+     "sha256": "2b99da10f3cb836f0d9eecf6c93cf13dbe30adca7cee4d78f2de8b33176ea4cb"
+    },
+    {
+     "event": "ui.menuOpened",
+     "url": "https://archive.org/download/wp75b7629sounds/MenuPop.wav",
+     "bytes": 834,
+     "sha256": "65b681724ff9c7001b4c4439db6e9e840342f238f1f05f4d23281cbb12909190"
+    }
+   ]
+  },
+  {
+   "id": "windows-ce-pocket-pc-2000",
+   "name": "Windows CE Pocket PC 2000",
+   "group": "Windows CE and Mobile",
+   "license": "Copyright belongs to its maker. Downloaded at your request from a public archive that MaccessHub does not run. For personal use.",
+   "sources": [
+    "https://archive.org/details/changelog_20220521"
+   ],
+   "bytes": 4232,
+   "files": [
+    {
+     "event": "ui.menuItemSelected",
+     "url": "https://archive.org/download/changelog_20220521/phonetones/Ringtones%20zipped/Microsoft/Smartphone-2002.zip/MenuSel.wav",
+     "bytes": 1522,
+     "sha256": "1023cbebd3ad3f23a772cd8612a8b5e013301fb5466ea01c9210acfd669d11a0"
+    },
+    {
+     "event": "ui.menuOpened",
+     "url": "https://archive.org/download/changelog_20220521/phonetones/Ringtones%20zipped/Microsoft/Smartphone-2002.zip/MenuPop.wav",
+     "bytes": 1014,
+     "sha256": "de3df416a14afbc962576644a30b1c9cadd6d91c4314077f743d2df603961630"
+    },
+    {
+     "event": "window.dialogOpened",
+     "url": "https://archive.org/download/changelog_20220521/phonetones/Ringtones%20zipped/Microsoft/Smartphone-2002.zip/Default.wav",
+     "bytes": 1696,
+     "sha256": "382a6e1505f766754f6a641c39729ef19b66dea52b43d973ed03f39c1751f920"
+    }
+   ]
+  },
+  {
+   "id": "windows-ce-pocket-pc-2002",
+   "name": "Windows CE Pocket PC 2002",
+   "group": "Windows CE and Mobile",
+   "license": "Copyright belongs to its maker. Downloaded at your request from a public archive that MaccessHub does not run. For personal use.",
+   "sources": [
+    "https://archive.org/details/changelog_20220521"
+   ],
+   "bytes": 43216,
+   "files": [
+    {
+     "event": "network.ethernetConnected",
+     "url": "https://archive.org/download/changelog_20220521/phonetones/Ringtones%20zipped/E-TEN/M600.zip/online.wav",
+     "bytes": 8472,
+     "sha256": "98541b47ddc6bbb59ae6d98fe05ad7b67e5ca82449bfebafeab8b92d1f076814"
+    },
+    {
+     "event": "network.wifiConnected",
+     "url": "https://archive.org/download/changelog_20220521/phonetones/Ringtones%20zipped/E-TEN/M600.zip/online.wav",
+     "bytes": 8472,
+     "sha256": "98541b47ddc6bbb59ae6d98fe05ad7b67e5ca82449bfebafeab8b92d1f076814"
+    },
+    {
+     "event": "power.battery10Minutes",
+     "url": "https://archive.org/download/changelog_20220521/phonetones/Ringtones%20zipped/Microsoft/Pocket-PC-2002.zip/Lowbatt.wav",
+     "bytes": 7348,
+     "sha256": "c91e270929bc3fb6de4b05ee73280113d8426e05c5b0bb2b833b2612d8262243"
+    },
+    {
+     "event": "power.battery20Minutes",
+     "url": "https://archive.org/download/changelog_20220521/phonetones/Ringtones%20zipped/Microsoft/Pocket-PC-2002.zip/Lowbatt.wav",
+     "bytes": 7348,
+     "sha256": "c91e270929bc3fb6de4b05ee73280113d8426e05c5b0bb2b833b2612d8262243"
+    },
+    {
+     "event": "power.battery5Minutes",
+     "url": "https://archive.org/download/changelog_20220521/phonetones/Ringtones%20zipped/Microsoft/Pocket-PC-2002.zip/Lowbatt.wav",
+     "bytes": 7348,
+     "sha256": "c91e270929bc3fb6de4b05ee73280113d8426e05c5b0bb2b833b2612d8262243"
+    },
+    {
+     "event": "ui.menuOpened",
+     "url": "https://archive.org/download/changelog_20220521/phonetones/Ringtones%20zipped/Microsoft/Pocket-PC-2002.zip/MenuPop.wav",
+     "bytes": 3148,
+     "sha256": "3cb02ac5db3bed257873d4bb862abb7c6452663e88b5f65812f3ecd57755df4b"
+    },
+    {
+     "event": "window.dialogOpened",
+     "url": "https://archive.org/download/changelog_20220521/phonetones/Ringtones%20zipped/Microsoft/Pocket-PC-2002.zip/Default.wav",
+     "bytes": 1080,
+     "sha256": "15747b4a8b89890e891c4f4e0ac67fb36918fd65b100f2719e617d46d8c4c39a"
+    }
+   ]
+  },
+  {
+   "id": "windows-mobile",
+   "name": "Windows Mobile",
+   "group": "Windows CE and Mobile",
+   "license": "Copyright belongs to its maker. Downloaded at your request from a public archive that MaccessHub does not run. For personal use.",
+   "sources": [
+    "https://archive.org/details/changelog_20220521"
+   ],
+   "bytes": 196978,
+   "files": [
+    {
+     "event": "network.ethernetDisconnected",
+     "url": "https://archive.org/download/changelog_20220521/phonetones/Ringtones%20zipped/HTC/Freestyle.zip/Notification%2Fcalldrop.wav",
+     "bytes": 88396,
+     "sha256": "5ddbab7c9c0ff40eca1442abe33baa152bea9fc7d6bd839d6dc44ee54dc2bec2"
+    },
+    {
+     "event": "network.wifiDisconnected",
+     "url": "https://archive.org/download/changelog_20220521/phonetones/Ringtones%20zipped/HTC/Freestyle.zip/Notification%2Fcalldrop.wav",
+     "bytes": 88396,
+     "sha256": "5ddbab7c9c0ff40eca1442abe33baa152bea9fc7d6bd839d6dc44ee54dc2bec2"
+    },
+    {
+     "event": "system.spaceChanged",
+     "url": "https://archive.org/download/changelog_20220521/phonetones/Ringtones%20zipped/HTC/AT%26T-Tilt-2.zip/tick.wav",
+     "bytes": 9530,
+     "sha256": "27f912c191160c927f693ba5dac37668146fbeb86f2510e200daa140677c798a"
+    },
+    {
+     "event": "ui.menuOpened",
+     "url": "https://archive.org/download/changelog_20220521/phonetones/Ringtones%20zipped/Acer/neoTouch-S200.zip/MenuPop.wav",
+     "bytes": 284,
+     "sha256": "d51fad87e31efbef84b438fd1c383003578298a9f13ff4b5e7776dad3c6361bf"
+    },
+    {
+     "event": "ui.rowExpanded",
+     "url": "https://archive.org/download/changelog_20220521/phonetones/Ringtones%20zipped/HTC/AT%26T-Tilt-2.zip/tick.wav",
+     "bytes": 9530,
+     "sha256": "27f912c191160c927f693ba5dac37668146fbeb86f2510e200daa140677c798a"
+    },
+    {
+     "event": "window.dialogOpened",
+     "url": "https://archive.org/download/changelog_20220521/phonetones/Ringtones%20zipped/Acer/neoTouch-S200.zip/Default.wav",
+     "bytes": 842,
+     "sha256": "8f291ab49ba0a9337340723d044e330efe3c15132591a7e8204dd01876bc2db0"
+    }
+   ]
+  },
+  {
    "id": "windows-10",
    "name": "Windows 10",
    "group": "Windows",
@@ -3962,6 +4677,61 @@
      "url": "https://archive.org/download/Microsoft_Windows-10-System-Sounds/Windows%2010_SoundEffects/Windows%20Restore.wav",
      "bytes": 154924,
      "sha256": "e201003b7edd20e3e8de9921e358668a5fd84bc650bcd7ded06fad5f3bff0a49"
+    }
+   ]
+  },
+  {
+   "id": "windows-10-mobile-lumia-550",
+   "name": "Windows 10 Mobile (Lumia 550)",
+   "group": "Windows",
+   "license": "Copyright belongs to its maker. Downloaded at your request from a public archive that MaccessHub does not run. For personal use.",
+   "sources": [
+    "https://archive.org/details/changelog_20220521",
+    "https://archive.org/details/wp75b7629sounds"
+   ],
+   "bytes": 650676,
+   "files": [
+    {
+     "event": "network.ethernetConnected",
+     "url": "https://archive.org/download/changelog_20220521/phonetones/Ringtones%20zipped/BLU/Win-Jr.zip/WiFiConnected.wav",
+     "bytes": 235244,
+     "sha256": "eec4dacbedfcfe49f9e7ae971f9025497f9ce955e93f36548b6f861c4dd5727a"
+    },
+    {
+     "event": "network.ethernetDisconnected",
+     "url": "https://archive.org/download/wp75b7629sounds/Calldrop.wav",
+     "bytes": 8140,
+     "sha256": "362852b3cad1cf7fb0695b7937367a8134cc60667c1ac1064814c1f339bd8768"
+    },
+    {
+     "event": "network.wifiConnected",
+     "url": "https://archive.org/download/changelog_20220521/phonetones/Ringtones%20zipped/BLU/Win-Jr.zip/WiFiConnected.wav",
+     "bytes": 235244,
+     "sha256": "eec4dacbedfcfe49f9e7ae971f9025497f9ce955e93f36548b6f861c4dd5727a"
+    },
+    {
+     "event": "network.wifiDisconnected",
+     "url": "https://archive.org/download/wp75b7629sounds/Calldrop.wav",
+     "bytes": 8140,
+     "sha256": "362852b3cad1cf7fb0695b7937367a8134cc60667c1ac1064814c1f339bd8768"
+    },
+    {
+     "event": "system.screenLocked",
+     "url": "https://archive.org/download/wp75b7629sounds/lock.wav",
+     "bytes": 62128,
+     "sha256": "e4d5869944cd7913d22fa2b3dc859c742e6cceed20fed1142e7c4c7f7e8909e2"
+    },
+    {
+     "event": "system.screenUnlocked",
+     "url": "https://archive.org/download/wp75b7629sounds/unlock.wav",
+     "bytes": 46520,
+     "sha256": "d5528ac6a695303905c945a65edf96d4067fedee0d935b7714105ade928689f3"
+    },
+    {
+     "event": "window.dialogOpened",
+     "url": "https://archive.org/download/wp75b7629sounds/Default.wav",
+     "bytes": 55260,
+     "sha256": "dcc4c2c306fa78fb5755ad4f057b7c9e46b23f57d7e8b5864fc40457a5d45e1c"
     }
    ]
   },
@@ -7339,6 +8109,102 @@
    ]
   },
   {
+   "id": "windows-phone-7-5",
+   "name": "Windows Phone 7.5",
+   "group": "Windows",
+   "license": "Copyright belongs to its maker. Downloaded at your request from a public archive that MaccessHub does not run. For personal use.",
+   "sources": [
+    "https://archive.org/details/wp75b7629sounds"
+   ],
+   "bytes": 181382,
+   "files": [
+    {
+     "event": "network.ethernetDisconnected",
+     "url": "https://archive.org/download/wp75b7629sounds/Calldrop.wav",
+     "bytes": 8140,
+     "sha256": "362852b3cad1cf7fb0695b7937367a8134cc60667c1ac1064814c1f339bd8768"
+    },
+    {
+     "event": "network.wifiDisconnected",
+     "url": "https://archive.org/download/wp75b7629sounds/Calldrop.wav",
+     "bytes": 8140,
+     "sha256": "362852b3cad1cf7fb0695b7937367a8134cc60667c1ac1064814c1f339bd8768"
+    },
+    {
+     "event": "system.screenLocked",
+     "url": "https://archive.org/download/wp75b7629sounds/lock.wav",
+     "bytes": 62128,
+     "sha256": "e4d5869944cd7913d22fa2b3dc859c742e6cceed20fed1142e7c4c7f7e8909e2"
+    },
+    {
+     "event": "system.screenUnlocked",
+     "url": "https://archive.org/download/wp75b7629sounds/unlock.wav",
+     "bytes": 46520,
+     "sha256": "d5528ac6a695303905c945a65edf96d4067fedee0d935b7714105ade928689f3"
+    },
+    {
+     "event": "ui.menuItemSelected",
+     "url": "https://archive.org/download/wp75b7629sounds/MenuSel.wav",
+     "bytes": 360,
+     "sha256": "2b99da10f3cb836f0d9eecf6c93cf13dbe30adca7cee4d78f2de8b33176ea4cb"
+    },
+    {
+     "event": "ui.menuOpened",
+     "url": "https://archive.org/download/wp75b7629sounds/MenuPop.wav",
+     "bytes": 834,
+     "sha256": "65b681724ff9c7001b4c4439db6e9e840342f238f1f05f4d23281cbb12909190"
+    },
+    {
+     "event": "window.dialogOpened",
+     "url": "https://archive.org/download/wp75b7629sounds/Default.wav",
+     "bytes": 55260,
+     "sha256": "dcc4c2c306fa78fb5755ad4f057b7c9e46b23f57d7e8b5864fc40457a5d45e1c"
+    }
+   ]
+  },
+  {
+   "id": "windows-phone-8",
+   "name": "Windows Phone 8",
+   "group": "Windows",
+   "license": "Copyright belongs to its maker. Downloaded at your request from a public archive that MaccessHub does not run. For personal use.",
+   "sources": [
+    "https://archive.org/details/wp75b7629sounds"
+   ],
+   "bytes": 180188,
+   "files": [
+    {
+     "event": "network.ethernetDisconnected",
+     "url": "https://archive.org/download/wp75b7629sounds/Calldrop.wav",
+     "bytes": 8140,
+     "sha256": "362852b3cad1cf7fb0695b7937367a8134cc60667c1ac1064814c1f339bd8768"
+    },
+    {
+     "event": "network.wifiDisconnected",
+     "url": "https://archive.org/download/wp75b7629sounds/Calldrop.wav",
+     "bytes": 8140,
+     "sha256": "362852b3cad1cf7fb0695b7937367a8134cc60667c1ac1064814c1f339bd8768"
+    },
+    {
+     "event": "system.screenLocked",
+     "url": "https://archive.org/download/wp75b7629sounds/lock.wav",
+     "bytes": 62128,
+     "sha256": "e4d5869944cd7913d22fa2b3dc859c742e6cceed20fed1142e7c4c7f7e8909e2"
+    },
+    {
+     "event": "system.screenUnlocked",
+     "url": "https://archive.org/download/wp75b7629sounds/unlock.wav",
+     "bytes": 46520,
+     "sha256": "d5528ac6a695303905c945a65edf96d4067fedee0d935b7714105ade928689f3"
+    },
+    {
+     "event": "window.dialogOpened",
+     "url": "https://archive.org/download/wp75b7629sounds/Default.wav",
+     "bytes": 55260,
+     "sha256": "dcc4c2c306fa78fb5755ad4f057b7c9e46b23f57d7e8b5864fc40457a5d45e1c"
+    }
+   ]
+  },
+  {
    "id": "windows-7",
    "name": "Windows Vista",
    "group": "Windows",
@@ -9035,85 +9901,85 @@
    "group": "iPhone",
    "license": "Copyright belongs to its maker. Downloaded at your request from a public archive that MaccessHub does not run. For personal use.",
    "sources": [
-    "https://archive.org/details/iOS-17"
+    "https://archive.org/details/changelog_20220521"
    ],
    "bytes": 700466,
    "files": [
     {
      "event": "audio.inputMuted",
-     "url": "https://archive.org/download/iOS-17/iOS-4.zip/iOS-4%2FSystem%2FLibrary%2FAudio%2FUISounds%2Fjbl_cancel.caf",
+     "url": "https://archive.org/download/changelog_20220521/phonetones/Ringtones%20zipped/Apple/Apple-iPhone3GS.zip/UISounds%2Fcaf%2Fjbl_cancel.caf",
      "bytes": 24992,
      "sha256": "11ecededc614ddb3319f2f0df38aac2615cf3f25d3d7dffbd8e494b823ee0d4e"
     },
     {
      "event": "audio.inputUnmuted",
-     "url": "https://archive.org/download/iOS-17/iOS-4.zip/iOS-4%2FSystem%2FLibrary%2FAudio%2FUISounds%2Fjbl_begin.caf",
+     "url": "https://archive.org/download/changelog_20220521/phonetones/Ringtones%20zipped/Apple/Apple-iPhone3GS.zip/UISounds%2Fcaf%2Fjbl_begin.caf",
      "bytes": 15588,
      "sha256": "743d3bba8e8c513c109d4e74388267fec55398e3923527ad4177bc64bf94a08f"
     },
     {
      "event": "network.ethernetConnected",
-     "url": "https://archive.org/download/iOS-17/iOS-4.zip/iOS-4%2FSystem%2FLibrary%2FAudio%2FUISounds%2FVoicemail.caf",
+     "url": "https://archive.org/download/changelog_20220521/phonetones/Ringtones%20zipped/Apple/Apple-iPhone3GS.zip/UISounds%2Fcaf%2FVoicemail.caf",
      "bytes": 38528,
      "sha256": "e62c99f80a82467f86e8829c34e2b8e06bcaeb3b56f90210dfbe01a6cc354e8d"
     },
     {
      "event": "network.wifiConnected",
-     "url": "https://archive.org/download/iOS-17/iOS-4.zip/iOS-4%2FSystem%2FLibrary%2FAudio%2FUISounds%2FVoicemail.caf",
+     "url": "https://archive.org/download/changelog_20220521/phonetones/Ringtones%20zipped/Apple/Apple-iPhone3GS.zip/UISounds%2Fcaf%2FVoicemail.caf",
      "bytes": 38528,
      "sha256": "e62c99f80a82467f86e8829c34e2b8e06bcaeb3b56f90210dfbe01a6cc354e8d"
     },
     {
      "event": "power.acPower",
-     "url": "https://archive.org/download/iOS-17/iOS-4.zip/iOS-4%2FSystem%2FLibrary%2FAudio%2FUISounds%2Fbeep-beep.caf",
+     "url": "https://archive.org/download/changelog_20220521/phonetones/Ringtones%20zipped/Apple/Apple-iPhone3GS.zip/UISounds%2Fcaf%2Fbeep-beep.caf",
      "bytes": 46866,
      "sha256": "9321b9b832426db5f2544b72d91fc73fcc15b4b240db87a80c3b6a65b0eba2d4"
     },
     {
      "event": "power.battery10Minutes",
-     "url": "https://archive.org/download/iOS-17/iOS-4.zip/iOS-4%2FSystem%2FLibrary%2FAudio%2FUISounds%2Flow_power.caf",
+     "url": "https://archive.org/download/changelog_20220521/phonetones/Ringtones%20zipped/Apple/Apple-iPhone3GS.zip/UISounds%2Fcaf%2Flow_power.caf",
      "bytes": 111580,
      "sha256": "4c3d8f6ac2c59ee7ec15a88f972fd796bdc17d60ea2afb0345236c2efb31dc72"
     },
     {
      "event": "power.battery20Minutes",
-     "url": "https://archive.org/download/iOS-17/iOS-4.zip/iOS-4%2FSystem%2FLibrary%2FAudio%2FUISounds%2Flow_power.caf",
+     "url": "https://archive.org/download/changelog_20220521/phonetones/Ringtones%20zipped/Apple/Apple-iPhone3GS.zip/UISounds%2Fcaf%2Flow_power.caf",
      "bytes": 111580,
      "sha256": "4c3d8f6ac2c59ee7ec15a88f972fd796bdc17d60ea2afb0345236c2efb31dc72"
     },
     {
      "event": "power.battery5Minutes",
-     "url": "https://archive.org/download/iOS-17/iOS-4.zip/iOS-4%2FSystem%2FLibrary%2FAudio%2FUISounds%2Flow_power.caf",
+     "url": "https://archive.org/download/changelog_20220521/phonetones/Ringtones%20zipped/Apple/Apple-iPhone3GS.zip/UISounds%2Fcaf%2Flow_power.caf",
      "bytes": 111580,
      "sha256": "4c3d8f6ac2c59ee7ec15a88f972fd796bdc17d60ea2afb0345236c2efb31dc72"
     },
     {
      "event": "system.screenLocked",
-     "url": "https://archive.org/download/iOS-17/iOS-4.zip/iOS-4%2FSystem%2FLibrary%2FAudio%2FUISounds%2Flock.caf",
+     "url": "https://archive.org/download/changelog_20220521/phonetones/Ringtones%20zipped/Apple/Apple-iPhone3GS.zip/UISounds%2Fcaf%2Flock.caf",
      "bytes": 70468,
      "sha256": "508b2a39e04c9ba9d5eff180a647b38644bf19291de0b8175f33e06837ebfd39"
     },
     {
      "event": "system.screenUnlocked",
-     "url": "https://archive.org/download/iOS-17/iOS-4.zip/iOS-4%2FSystem%2FLibrary%2FAudio%2FUISounds%2Funlock.caf",
+     "url": "https://archive.org/download/changelog_20220521/phonetones/Ringtones%20zipped/Apple/Apple-iPhone3GS.zip/UISounds%2Fcaf%2Funlock.caf",
      "bytes": 83268,
      "sha256": "607e75f4c382fa1649e629f36a6991a8d9a8f5114207d31cb9314164501b097c"
     },
     {
      "event": "system.spaceChanged",
-     "url": "https://archive.org/download/iOS-17/iOS-4.zip/iOS-4%2FSystem%2FLibrary%2FAudio%2FUISounds%2FTock.caf",
+     "url": "https://archive.org/download/changelog_20220521/phonetones/Ringtones%20zipped/Apple/Apple-iPhone3GS.zip/UISounds%2Fcaf%2FTock.caf",
      "bytes": 4480,
      "sha256": "419233e9df586abf8df254028ff3f80e50659ffe3ca5b955fb0103680fd550ca"
     },
     {
      "event": "ui.rowExpanded",
-     "url": "https://archive.org/download/iOS-17/iOS-4.zip/iOS-4%2FSystem%2FLibrary%2FAudio%2FUISounds%2FTock.caf",
+     "url": "https://archive.org/download/changelog_20220521/phonetones/Ringtones%20zipped/Apple/Apple-iPhone3GS.zip/UISounds%2Fcaf%2FTock.caf",
      "bytes": 4480,
      "sha256": "419233e9df586abf8df254028ff3f80e50659ffe3ca5b955fb0103680fd550ca"
     },
     {
      "event": "window.dialogOpened",
-     "url": "https://archive.org/download/iOS-17/iOS-4.zip/iOS-4%2FSystem%2FLibrary%2FAudio%2FUISounds%2FVoicemail.caf",
+     "url": "https://archive.org/download/changelog_20220521/phonetones/Ringtones%20zipped/Apple/Apple-iPhone3GS.zip/UISounds%2Fcaf%2FVoicemail.caf",
      "bytes": 38528,
      "sha256": "e62c99f80a82467f86e8829c34e2b8e06bcaeb3b56f90210dfbe01a6cc354e8d"
     }
@@ -9125,6 +9991,7 @@
    "group": "iPhone",
    "license": "Copyright belongs to its maker. Downloaded at your request from a public archive that MaccessHub does not run. For personal use.",
    "sources": [
+    "https://archive.org/details/changelog_20220521",
     "https://archive.org/details/iOS-17"
    ],
    "bytes": 1160720,
@@ -9137,25 +10004,25 @@
     },
     {
      "event": "bluetooth.connected",
-     "url": "https://archive.org/download/iOS-17/iOS-4.zip/iOS-4%2FSystem%2FLibrary%2FCoreServices%2FVoiceOverTouch.app%2FSounds%2FBrailleDisplayConnected.aiff",
+     "url": "https://archive.org/download/changelog_20220521/phonetones/Ringtones%20zipped/Apple/Apple-iPhone3GS.zip/VoiceOverSounds%2FBrailleDisplayConnected.aiff",
      "bytes": 65920,
      "sha256": "c9c8198d93e32800500165c7f1753d83fa745fbefc1ce425e6e099273a3edb8b"
     },
     {
      "event": "bluetooth.disconnected",
-     "url": "https://archive.org/download/iOS-17/iOS-4.zip/iOS-4%2FSystem%2FLibrary%2FCoreServices%2FVoiceOverTouch.app%2FSounds%2FBrailleDisplayDisconnected.aiff",
+     "url": "https://archive.org/download/changelog_20220521/phonetones/Ringtones%20zipped/Apple/Apple-iPhone3GS.zip/VoiceOverSounds%2FBrailleDisplayDisconnected.aiff",
      "bytes": 70944,
      "sha256": "4dd505b0b36b8a5b8037d862d3be6ca92417b5578cf8c7c45d57a4dec144cc56"
     },
     {
      "event": "display.connected",
-     "url": "https://archive.org/download/iOS-17/iOS-4.zip/iOS-4%2FSystem%2FLibrary%2FCoreServices%2FVoiceOverTouch.app%2FSounds%2FBrailleDisplayConnected.aiff",
+     "url": "https://archive.org/download/changelog_20220521/phonetones/Ringtones%20zipped/Apple/Apple-iPhone3GS.zip/VoiceOverSounds%2FBrailleDisplayConnected.aiff",
      "bytes": 65920,
      "sha256": "c9c8198d93e32800500165c7f1753d83fa745fbefc1ce425e6e099273a3edb8b"
     },
     {
      "event": "display.disconnected",
-     "url": "https://archive.org/download/iOS-17/iOS-4.zip/iOS-4%2FSystem%2FLibrary%2FCoreServices%2FVoiceOverTouch.app%2FSounds%2FBrailleDisplayDisconnected.aiff",
+     "url": "https://archive.org/download/changelog_20220521/phonetones/Ringtones%20zipped/Apple/Apple-iPhone3GS.zip/VoiceOverSounds%2FBrailleDisplayDisconnected.aiff",
      "bytes": 70944,
      "sha256": "4dd505b0b36b8a5b8037d862d3be6ca92417b5578cf8c7c45d57a4dec144cc56"
     },
@@ -9173,73 +10040,73 @@
     },
     {
      "event": "network.ethernetConnected",
-     "url": "https://archive.org/download/iOS-17/iOS-4.zip/iOS-4%2FSystem%2FLibrary%2FCoreServices%2FVoiceOverTouch.app%2FSounds%2FBubbleAppear.aiff",
+     "url": "https://archive.org/download/changelog_20220521/phonetones/Ringtones%20zipped/Apple/Apple-iPhone3GS.zip/VoiceOverSounds%2FBubbleAppear.aiff",
      "bytes": 29558,
      "sha256": "c841c41a37ebd1244ce79f6b8285d0090d9a295c633bbed8d64471f5d0f2d98f"
     },
     {
      "event": "network.wifiConnected",
-     "url": "https://archive.org/download/iOS-17/iOS-4.zip/iOS-4%2FSystem%2FLibrary%2FCoreServices%2FVoiceOverTouch.app%2FSounds%2FBubbleAppear.aiff",
+     "url": "https://archive.org/download/changelog_20220521/phonetones/Ringtones%20zipped/Apple/Apple-iPhone3GS.zip/VoiceOverSounds%2FBubbleAppear.aiff",
      "bytes": 29558,
      "sha256": "c841c41a37ebd1244ce79f6b8285d0090d9a295c633bbed8d64471f5d0f2d98f"
     },
     {
      "event": "power.acPower",
-     "url": "https://archive.org/download/iOS-17/iOS-4.zip/iOS-4%2FSystem%2FLibrary%2FCoreServices%2FVoiceOverTouch.app%2FSounds%2FBrailleDisplayConnected.aiff",
+     "url": "https://archive.org/download/changelog_20220521/phonetones/Ringtones%20zipped/Apple/Apple-iPhone3GS.zip/VoiceOverSounds%2FBrailleDisplayConnected.aiff",
      "bytes": 65920,
      "sha256": "c9c8198d93e32800500165c7f1753d83fa745fbefc1ce425e6e099273a3edb8b"
     },
     {
      "event": "power.batteryPower",
-     "url": "https://archive.org/download/iOS-17/iOS-4.zip/iOS-4%2FSystem%2FLibrary%2FCoreServices%2FVoiceOverTouch.app%2FSounds%2FBrailleDisplayDisconnected.aiff",
+     "url": "https://archive.org/download/changelog_20220521/phonetones/Ringtones%20zipped/Apple/Apple-iPhone3GS.zip/VoiceOverSounds%2FBrailleDisplayDisconnected.aiff",
      "bytes": 70944,
      "sha256": "4dd505b0b36b8a5b8037d862d3be6ca92417b5578cf8c7c45d57a4dec144cc56"
     },
     {
      "event": "power.upsPower",
-     "url": "https://archive.org/download/iOS-17/iOS-4.zip/iOS-4%2FSystem%2FLibrary%2FCoreServices%2FVoiceOverTouch.app%2FSounds%2FBrailleDisplayDisconnected.aiff",
+     "url": "https://archive.org/download/changelog_20220521/phonetones/Ringtones%20zipped/Apple/Apple-iPhone3GS.zip/VoiceOverSounds%2FBrailleDisplayDisconnected.aiff",
      "bytes": 70944,
      "sha256": "4dd505b0b36b8a5b8037d862d3be6ca92417b5578cf8c7c45d57a4dec144cc56"
     },
     {
      "event": "storage.mounted",
-     "url": "https://archive.org/download/iOS-17/iOS-4.zip/iOS-4%2FSystem%2FLibrary%2FCoreServices%2FVoiceOverTouch.app%2FSounds%2FBrailleDisplayConnected.aiff",
+     "url": "https://archive.org/download/changelog_20220521/phonetones/Ringtones%20zipped/Apple/Apple-iPhone3GS.zip/VoiceOverSounds%2FBrailleDisplayConnected.aiff",
      "bytes": 65920,
      "sha256": "c9c8198d93e32800500165c7f1753d83fa745fbefc1ce425e6e099273a3edb8b"
     },
     {
      "event": "storage.unmounted",
-     "url": "https://archive.org/download/iOS-17/iOS-4.zip/iOS-4%2FSystem%2FLibrary%2FCoreServices%2FVoiceOverTouch.app%2FSounds%2FBrailleDisplayDisconnected.aiff",
+     "url": "https://archive.org/download/changelog_20220521/phonetones/Ringtones%20zipped/Apple/Apple-iPhone3GS.zip/VoiceOverSounds%2FBrailleDisplayDisconnected.aiff",
      "bytes": 70944,
      "sha256": "4dd505b0b36b8a5b8037d862d3be6ca92417b5578cf8c7c45d57a4dec144cc56"
     },
     {
      "event": "system.spaceChanged",
-     "url": "https://archive.org/download/iOS-17/iOS-4.zip/iOS-4%2FSystem%2FLibrary%2FCoreServices%2FVoiceOverTouch.app%2FSounds%2FScreenChange.aiff",
+     "url": "https://archive.org/download/changelog_20220521/phonetones/Ringtones%20zipped/Apple/Apple-iPhone3GS.zip/VoiceOverSounds%2FScreenChange.aiff",
      "bytes": 31202,
      "sha256": "bed20955e39d115c36f6f0b975fbf0d18ddb9094d2db7e0bcce2d7434de3e7e3"
     },
     {
      "event": "ui.menuOpened",
-     "url": "https://archive.org/download/iOS-17/iOS-4.zip/iOS-4%2FSystem%2FLibrary%2FCoreServices%2FVoiceOverTouch.app%2FSounds%2FPopupAppeared.aiff",
+     "url": "https://archive.org/download/changelog_20220521/phonetones/Ringtones%20zipped/Apple/Apple-iPhone3GS.zip/VoiceOverSounds%2FPopupAppeared.aiff",
      "bytes": 30894,
      "sha256": "1a419ea96aa6a6e1e62231eb4c736c3502299129424347b145f547dcbaaebd1a"
     },
     {
      "event": "ui.rowExpanded",
-     "url": "https://archive.org/download/iOS-17/iOS-4.zip/iOS-4%2FSystem%2FLibrary%2FCoreServices%2FVoiceOverTouch.app%2FSounds%2FScreenChange.aiff",
+     "url": "https://archive.org/download/changelog_20220521/phonetones/Ringtones%20zipped/Apple/Apple-iPhone3GS.zip/VoiceOverSounds%2FScreenChange.aiff",
      "bytes": 31202,
      "sha256": "bed20955e39d115c36f6f0b975fbf0d18ddb9094d2db7e0bcce2d7434de3e7e3"
     },
     {
      "event": "usb.connected",
-     "url": "https://archive.org/download/iOS-17/iOS-4.zip/iOS-4%2FSystem%2FLibrary%2FCoreServices%2FVoiceOverTouch.app%2FSounds%2FBrailleDisplayConnected.aiff",
+     "url": "https://archive.org/download/changelog_20220521/phonetones/Ringtones%20zipped/Apple/Apple-iPhone3GS.zip/VoiceOverSounds%2FBrailleDisplayConnected.aiff",
      "bytes": 65920,
      "sha256": "c9c8198d93e32800500165c7f1753d83fa745fbefc1ce425e6e099273a3edb8b"
     },
     {
      "event": "usb.disconnected",
-     "url": "https://archive.org/download/iOS-17/iOS-4.zip/iOS-4%2FSystem%2FLibrary%2FCoreServices%2FVoiceOverTouch.app%2FSounds%2FBrailleDisplayDisconnected.aiff",
+     "url": "https://archive.org/download/changelog_20220521/phonetones/Ringtones%20zipped/Apple/Apple-iPhone3GS.zip/VoiceOverSounds%2FBrailleDisplayDisconnected.aiff",
      "bytes": 70944,
      "sha256": "4dd505b0b36b8a5b8037d862d3be6ca92417b5578cf8c7c45d57a4dec144cc56"
     },
@@ -9251,7 +10118,7 @@
     },
     {
      "event": "window.dialogOpened",
-     "url": "https://archive.org/download/iOS-17/iOS-4.zip/iOS-4%2FSystem%2FLibrary%2FCoreServices%2FVoiceOverTouch.app%2FSounds%2FAlert.aiff",
+     "url": "https://archive.org/download/changelog_20220521/phonetones/Ringtones%20zipped/Apple/Apple-iPhone3GS.zip/VoiceOverSounds%2FAlert.aiff",
      "bytes": 88582,
      "sha256": "01ea372e51d7d6de6eed279e1046aff2e74f2bd37ceb31abf79ef45d7ccc3275"
     },
@@ -9266,6 +10133,739 @@
      "url": "https://archive.org/download/iOS-17/iOS-4.zip/iOS-4%2FSystem%2FLibrary%2FCoreServices%2FVoiceOverTouch.app%2FSounds%2FFolderOpened.aiff",
      "bytes": 30044,
      "sha256": "7979968c8b281e9dce856aac7c3814595a92da65fd1f92cc0252fd6a1c954cfd"
+    }
+   ]
+  },
+  {
+   "id": "aim-7",
+   "name": "AIM 7",
+   "group": "Other",
+   "license": "Copyright belongs to its maker. Downloaded at your request from a public archive that MaccessHub does not run. For personal use.",
+   "sources": [
+    "https://archive.org/details/aim7sfx"
+   ],
+   "bytes": 131712,
+   "files": [
+    {
+     "event": "network.ethernetConnected",
+     "url": "https://archive.org/download/aim7sfx/buddyin.wav",
+     "bytes": 26986,
+     "sha256": "c71de6a897d3a17d40d96f1e1e6f1e4ef74ebd570c7db82c5445b1e6846c8629"
+    },
+    {
+     "event": "network.ethernetDisconnected",
+     "url": "https://archive.org/download/aim7sfx/buddyout.wav",
+     "bytes": 10302,
+     "sha256": "cdcf6d46e681ea610d1ac2954a65e634528147b9677ce34b33daffc0d8beb497"
+    },
+    {
+     "event": "network.wifiConnected",
+     "url": "https://archive.org/download/aim7sfx/buddyin.wav",
+     "bytes": 26986,
+     "sha256": "c71de6a897d3a17d40d96f1e1e6f1e4ef74ebd570c7db82c5445b1e6846c8629"
+    },
+    {
+     "event": "network.wifiDisconnected",
+     "url": "https://archive.org/download/aim7sfx/buddyout.wav",
+     "bytes": 10302,
+     "sha256": "cdcf6d46e681ea610d1ac2954a65e634528147b9677ce34b33daffc0d8beb497"
+    },
+    {
+     "event": "system.didWake",
+     "url": "https://archive.org/download/aim7sfx/dooropen.wav",
+     "bytes": 19180,
+     "sha256": "9a80cf6367e8b3b9ab6d362cab623116721cc5ec0aef4148f26bac2a7f14b52c"
+    },
+    {
+     "event": "system.login",
+     "url": "https://archive.org/download/aim7sfx/dooropen.wav",
+     "bytes": 19180,
+     "sha256": "9a80cf6367e8b3b9ab6d362cab623116721cc5ec0aef4148f26bac2a7f14b52c"
+    },
+    {
+     "event": "system.logout",
+     "url": "https://archive.org/download/aim7sfx/doorslam.wav",
+     "bytes": 9388,
+     "sha256": "466a1098e3c6e39c075fa737d05c55073972640d7d954950856887ec25cdc4b5"
+    },
+    {
+     "event": "system.willSleep",
+     "url": "https://archive.org/download/aim7sfx/doorslam.wav",
+     "bytes": 9388,
+     "sha256": "466a1098e3c6e39c075fa737d05c55073972640d7d954950856887ec25cdc4b5"
+    }
+   ]
+  },
+  {
+   "id": "aol-and-aim-classic",
+   "name": "AOL and AIM (classic)",
+   "group": "Other",
+   "license": "Copyright belongs to its maker. Downloaded at your request from a public archive that MaccessHub does not run. For personal use.",
+   "sources": [
+    "https://archive.org/details/20250518_20250518_2006"
+   ],
+   "bytes": 283790,
+   "files": [
+    {
+     "event": "network.ethernetConnected",
+     "url": "https://archive.org/download/20250518_20250518_2006/America%20Online%20%28AOL%29%20%26%20AOL%20Instant%20Messenger%20%28AIM%29%20Sound%20Pack/Buddy%20In.flac",
+     "bytes": 57349,
+     "sha256": "fcbc63dc1703043d8c2cc1adc9af09d0e94d8feed3ffb8777674cbf087610a68"
+    },
+    {
+     "event": "network.ethernetDisconnected",
+     "url": "https://archive.org/download/20250518_20250518_2006/America%20Online%20%28AOL%29%20%26%20AOL%20Instant%20Messenger%20%28AIM%29%20Sound%20Pack/Buddy%20Out.flac",
+     "bytes": 23685,
+     "sha256": "f68f835ad15bf0fecb9289d63c76fa73c5b952e0480f525d67b77663752f180b"
+    },
+    {
+     "event": "network.wifiConnected",
+     "url": "https://archive.org/download/20250518_20250518_2006/America%20Online%20%28AOL%29%20%26%20AOL%20Instant%20Messenger%20%28AIM%29%20Sound%20Pack/Buddy%20In.flac",
+     "bytes": 57349,
+     "sha256": "fcbc63dc1703043d8c2cc1adc9af09d0e94d8feed3ffb8777674cbf087610a68"
+    },
+    {
+     "event": "network.wifiDisconnected",
+     "url": "https://archive.org/download/20250518_20250518_2006/America%20Online%20%28AOL%29%20%26%20AOL%20Instant%20Messenger%20%28AIM%29%20Sound%20Pack/Buddy%20Out.flac",
+     "bytes": 23685,
+     "sha256": "f68f835ad15bf0fecb9289d63c76fa73c5b952e0480f525d67b77663752f180b"
+    },
+    {
+     "event": "system.didWake",
+     "url": "https://archive.org/download/20250518_20250518_2006/America%20Online%20%28AOL%29%20%26%20AOL%20Instant%20Messenger%20%28AIM%29%20Sound%20Pack/Welcome.flac",
+     "bytes": 26839,
+     "sha256": "d613443ce1072438b43f071ecae50966f3520c1066d587b5c27f58fd8b3b2311"
+    },
+    {
+     "event": "system.login",
+     "url": "https://archive.org/download/20250518_20250518_2006/America%20Online%20%28AOL%29%20%26%20AOL%20Instant%20Messenger%20%28AIM%29%20Sound%20Pack/Welcome.flac",
+     "bytes": 26839,
+     "sha256": "d613443ce1072438b43f071ecae50966f3520c1066d587b5c27f58fd8b3b2311"
+    },
+    {
+     "event": "system.logout",
+     "url": "https://archive.org/download/20250518_20250518_2006/America%20Online%20%28AOL%29%20%26%20AOL%20Instant%20Messenger%20%28AIM%29%20Sound%20Pack/Goodbye.flac",
+     "bytes": 18688,
+     "sha256": "dacc02f4a4cbb0dc980e109d72ab2acad3437480a6731cf901391ba0f105986b"
+    },
+    {
+     "event": "system.willSleep",
+     "url": "https://archive.org/download/20250518_20250518_2006/America%20Online%20%28AOL%29%20%26%20AOL%20Instant%20Messenger%20%28AIM%29%20Sound%20Pack/Goodbye.flac",
+     "bytes": 18688,
+     "sha256": "dacc02f4a4cbb0dc980e109d72ab2acad3437480a6731cf901391ba0f105986b"
+    },
+    {
+     "event": "window.dialogOpened",
+     "url": "https://archive.org/download/20250518_20250518_2006/America%20Online%20%28AOL%29%20%26%20AOL%20Instant%20Messenger%20%28AIM%29%20Sound%20Pack/Urgent.flac",
+     "bytes": 30668,
+     "sha256": "15e88c0ef46f1bf1f262a8416a1b96851fb6d453ca960235b33551b9f1b2d57e"
+    }
+   ]
+  },
+  {
+   "id": "blackberry-10",
+   "name": "BlackBerry 10",
+   "group": "Other",
+   "license": "Copyright belongs to its maker. Downloaded at your request from a public archive that MaccessHub does not run. For personal use.",
+   "sources": [
+    "https://archive.org/details/blackberry-os-4.5-10-tones"
+   ],
+   "bytes": 3847143,
+   "files": [
+    {
+     "event": "bluetooth.connected",
+     "url": "https://archive.org/download/blackberry-os-4.5-10-tones/Blackberry%20OS%204.5-10%20tones.zip/Blackberry%20OS%204.5-10%20tones%2FOS-10%2Faccessibility%2Fsystem_connected.wav",
+     "bytes": 100760,
+     "sha256": "e7deba4cc4c374ae9d917adc990ec17062bbe134ce24874674c73c583663659c"
+    },
+    {
+     "event": "bluetooth.disconnected",
+     "url": "https://archive.org/download/blackberry-os-4.5-10-tones/Blackberry%20OS%204.5-10%20tones.zip/Blackberry%20OS%204.5-10%20tones%2FOS-10%2Faccessibility%2Fsystem_disconnected.wav",
+     "bytes": 111720,
+     "sha256": "5c816f2f05633c65213b672ebf2fc0030484cd6b8c63ad896c69f9d668f07f97"
+    },
+    {
+     "event": "display.connected",
+     "url": "https://archive.org/download/blackberry-os-4.5-10-tones/Blackberry%20OS%204.5-10%20tones.zip/Blackberry%20OS%204.5-10%20tones%2FOS-10%2Faccessibility%2Fsystem_connected.wav",
+     "bytes": 100760,
+     "sha256": "e7deba4cc4c374ae9d917adc990ec17062bbe134ce24874674c73c583663659c"
+    },
+    {
+     "event": "display.disconnected",
+     "url": "https://archive.org/download/blackberry-os-4.5-10-tones/Blackberry%20OS%204.5-10%20tones.zip/Blackberry%20OS%204.5-10%20tones%2FOS-10%2Faccessibility%2Fsystem_disconnected.wav",
+     "bytes": 111720,
+     "sha256": "5c816f2f05633c65213b672ebf2fc0030484cd6b8c63ad896c69f9d668f07f97"
+    },
+    {
+     "event": "network.ethernetConnected",
+     "url": "https://archive.org/download/blackberry-os-4.5-10-tones/Blackberry%20OS%204.5-10%20tones.zip/Blackberry%20OS%204.5-10%20tones%2FOS-10%2Fnotification-tones%2F3rdparty_fallback%2F3rd_party.m4a",
+     "bytes": 189125,
+     "sha256": "3919b14c3ddb6ca24ce8ff5353db933cf86720996a3d6dded3fa250c7344f0f6"
+    },
+    {
+     "event": "network.wifiConnected",
+     "url": "https://archive.org/download/blackberry-os-4.5-10-tones/Blackberry%20OS%204.5-10%20tones.zip/Blackberry%20OS%204.5-10%20tones%2FOS-10%2Fnotification-tones%2F3rdparty_fallback%2F3rd_party.m4a",
+     "bytes": 189125,
+     "sha256": "3919b14c3ddb6ca24ce8ff5353db933cf86720996a3d6dded3fa250c7344f0f6"
+    },
+    {
+     "event": "power.acPower",
+     "url": "https://archive.org/download/blackberry-os-4.5-10-tones/Blackberry%20OS%204.5-10%20tones.zip/Blackberry%20OS%204.5-10%20tones%2FOS-10%2Faccessibility%2Fsystem_connected.wav",
+     "bytes": 100760,
+     "sha256": "e7deba4cc4c374ae9d917adc990ec17062bbe134ce24874674c73c583663659c"
+    },
+    {
+     "event": "power.battery10Minutes",
+     "url": "https://archive.org/download/blackberry-os-4.5-10-tones/Blackberry%20OS%204.5-10%20tones.zip/Blackberry%20OS%204.5-10%20tones%2FOS-10%2Faccessibility%2Fsystem_battery_low.wav",
+     "bytes": 499992,
+     "sha256": "f899df0f1aed012ec101ca91f694a8f65be64b272164d298802ede315688c5bc"
+    },
+    {
+     "event": "power.battery20Minutes",
+     "url": "https://archive.org/download/blackberry-os-4.5-10-tones/Blackberry%20OS%204.5-10%20tones.zip/Blackberry%20OS%204.5-10%20tones%2FOS-10%2Faccessibility%2Fsystem_battery_low.wav",
+     "bytes": 499992,
+     "sha256": "f899df0f1aed012ec101ca91f694a8f65be64b272164d298802ede315688c5bc"
+    },
+    {
+     "event": "power.battery5Minutes",
+     "url": "https://archive.org/download/blackberry-os-4.5-10-tones/Blackberry%20OS%204.5-10%20tones.zip/Blackberry%20OS%204.5-10%20tones%2FOS-10%2Falarm_battery.wav",
+     "bytes": 515965,
+     "sha256": "36a5169002a715eae06a3b8922720f2b9ca758e422cd6fab8c4dc2f2c1c14acf"
+    },
+    {
+     "event": "power.batteryPower",
+     "url": "https://archive.org/download/blackberry-os-4.5-10-tones/Blackberry%20OS%204.5-10%20tones.zip/Blackberry%20OS%204.5-10%20tones%2FOS-10%2Faccessibility%2Fsystem_disconnected.wav",
+     "bytes": 111720,
+     "sha256": "5c816f2f05633c65213b672ebf2fc0030484cd6b8c63ad896c69f9d668f07f97"
+    },
+    {
+     "event": "power.upsPower",
+     "url": "https://archive.org/download/blackberry-os-4.5-10-tones/Blackberry%20OS%204.5-10%20tones.zip/Blackberry%20OS%204.5-10%20tones%2FOS-10%2Faccessibility%2Fsystem_disconnected.wav",
+     "bytes": 111720,
+     "sha256": "5c816f2f05633c65213b672ebf2fc0030484cd6b8c63ad896c69f9d668f07f97"
+    },
+    {
+     "event": "storage.mounted",
+     "url": "https://archive.org/download/blackberry-os-4.5-10-tones/Blackberry%20OS%204.5-10%20tones.zip/Blackberry%20OS%204.5-10%20tones%2FOS-10%2Faccessibility%2Fsystem_connected.wav",
+     "bytes": 100760,
+     "sha256": "e7deba4cc4c374ae9d917adc990ec17062bbe134ce24874674c73c583663659c"
+    },
+    {
+     "event": "storage.unmounted",
+     "url": "https://archive.org/download/blackberry-os-4.5-10-tones/Blackberry%20OS%204.5-10%20tones.zip/Blackberry%20OS%204.5-10%20tones%2FOS-10%2Faccessibility%2Fsystem_disconnected.wav",
+     "bytes": 111720,
+     "sha256": "5c816f2f05633c65213b672ebf2fc0030484cd6b8c63ad896c69f9d668f07f97"
+    },
+    {
+     "event": "system.login",
+     "url": "https://archive.org/download/blackberry-os-4.5-10-tones/Blackberry%20OS%204.5-10%20tones.zip/Blackberry%20OS%204.5-10%20tones%2FOS-10%2Faccessibility%2Fsystem_power_on.wav",
+     "bytes": 453780,
+     "sha256": "435de7e6dc722e8718179537d1776ff3b2feb324d2fa4a13162151384d446ffa"
+    },
+    {
+     "event": "system.logout",
+     "url": "https://archive.org/download/blackberry-os-4.5-10-tones/Blackberry%20OS%204.5-10%20tones.zip/Blackberry%20OS%204.5-10%20tones%2FOS-10%2Faccessibility%2Fsystem_power_off.wav",
+     "bytes": 325044,
+     "sha256": "b5b14455232bca12290a8bf5085428694ecb2a81ea0baf0bc5ca73927ac589fc"
+    },
+    {
+     "event": "usb.connected",
+     "url": "https://archive.org/download/blackberry-os-4.5-10-tones/Blackberry%20OS%204.5-10%20tones.zip/Blackberry%20OS%204.5-10%20tones%2FOS-10%2Faccessibility%2Fsystem_connected.wav",
+     "bytes": 100760,
+     "sha256": "e7deba4cc4c374ae9d917adc990ec17062bbe134ce24874674c73c583663659c"
+    },
+    {
+     "event": "usb.disconnected",
+     "url": "https://archive.org/download/blackberry-os-4.5-10-tones/Blackberry%20OS%204.5-10%20tones.zip/Blackberry%20OS%204.5-10%20tones%2FOS-10%2Faccessibility%2Fsystem_disconnected.wav",
+     "bytes": 111720,
+     "sha256": "5c816f2f05633c65213b672ebf2fc0030484cd6b8c63ad896c69f9d668f07f97"
+    }
+   ]
+  },
+  {
+   "id": "nintendo-switch",
+   "name": "Nintendo Switch",
+   "group": "Other",
+   "license": "Copyright belongs to its maker. Downloaded at your request from a public archive that MaccessHub does not run. For personal use.",
+   "sources": [
+    "https://archive.org/details/nintendo-switch-home-menu-miscellaneous-menu-sounds"
+   ],
+   "bytes": 886920,
+   "files": [
+    {
+     "event": "application.launched",
+     "url": "https://archive.org/download/nintendo-switch-home-menu-miscellaneous-menu-sounds/Nintendo%20Switch%20-%20HOME%20Menu%20-%20Miscellaneous%20-%20Menu%20Sounds.zip/Nintendo%20Switch%20System%20Bios%20SFX%2FPopup%20%2B%20Run%20Title.wav",
+     "bytes": 326084,
+     "sha256": "741fbd769c212bd60b8c649e3ba8e319897f147671ffbe0d2cff0c0b269a7845"
+    },
+    {
+     "event": "network.ethernetConnected",
+     "url": "https://archive.org/download/nintendo-switch-home-menu-miscellaneous-menu-sounds/Nintendo%20Switch%20-%20HOME%20Menu%20-%20Miscellaneous%20-%20Menu%20Sounds.zip/Nintendo%20Switch%20System%20Bios%20SFX%2FBing.wav",
+     "bytes": 112588,
+     "sha256": "5dd622915292c078c80807e6361afdfb0afad72a4ff953eb831bf4745a30b034"
+    },
+    {
+     "event": "network.wifiConnected",
+     "url": "https://archive.org/download/nintendo-switch-home-menu-miscellaneous-menu-sounds/Nintendo%20Switch%20-%20HOME%20Menu%20-%20Miscellaneous%20-%20Menu%20Sounds.zip/Nintendo%20Switch%20System%20Bios%20SFX%2FBing.wav",
+     "bytes": 112588,
+     "sha256": "5dd622915292c078c80807e6361afdfb0afad72a4ff953eb831bf4745a30b034"
+    },
+    {
+     "event": "system.login",
+     "url": "https://archive.org/download/nintendo-switch-home-menu-miscellaneous-menu-sounds/Nintendo%20Switch%20-%20HOME%20Menu%20-%20Miscellaneous%20-%20Menu%20Sounds.zip/Nintendo%20Switch%20System%20Bios%20SFX%2FTurn%20On.wav",
+     "bytes": 17964,
+     "sha256": "0d730d05a9ce98bccb85b8d3a59253b068ff2cb0e49e90f19fce5afdc869c8c3"
+    },
+    {
+     "event": "system.logout",
+     "url": "https://archive.org/download/nintendo-switch-home-menu-miscellaneous-menu-sounds/Nintendo%20Switch%20-%20HOME%20Menu%20-%20Miscellaneous%20-%20Menu%20Sounds.zip/Nintendo%20Switch%20System%20Bios%20SFX%2FTurn%20Off.wav",
+     "bytes": 18292,
+     "sha256": "8620b178f20a4f2959aff5cacd9805d082768694fee6becf720eec02c5e8fdd9"
+    },
+    {
+     "event": "system.spaceChanged",
+     "url": "https://archive.org/download/nintendo-switch-home-menu-miscellaneous-menu-sounds/Nintendo%20Switch%20-%20HOME%20Menu%20-%20Miscellaneous%20-%20Menu%20Sounds.zip/Nintendo%20Switch%20System%20Bios%20SFX%2FKlick.wav",
+     "bytes": 7052,
+     "sha256": "c974ba47fff3c864d2b7ae0d6b8a5b5bf7ac3025205baad27cc5805341fa5082"
+    },
+    {
+     "event": "system.willSleep",
+     "url": "https://archive.org/download/nintendo-switch-home-menu-miscellaneous-menu-sounds/Nintendo%20Switch%20-%20HOME%20Menu%20-%20Miscellaneous%20-%20Menu%20Sounds.zip/Nintendo%20Switch%20System%20Bios%20SFX%2FStandby.wav",
+     "bytes": 213924,
+     "sha256": "6d4a523b28568f3f5d943a7acae9aacdee9bcb1531fa4b75aea9e1c1dbbcae43"
+    },
+    {
+     "event": "ui.menuItemSelected",
+     "url": "https://archive.org/download/nintendo-switch-home-menu-miscellaneous-menu-sounds/Nintendo%20Switch%20-%20HOME%20Menu%20-%20Miscellaneous%20-%20Menu%20Sounds.zip/Nintendo%20Switch%20System%20Bios%20SFX%2FSelect.wav",
+     "bytes": 64324,
+     "sha256": "5f5d4ff2efad109c0c33796c08cdbe91f94d9c1526064926947acacda65cabc9"
+    },
+    {
+     "event": "ui.rowExpanded",
+     "url": "https://archive.org/download/nintendo-switch-home-menu-miscellaneous-menu-sounds/Nintendo%20Switch%20-%20HOME%20Menu%20-%20Miscellaneous%20-%20Menu%20Sounds.zip/Nintendo%20Switch%20System%20Bios%20SFX%2FKlick.wav",
+     "bytes": 7052,
+     "sha256": "c974ba47fff3c864d2b7ae0d6b8a5b5bf7ac3025205baad27cc5805341fa5082"
+    },
+    {
+     "event": "window.dialogOpened",
+     "url": "https://archive.org/download/nintendo-switch-home-menu-miscellaneous-menu-sounds/Nintendo%20Switch%20-%20HOME%20Menu%20-%20Miscellaneous%20-%20Menu%20Sounds.zip/Nintendo%20Switch%20System%20Bios%20SFX%2FKlick.wav",
+     "bytes": 7052,
+     "sha256": "c974ba47fff3c864d2b7ae0d6b8a5b5bf7ac3025205baad27cc5805341fa5082"
+    }
+   ]
+  },
+  {
+   "id": "nintendo-switch-2",
+   "name": "Nintendo Switch 2",
+   "group": "Other",
+   "license": "Copyright belongs to its maker. Downloaded at your request from a public archive that MaccessHub does not run. For personal use.",
+   "sources": [
+    "https://archive.org/details/nintendo-switch-2-system-bios-home-menu-sounds"
+   ],
+   "bytes": 2420554,
+   "files": [
+    {
+     "event": "application.launched",
+     "url": "https://archive.org/download/nintendo-switch-2-system-bios-home-menu-sounds/Nintendo%20Switch%202%20-%20System%20BIOS%20-%20HOME%20Menu%20Sounds.zip/Nintendo%20Switch%202%20System%20Firmware%20Sounds%2FLaunch%20Software.wav",
+     "bytes": 164046,
+     "sha256": "66b419ac5b8cd2dbc796f900ffc5fd158bf7cbbadab06188365308ab32063409"
+    },
+    {
+     "event": "bluetooth.connected",
+     "url": "https://archive.org/download/nintendo-switch-2-system-bios-home-menu-sounds/Nintendo%20Switch%202%20-%20System%20BIOS%20-%20HOME%20Menu%20Sounds.zip/Nintendo%20Switch%202%20System%20Firmware%20Sounds%2FAttach%20Joy-Con%202.wav",
+     "bytes": 135374,
+     "sha256": "15033eeb3343e4374c0c2707bb7ad4fb58fe8c4ffadd7d818cb23d3361710143"
+    },
+    {
+     "event": "bluetooth.disconnected",
+     "url": "https://archive.org/download/nintendo-switch-2-system-bios-home-menu-sounds/Nintendo%20Switch%202%20-%20System%20BIOS%20-%20HOME%20Menu%20Sounds.zip/Nintendo%20Switch%202%20System%20Firmware%20Sounds%2FDe-attach%20Joy-Con%202.wav",
+     "bytes": 110798,
+     "sha256": "c26fb3d1c968b9dbe065bef63350a1ad880191e6ea0b977c468436bd5a56ef52"
+    },
+    {
+     "event": "display.connected",
+     "url": "https://archive.org/download/nintendo-switch-2-system-bios-home-menu-sounds/Nintendo%20Switch%202%20-%20System%20BIOS%20-%20HOME%20Menu%20Sounds.zip/Nintendo%20Switch%202%20System%20Firmware%20Sounds%2FAttach%20Joy-Con%202.wav",
+     "bytes": 135374,
+     "sha256": "15033eeb3343e4374c0c2707bb7ad4fb58fe8c4ffadd7d818cb23d3361710143"
+    },
+    {
+     "event": "display.disconnected",
+     "url": "https://archive.org/download/nintendo-switch-2-system-bios-home-menu-sounds/Nintendo%20Switch%202%20-%20System%20BIOS%20-%20HOME%20Menu%20Sounds.zip/Nintendo%20Switch%202%20System%20Firmware%20Sounds%2FDe-attach%20Joy-Con%202.wav",
+     "bytes": 110798,
+     "sha256": "c26fb3d1c968b9dbe065bef63350a1ad880191e6ea0b977c468436bd5a56ef52"
+    },
+    {
+     "event": "network.ethernetConnected",
+     "url": "https://archive.org/download/nintendo-switch-2-system-bios-home-menu-sounds/Nintendo%20Switch%202%20-%20System%20BIOS%20-%20HOME%20Menu%20Sounds.zip/Nintendo%20Switch%202%20System%20Firmware%20Sounds%2FNotification.wav",
+     "bytes": 73934,
+     "sha256": "e2c2e7e3bd217548b16c85fd67031e58c30b2d59cc49dbba475249bccc41c72b"
+    },
+    {
+     "event": "network.wifiConnected",
+     "url": "https://archive.org/download/nintendo-switch-2-system-bios-home-menu-sounds/Nintendo%20Switch%202%20-%20System%20BIOS%20-%20HOME%20Menu%20Sounds.zip/Nintendo%20Switch%202%20System%20Firmware%20Sounds%2FNotification.wav",
+     "bytes": 73934,
+     "sha256": "e2c2e7e3bd217548b16c85fd67031e58c30b2d59cc49dbba475249bccc41c72b"
+    },
+    {
+     "event": "power.acPower",
+     "url": "https://archive.org/download/nintendo-switch-2-system-bios-home-menu-sounds/Nintendo%20Switch%202%20-%20System%20BIOS%20-%20HOME%20Menu%20Sounds.zip/Nintendo%20Switch%202%20System%20Firmware%20Sounds%2FAttach%20Joy-Con%202.wav",
+     "bytes": 135374,
+     "sha256": "15033eeb3343e4374c0c2707bb7ad4fb58fe8c4ffadd7d818cb23d3361710143"
+    },
+    {
+     "event": "power.batteryPower",
+     "url": "https://archive.org/download/nintendo-switch-2-system-bios-home-menu-sounds/Nintendo%20Switch%202%20-%20System%20BIOS%20-%20HOME%20Menu%20Sounds.zip/Nintendo%20Switch%202%20System%20Firmware%20Sounds%2FDe-attach%20Joy-Con%202.wav",
+     "bytes": 110798,
+     "sha256": "c26fb3d1c968b9dbe065bef63350a1ad880191e6ea0b977c468436bd5a56ef52"
+    },
+    {
+     "event": "power.upsPower",
+     "url": "https://archive.org/download/nintendo-switch-2-system-bios-home-menu-sounds/Nintendo%20Switch%202%20-%20System%20BIOS%20-%20HOME%20Menu%20Sounds.zip/Nintendo%20Switch%202%20System%20Firmware%20Sounds%2FDe-attach%20Joy-Con%202.wav",
+     "bytes": 110798,
+     "sha256": "c26fb3d1c968b9dbe065bef63350a1ad880191e6ea0b977c468436bd5a56ef52"
+    },
+    {
+     "event": "storage.mounted",
+     "url": "https://archive.org/download/nintendo-switch-2-system-bios-home-menu-sounds/Nintendo%20Switch%202%20-%20System%20BIOS%20-%20HOME%20Menu%20Sounds.zip/Nintendo%20Switch%202%20System%20Firmware%20Sounds%2FAttach%20Joy-Con%202.wav",
+     "bytes": 135374,
+     "sha256": "15033eeb3343e4374c0c2707bb7ad4fb58fe8c4ffadd7d818cb23d3361710143"
+    },
+    {
+     "event": "storage.unmounted",
+     "url": "https://archive.org/download/nintendo-switch-2-system-bios-home-menu-sounds/Nintendo%20Switch%202%20-%20System%20BIOS%20-%20HOME%20Menu%20Sounds.zip/Nintendo%20Switch%202%20System%20Firmware%20Sounds%2FDe-attach%20Joy-Con%202.wav",
+     "bytes": 110798,
+     "sha256": "c26fb3d1c968b9dbe065bef63350a1ad880191e6ea0b977c468436bd5a56ef52"
+    },
+    {
+     "event": "system.didWake",
+     "url": "https://archive.org/download/nintendo-switch-2-system-bios-home-menu-sounds/Nintendo%20Switch%202%20-%20System%20BIOS%20-%20HOME%20Menu%20Sounds.zip/Nintendo%20Switch%202%20System%20Firmware%20Sounds%2FWake%20up%20from%20Sleep%20Mode.wav",
+     "bytes": 180430,
+     "sha256": "ff37ceccd03486d89db53b48380532ea50634ab895e1843d4bd28400a7f71892"
+    },
+    {
+     "event": "system.screenUnlocked",
+     "url": "https://archive.org/download/nintendo-switch-2-system-bios-home-menu-sounds/Nintendo%20Switch%202%20-%20System%20BIOS%20-%20HOME%20Menu%20Sounds.zip/Nintendo%20Switch%202%20System%20Firmware%20Sounds%2FUnlock.wav",
+     "bytes": 258254,
+     "sha256": "4e33ac4a8db3a569c5e0971f11d6ae7d622280b9a74d0126be01026f57dbd4f3"
+    },
+    {
+     "event": "system.willSleep",
+     "url": "https://archive.org/download/nintendo-switch-2-system-bios-home-menu-sounds/Nintendo%20Switch%202%20-%20System%20BIOS%20-%20HOME%20Menu%20Sounds.zip/Nintendo%20Switch%202%20System%20Firmware%20Sounds%2FSleep%20Mode.wav",
+     "bytes": 139470,
+     "sha256": "eccdff5360eebf6f9d4509fcaee5807df08da135d29c6f9462b1dcc4fc00b677"
+    },
+    {
+     "event": "ui.menuOpened",
+     "url": "https://archive.org/download/nintendo-switch-2-system-bios-home-menu-sounds/Nintendo%20Switch%202%20-%20System%20BIOS%20-%20HOME%20Menu%20Sounds.zip/Nintendo%20Switch%202%20System%20Firmware%20Sounds%2FPopup.wav",
+     "bytes": 114894,
+     "sha256": "b623b64f7f476fc7595570b3e2bce15cb183910306eb62ed82fb0a2fcc59ec4a"
+    },
+    {
+     "event": "usb.connected",
+     "url": "https://archive.org/download/nintendo-switch-2-system-bios-home-menu-sounds/Nintendo%20Switch%202%20-%20System%20BIOS%20-%20HOME%20Menu%20Sounds.zip/Nintendo%20Switch%202%20System%20Firmware%20Sounds%2FAttach%20Joy-Con%202.wav",
+     "bytes": 135374,
+     "sha256": "15033eeb3343e4374c0c2707bb7ad4fb58fe8c4ffadd7d818cb23d3361710143"
+    },
+    {
+     "event": "usb.disconnected",
+     "url": "https://archive.org/download/nintendo-switch-2-system-bios-home-menu-sounds/Nintendo%20Switch%202%20-%20System%20BIOS%20-%20HOME%20Menu%20Sounds.zip/Nintendo%20Switch%202%20System%20Firmware%20Sounds%2FDe-attach%20Joy-Con%202.wav",
+     "bytes": 110798,
+     "sha256": "c26fb3d1c968b9dbe065bef63350a1ad880191e6ea0b977c468436bd5a56ef52"
+    },
+    {
+     "event": "window.dialogOpened",
+     "url": "https://archive.org/download/nintendo-switch-2-system-bios-home-menu-sounds/Nintendo%20Switch%202%20-%20System%20BIOS%20-%20HOME%20Menu%20Sounds.zip/Nintendo%20Switch%202%20System%20Firmware%20Sounds%2FNotification.wav",
+     "bytes": 73934,
+     "sha256": "e2c2e7e3bd217548b16c85fd67031e58c30b2d59cc49dbba475249bccc41c72b"
+    }
+   ]
+  },
+  {
+   "id": "nintendo-wii",
+   "name": "Nintendo Wii",
+   "group": "Other",
+   "license": "Copyright belongs to its maker. Downloaded at your request from a public archive that MaccessHub does not run. For personal use.",
+   "sources": [
+    "https://archive.org/details/all-wii-sounds"
+   ],
+   "bytes": 5031994,
+   "files": [
+    {
+     "event": "bluetooth.connected",
+     "url": "https://archive.org/download/all-wii-sounds/Disk%20Inserted.wav",
+     "bytes": 800842,
+     "sha256": "60320e61fe753760e95a91fd92514dacf142a6f4daa70d3ad233da1a82f3d664"
+    },
+    {
+     "event": "display.connected",
+     "url": "https://archive.org/download/all-wii-sounds/Disk%20Inserted.wav",
+     "bytes": 800842,
+     "sha256": "60320e61fe753760e95a91fd92514dacf142a6f4daa70d3ad233da1a82f3d664"
+    },
+    {
+     "event": "power.acPower",
+     "url": "https://archive.org/download/all-wii-sounds/Disk%20Inserted.wav",
+     "bytes": 800842,
+     "sha256": "60320e61fe753760e95a91fd92514dacf142a6f4daa70d3ad233da1a82f3d664"
+    },
+    {
+     "event": "storage.mounted",
+     "url": "https://archive.org/download/all-wii-sounds/Disk%20Inserted.wav",
+     "bytes": 800842,
+     "sha256": "60320e61fe753760e95a91fd92514dacf142a6f4daa70d3ad233da1a82f3d664"
+    },
+    {
+     "event": "system.login",
+     "url": "https://archive.org/download/all-wii-sounds/Start.wav",
+     "bytes": 536396,
+     "sha256": "cfe5ed4899a3cbd378e4ff1a820ec9ac4de97dfba3ddf586e41db431f298fe82"
+    },
+    {
+     "event": "usb.connected",
+     "url": "https://archive.org/download/all-wii-sounds/Disk%20Inserted.wav",
+     "bytes": 800842,
+     "sha256": "60320e61fe753760e95a91fd92514dacf142a6f4daa70d3ad233da1a82f3d664"
+    },
+    {
+     "event": "window.dialogOpened",
+     "url": "https://archive.org/download/all-wii-sounds/Exalamation.wav",
+     "bytes": 491388,
+     "sha256": "fff4d2527e50daadf2914874689a7023d241376c11f259437846ebc904004d4a"
+    }
+   ]
+  },
+  {
+   "id": "nokia-e71-symbian-s60",
+   "name": "Nokia E71 (Symbian S60)",
+   "group": "Other",
+   "license": "Copyright belongs to its maker. Downloaded at your request from a public archive that MaccessHub does not run. For personal use.",
+   "sources": [
+    "https://archive.org/details/nokia-e-71-tmobile-version-sounds"
+   ],
+   "bytes": 2722576,
+   "files": [
+    {
+     "event": "power.battery10Minutes",
+     "url": "https://archive.org/download/nokia-e-71-tmobile-version-sounds/Nokia%20E71%20low%20battery%20sound.wav",
+     "bytes": 275308,
+     "sha256": "5ec478a8e2147bc19f7bb26b6fc89b88ab0edb3f4b9a4478b856f4c154916c62"
+    },
+    {
+     "event": "power.battery20Minutes",
+     "url": "https://archive.org/download/nokia-e-71-tmobile-version-sounds/Nokia%20E71%20low%20battery%20sound.wav",
+     "bytes": 275308,
+     "sha256": "5ec478a8e2147bc19f7bb26b6fc89b88ab0edb3f4b9a4478b856f4c154916c62"
+    },
+    {
+     "event": "power.battery5Minutes",
+     "url": "https://archive.org/download/nokia-e-71-tmobile-version-sounds/Nokia%20E71%20low%20battery%20sound.wav",
+     "bytes": 275308,
+     "sha256": "5ec478a8e2147bc19f7bb26b6fc89b88ab0edb3f4b9a4478b856f4c154916c62"
+    },
+    {
+     "event": "system.login",
+     "url": "https://archive.org/download/nokia-e-71-tmobile-version-sounds/Nokia%20E71%20TMobile%20startup%20sound.wav",
+     "bytes": 1048252,
+     "sha256": "218864266fa32b5dde6445cd54a6ec124c851c7a12c8a988e7a7fb84fdad60ce"
+    },
+    {
+     "event": "system.logout",
+     "url": "https://archive.org/download/nokia-e-71-tmobile-version-sounds/Nokia%20E71%20TMobile%20shutdown%20sound.wav",
+     "bytes": 787144,
+     "sha256": "6830de64ead3ee1abccbf07fa8d7bea003d55023627d854a622bc16f38c5733e"
+    },
+    {
+     "event": "window.dialogOpened",
+     "url": "https://archive.org/download/nokia-e-71-tmobile-version-sounds/Nokia%20E71%20beep%201.wav",
+     "bytes": 61256,
+     "sha256": "86c33c8354668a9f3d82e228059a0599fc66826f114a9ae1182582eca827bbfd"
+    }
+   ]
+  },
+  {
+   "id": "sega-saturn",
+   "name": "Sega Saturn",
+   "group": "Other",
+   "license": "Copyright belongs to its maker. Downloaded at your request from a public archive that MaccessHub does not run. For personal use.",
+   "sources": [
+    "https://archive.org/details/xbox-system-bios-xbox-menu-sounds_202103"
+   ],
+   "bytes": 1349024,
+   "files": [
+    {
+     "event": "system.login",
+     "url": "https://archive.org/download/xbox-system-bios-xbox-menu-sounds_202103/Saturn%20-%20System%20BIOS%20-%20General%20Sounds.zip/SEGA%20SATURN%20BIOS%2FSEGA%20SATURN%20%5BNTSC%20BIOS%20BOOT%5D.wav",
+     "bytes": 1271248,
+     "sha256": "4745f82d7b98aaef8d43b96d96aa915cd86e6bbf04ed6fdb1812293c21576a85"
+    },
+    {
+     "event": "system.spaceChanged",
+     "url": "https://archive.org/download/xbox-system-bios-xbox-menu-sounds_202103/Saturn%20-%20System%20BIOS%20-%20General%20Sounds.zip/SEGA%20SATURN%20BIOS%2FSEGA%20SATURN%20%5BMENU%20SCROLL%5D.wav",
+     "bytes": 22768,
+     "sha256": "9f977818b611c7f6536cfe3ec5c18b5cc7d802f7d3da04e6fc97eae77a96dcfe"
+    },
+    {
+     "event": "ui.menuItemSelected",
+     "url": "https://archive.org/download/xbox-system-bios-xbox-menu-sounds_202103/Saturn%20-%20System%20BIOS%20-%20General%20Sounds.zip/SEGA%20SATURN%20BIOS%2FSEGA%20SATURN%20%5BMENU%20SELECT%5D.wav",
+     "bytes": 32240,
+     "sha256": "c72f4b5aa5db0446236010b990114d79942698be67781e6b25571cd058008762"
+    },
+    {
+     "event": "ui.rowExpanded",
+     "url": "https://archive.org/download/xbox-system-bios-xbox-menu-sounds_202103/Saturn%20-%20System%20BIOS%20-%20General%20Sounds.zip/SEGA%20SATURN%20BIOS%2FSEGA%20SATURN%20%5BMENU%20SCROLL%5D.wav",
+     "bytes": 22768,
+     "sha256": "9f977818b611c7f6536cfe3ec5c18b5cc7d802f7d3da04e6fc97eae77a96dcfe"
+    }
+   ]
+  },
+  {
+   "id": "skype-6-7",
+   "name": "Skype 6-7",
+   "group": "Other",
+   "license": "Copyright belongs to its maker. Downloaded at your request from a public archive that MaccessHub does not run. For personal use.",
+   "sources": [
+    "https://archive.org/details/old-skype-sounds"
+   ],
+   "bytes": 547840,
+   "files": [
+    {
+     "event": "network.ethernetConnected",
+     "url": "https://archive.org/download/old-skype-sounds/ContactOnline.wav",
+     "bytes": 71074,
+     "sha256": "08ffabfd6ee0bc4a7e6eee9327233d91170ddeb4d040d92da1fe49e39be2f91e"
+    },
+    {
+     "event": "network.ethernetDisconnected",
+     "url": "https://archive.org/download/old-skype-sounds/ContactOffline.wav",
+     "bytes": 32732,
+     "sha256": "1c0a6a5deb2af9468a685f69fb7c1914c782f38c28040e64532c42e98c216716"
+    },
+    {
+     "event": "network.wifiConnected",
+     "url": "https://archive.org/download/old-skype-sounds/ContactOnline.wav",
+     "bytes": 71074,
+     "sha256": "08ffabfd6ee0bc4a7e6eee9327233d91170ddeb4d040d92da1fe49e39be2f91e"
+    },
+    {
+     "event": "network.wifiDisconnected",
+     "url": "https://archive.org/download/old-skype-sounds/ContactOffline.wav",
+     "bytes": 32732,
+     "sha256": "1c0a6a5deb2af9468a685f69fb7c1914c782f38c28040e64532c42e98c216716"
+    },
+    {
+     "event": "system.didWake",
+     "url": "https://archive.org/download/old-skype-sounds/SkypeLogin.wav",
+     "bytes": 73244,
+     "sha256": "f631cac109a54d560920448bc56a9cb59dff9aa95eba5572dc03d9e41121a71e"
+    },
+    {
+     "event": "system.login",
+     "url": "https://archive.org/download/old-skype-sounds/SkypeLogin.wav",
+     "bytes": 73244,
+     "sha256": "f631cac109a54d560920448bc56a9cb59dff9aa95eba5572dc03d9e41121a71e"
+    },
+    {
+     "event": "system.logout",
+     "url": "https://archive.org/download/old-skype-sounds/SkypeLogout.wav",
+     "bytes": 96870,
+     "sha256": "48fbe14c66615b39d1a2dce2d4305eb0f0befd804460b732f038fc05ff198145"
+    },
+    {
+     "event": "system.willSleep",
+     "url": "https://archive.org/download/old-skype-sounds/SkypeLogout.wav",
+     "bytes": 96870,
+     "sha256": "48fbe14c66615b39d1a2dce2d4305eb0f0befd804460b732f038fc05ff198145"
+    }
+   ]
+  },
+  {
+   "id": "skype-classic",
+   "name": "Skype classic",
+   "group": "Other",
+   "license": "Copyright belongs to its maker. Downloaded at your request from a public archive that MaccessHub does not run. For personal use.",
+   "sources": [
+    "https://archive.org/details/old-skype-sounds",
+    "https://archive.org/details/skype-sounds"
+   ],
+   "bytes": 504252,
+   "files": [
+    {
+     "event": "network.ethernetConnected",
+     "url": "https://archive.org/download/old-skype-sounds/ContactOnline.wav",
+     "bytes": 71074,
+     "sha256": "08ffabfd6ee0bc4a7e6eee9327233d91170ddeb4d040d92da1fe49e39be2f91e"
+    },
+    {
+     "event": "network.ethernetDisconnected",
+     "url": "https://archive.org/download/old-skype-sounds/ContactOffline.wav",
+     "bytes": 32732,
+     "sha256": "1c0a6a5deb2af9468a685f69fb7c1914c782f38c28040e64532c42e98c216716"
+    },
+    {
+     "event": "network.wifiConnected",
+     "url": "https://archive.org/download/old-skype-sounds/ContactOnline.wav",
+     "bytes": 71074,
+     "sha256": "08ffabfd6ee0bc4a7e6eee9327233d91170ddeb4d040d92da1fe49e39be2f91e"
+    },
+    {
+     "event": "network.wifiDisconnected",
+     "url": "https://archive.org/download/old-skype-sounds/ContactOffline.wav",
+     "bytes": 32732,
+     "sha256": "1c0a6a5deb2af9468a685f69fb7c1914c782f38c28040e64532c42e98c216716"
+    },
+    {
+     "event": "system.didWake",
+     "url": "https://archive.org/download/skype-sounds/RESUME.WAV",
+     "bytes": 29656,
+     "sha256": "1aa0d57b3835dce42d5054fd7c74803c011e2b023808aee3f5cb00f24a12c2b7"
+    },
+    {
+     "event": "system.login",
+     "url": "https://archive.org/download/old-skype-sounds/SkypeLogin.wav",
+     "bytes": 73244,
+     "sha256": "f631cac109a54d560920448bc56a9cb59dff9aa95eba5572dc03d9e41121a71e"
+    },
+    {
+     "event": "system.logout",
+     "url": "https://archive.org/download/old-skype-sounds/SkypeLogout.wav",
+     "bytes": 96870,
+     "sha256": "48fbe14c66615b39d1a2dce2d4305eb0f0befd804460b732f038fc05ff198145"
+    },
+    {
+     "event": "system.willSleep",
+     "url": "https://archive.org/download/old-skype-sounds/SkypeLogout.wav",
+     "bytes": 96870,
+     "sha256": "48fbe14c66615b39d1a2dce2d4305eb0f0befd804460b732f038fc05ff198145"
+    }
+   ]
+  },
+  {
+   "id": "tamagotchi",
+   "name": "Tamagotchi",
+   "group": "Other",
+   "license": "Copyright belongs to its maker. Downloaded at your request from a public archive that MaccessHub does not run. For personal use.",
+   "sources": [
+    "https://archive.org/details/TamagotchiattentionSoundEffect"
+   ],
+   "bytes": 1319604,
+   "files": [
+    {
+     "event": "network.ethernetConnected",
+     "url": "https://archive.org/download/TamagotchiattentionSoundEffect/TamagotchiattentionSoundEffect.wav",
+     "bytes": 439868,
+     "sha256": "6738f4f15e83e31defb959392a087c6c9555f8058aa6c4a73435f094e382c9de"
+    },
+    {
+     "event": "network.wifiConnected",
+     "url": "https://archive.org/download/TamagotchiattentionSoundEffect/TamagotchiattentionSoundEffect.wav",
+     "bytes": 439868,
+     "sha256": "6738f4f15e83e31defb959392a087c6c9555f8058aa6c4a73435f094e382c9de"
+    },
+    {
+     "event": "window.dialogOpened",
+     "url": "https://archive.org/download/TamagotchiattentionSoundEffect/TamagotchiattentionSoundEffect.wav",
+     "bytes": 439868,
+     "sha256": "6738f4f15e83e31defb959392a087c6c9555f8058aa6c4a73435f094e382c9de"
     }
    ]
   }
