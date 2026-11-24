@@ -17,7 +17,9 @@ of sounds and works out each file's Windows event from the file name
 <Schemes>/<id>/scheme.json. This script takes those scheme.json files, picks
 one file per MaccessHub event with the SLOTS table below (the same table as
 WinSounds' tools/to_maccesshub.py, plus a few catalog-only additions marked
-as such), and then finds that exact file online:
+as such), fills the events still empty from the same scheme (FILL, NAMES and
+SIBLINGS, also shared with to_maccesshub.py), and then finds that exact file
+online:
 
 - Internet Archive items listed in the sources manifest: loose files are
   matched by the SHA-1 the archive publishes; files inside a .zip are matched
@@ -103,6 +105,165 @@ SLOTS = {
     "audio.inputUnmuted": (["speech_on"], SHORT),
     "audio.inputMuted": (["speech_off"], SHORT),
 }
+
+TICK = 0.5   # plays on every arrow press
+
+# Gap filling, the same tables as winsounds/tools/to_maccesshub.py. After the
+# direct matches, every MaccessHub event still empty is offered, in order: more
+# of the scheme's own WinSounds events (FILL), a file of the scheme whose name
+# says what it is (NAMES: lowercase, letters and digits only; exact, then
+# prefix for hints of 5+ characters), then the sound a related slot got on its
+# own merit (SIBLINGS, one step only, so a sound never spreads from slot to
+# slot). Nothing comes from another scheme, every step keeps the slot's length
+# limit, and as everywhere here, only files with a byte-identical public copy
+# are used. A slot in DISTINCT first avoids the file its partners got, so one
+# moment (a Wi-Fi join, an eject) does not play one sound twice.
+FILL = {
+    "application.launching": (["app_open", "maximize", "restore", "navigation", "menu_command"], MEDIUM),
+    "application.launched": (["app_open", "restore", "maximize"], MEDIUM),
+    "application.terminated": (["app_close", "minimize"], MEDIUM),
+    "application.activated": (["restore", "maximize", "navigation", "menu_command"], SHORT),
+    "system.login": (["startup", "login"], LONG),
+    "system.logout": (["shutdown", "logout"], LONG),
+    "system.willSleep": (["sleep", "logout", "shutdown"], LONG),
+    "system.didWake": (["wake", "login", "startup"], LONG),
+    "system.screenLocked": (["lock", "logout"], LONG),
+    "system.screenUnlocked": (["unlock", "login"], LONG),
+    "system.spaceChanged": (["navigation", "menu_command"], SHORT),
+    "display.connected": (["device_connect", "power_connected", "notification", "asterisk"], LONG),
+    "display.disconnected": (["device_disconnect", "power_disconnected", "exclamation"], LONG),
+    "power.acPower": (["power_connected", "device_connect", "notification", "asterisk"], LONG),
+    "power.batteryPower": (["power_disconnected", "device_disconnect", "exclamation"], LONG),
+    "power.upsPower": (["power_disconnected", "device_disconnect", "exclamation"], LONG),
+    "power.charging": (["power_connected", "device_connect"], LONG),
+    "power.charged": (["transfer_complete", "notification", "asterisk", "default_beep"], LONG),
+    "power.battery20Minutes": (["battery_low", "exclamation"], LONG),
+    "power.battery10Minutes": (["battery_low", "exclamation"], LONG),
+    "power.battery5Minutes": (["battery_critical", "battery_low", "critical_stop", "exclamation"], LONG),
+    "storage.mounted": (["device_connect", "notification", "asterisk"], LONG),
+    "storage.willUnmount": (["device_disconnect", "minimize", "menu_command"], LONG),
+    "storage.unmounted": (["device_disconnect", "exclamation"], LONG),
+    "storage.renamed": (["menu_command", "navigation", "asterisk", "default_beep"], MEDIUM),
+    "usb.connected": (["device_connect", "notification", "asterisk"], LONG),
+    "usb.disconnected": (["device_disconnect", "exclamation"], LONG),
+    "bluetooth.connected": (["device_connect", "notification", "asterisk"], LONG),
+    "bluetooth.disconnected": (["device_disconnect", "exclamation"], LONG),
+    "network.wifiConnected": (["network_up", "notification", "asterisk"], LONG),
+    "network.wifiDisconnected": (["network_down", "device_fail", "exclamation"], LONG),
+    "network.ethernetConnected": (["network_up", "notification", "asterisk"], LONG),
+    "network.ethernetDisconnected": (["network_down", "device_fail", "exclamation"], LONG),
+    "network.ipv4Acquired": (["network_up", "notification", "asterisk", "default_beep"], LONG),
+    "network.ipv4Released": (["network_down", "device_fail", "exclamation"], LONG),
+    "window.created": (["maximize", "restore", "app_open"], SHORT),
+    "window.focused": (["navigation", "restore"], SHORT),
+    "window.minimized": (["minimize", "app_close"], SHORT),
+    "window.restored": (["restore", "maximize"], SHORT),
+    "window.dialogOpened": (["question", "security_prompt", "information_bar", "asterisk",
+                             "menu_popup", "exclamation", "default_beep"], MEDIUM),
+    "ui.menuOpened": (["menu_popup", "start_menu"], SHORT),
+    "ui.menuClosed": (["menu_command", "navigation", "minimize"], SHORT),
+    "ui.menuItemSelected": (["menu_command", "navigation"], SHORT),
+    "ui.rowExpanded": (["navigation", "menu_popup"], SHORT),
+    "ui.rowCollapsed": (["navigation", "menu_command"], SHORT),
+    "ui.selectedRowChanged": (["navigation"], TICK),
+    "media.playing": (["restore", "maximize", "app_open"], SHORT),
+    "media.paused": (["minimize", "app_close"], SHORT),
+    "media.stopped": (["app_close", "minimize"], SHORT),
+    "media.trackChanged": (["navigation", "menu_command", "restore"], SHORT),
+    "audio.inputUnmuted": (["speech_on", "volume_change", "restore", "maximize"], SHORT),
+    "audio.inputMuted": (["speech_off", "volume_change", "minimize"], SHORT),
+}
+
+NAMES = {
+    "power.charged": ["batteryfull", "fullycharged", "chargecomplete", "chargingcomplete", "batterycharged"],
+    "power.charging": ["chargingstarted", "charging", "wirelesschargingstarted"],
+    "ui.menuOpened": ["menuopen", "mnuo", "draweropening", "deckuisidemenuflyin"],
+    "ui.menuClosed": ["menuclose", "mnuc", "drawerclosing", "itemchooserclose", "deckuihidemodal",
+                      "deckuisidemenuflyout", "dialogclose"],
+    "ui.menuItemSelected": ["mnus", "menuselect"],
+    "ui.rowExpanded": ["interactin", "deckuiintogamedetail", "dscr"],
+    "ui.rowCollapsed": ["interactout", "deckuioutofgamedetail", "dscr"],
+    "ui.selectedRowChanged": ["deckuinavigation", "cursor", "mnui"],
+    "window.dialogOpened": ["dialogopen", "deckuishowmodal", "showmodal"],
+    "window.created": ["windowopen", "wopn"],
+    "application.terminated": ["windowclose", "wcls"],
+    "window.focused": ["wact", "windowactivate"],
+    "window.minimized": ["wcol", "windowshaded"],
+    "window.restored": ["wexp", "windowunshaded"],
+    "system.screenLocked": ["screenoff", "screenlock", "lockscreen"],
+    "system.login": ["desktoploginshort", "desktoplogin"],
+    "storage.mounted": ["dski", "mediainsert"],
+    "storage.unmounted": ["dske", "mediaeject"],
+    "audio.inputUnmuted": ["deckuiswitchtoggleon", "on"],
+    "audio.inputMuted": ["deckuiswitchtoggleoff", "off"],
+}
+
+SIBLINGS = {
+    "application.launching": ["application.launched", "window.created"],
+    "application.launched": ["application.launching", "window.created", "window.restored"],
+    "application.terminated": ["window.minimized", "media.stopped"],
+    "application.activated": ["window.focused", "window.restored", "system.spaceChanged"],
+    "system.login": ["system.didWake", "system.screenUnlocked"],
+    "system.logout": ["system.willSleep", "system.screenLocked"],
+    "system.willSleep": ["system.logout", "system.screenLocked"],
+    "system.didWake": ["system.login", "system.screenUnlocked"],
+    "system.screenLocked": ["system.willSleep", "system.logout"],
+    "system.screenUnlocked": ["system.didWake", "system.login"],
+    "system.spaceChanged": ["window.focused", "application.activated", "ui.selectedRowChanged"],
+    "display.connected": ["usb.connected", "storage.mounted", "bluetooth.connected"],
+    "display.disconnected": ["usb.disconnected", "storage.unmounted", "bluetooth.disconnected"],
+    "power.acPower": ["power.charging", "usb.connected"],
+    "power.batteryPower": ["power.upsPower", "usb.disconnected"],
+    "power.upsPower": ["power.batteryPower"],
+    "power.charging": ["power.acPower"],
+    "power.charged": ["power.charging", "power.acPower"],
+    "power.battery20Minutes": ["power.battery10Minutes", "power.battery5Minutes"],
+    "power.battery10Minutes": ["power.battery20Minutes", "power.battery5Minutes"],
+    "power.battery5Minutes": ["power.battery10Minutes", "power.battery20Minutes"],
+    "storage.mounted": ["usb.connected", "display.connected"],
+    "storage.willUnmount": ["storage.unmounted", "usb.disconnected"],
+    "storage.unmounted": ["usb.disconnected", "display.disconnected"],
+    "storage.renamed": ["ui.menuItemSelected"],
+    "usb.connected": ["storage.mounted", "bluetooth.connected", "display.connected"],
+    "usb.disconnected": ["storage.unmounted", "bluetooth.disconnected", "display.disconnected"],
+    "bluetooth.connected": ["usb.connected", "storage.mounted", "display.connected"],
+    "bluetooth.disconnected": ["usb.disconnected", "storage.unmounted", "display.disconnected"],
+    "network.wifiConnected": ["network.ethernetConnected", "network.ipv4Acquired"],
+    "network.wifiDisconnected": ["network.ethernetDisconnected", "network.ipv4Released"],
+    "network.ethernetConnected": ["network.wifiConnected", "network.ipv4Acquired"],
+    "network.ethernetDisconnected": ["network.wifiDisconnected", "network.ipv4Released"],
+    "network.ipv4Acquired": ["network.wifiConnected", "network.ethernetConnected"],
+    "network.ipv4Released": ["network.wifiDisconnected", "network.ethernetDisconnected"],
+    "window.created": ["window.restored", "application.launched"],
+    "window.focused": ["application.activated", "window.restored", "system.spaceChanged"],
+    "window.minimized": ["application.terminated", "media.paused"],
+    "window.restored": ["window.created", "media.playing"],
+    "window.dialogOpened": ["ui.menuOpened", "window.created"],
+    "ui.menuOpened": ["ui.rowExpanded"],
+    "ui.menuClosed": ["ui.rowCollapsed", "window.minimized"],
+    "ui.menuItemSelected": ["ui.selectedRowChanged", "system.spaceChanged"],
+    "ui.rowExpanded": ["ui.menuOpened", "window.restored"],
+    "ui.rowCollapsed": ["ui.menuClosed", "window.minimized"],
+    "ui.selectedRowChanged": ["system.spaceChanged", "ui.menuItemSelected"],
+    "media.playing": ["window.restored", "audio.inputUnmuted"],
+    "media.paused": ["window.minimized", "audio.inputMuted"],
+    "media.stopped": ["media.paused", "application.terminated"],
+    "media.trackChanged": ["ui.selectedRowChanged", "system.spaceChanged", "ui.menuItemSelected"],
+    "audio.inputUnmuted": ["media.playing", "window.restored"],
+    "audio.inputMuted": ["media.paused", "window.minimized"],
+}
+
+DISTINCT = {
+    "application.launching": ["application.launched"],
+    "storage.willUnmount": ["storage.unmounted"],
+    "network.ipv4Acquired": ["network.wifiConnected", "network.ethernetConnected"],
+    "network.ipv4Released": ["network.wifiDisconnected", "network.ethernetDisconnected"],
+    "ui.menuClosed": ["ui.menuItemSelected", "ui.menuOpened"],
+    "ui.rowCollapsed": ["ui.rowExpanded"],
+    "media.stopped": ["media.paused"],
+    "audio.inputMuted": ["audio.inputUnmuted"],
+}
+
 
 # Schemes whose files are not Windows events, mapped by file name instead.
 # Mac OS 8.5-9's Platinum sound set uses the Appearance Manager's four-letter
@@ -357,8 +518,12 @@ def licence_note(scheme, page):
             "archive that MaccessHub does not run. For personal use.")
 
 
-def plan(scheme, scheme_dir, remote):
-    """{event id: (local path, url, page, seconds, winsounds event)}"""
+def plan(scheme, scheme_dir, remote, no_fill=False):
+    """({event id: (local path, url, page, seconds, how)}, the direct matches' event ids).
+
+    --min-slots, the near-copy check and the same-name tie break all look at
+    the direct matches only, so filling gaps never changes which schemes are
+    listed."""
     events = scheme.get("events", {})
     chosen = {}
     cache = {}
@@ -387,17 +552,68 @@ def plan(scheme, scheme_dir, remote):
                 hit = usable(names[stem], MEDIUM)
                 if hit:
                     chosen[slot] = hit + (stem,)
-        return chosen
-    for slot, (candidates, limit) in SLOTS.items():
-        for ev in candidates:
-            for fname in events.get(ev, []):
-                hit = usable(fname, limit)
-                if hit:
-                    chosen[slot] = hit + (ev,)
+    else:
+        for slot, (candidates, limit) in SLOTS.items():
+            for ev in candidates:
+                for fname in events.get(ev, []):
+                    hit = usable(fname, limit)
+                    if hit:
+                        chosen[slot] = hit + (ev,)
+                        break
+                if slot in chosen:
                     break
-            if slot in chosen:
+    direct = set(chosen)
+    if not no_fill:
+        fill_gaps(scheme, scheme_dir, chosen, usable)
+    return chosen, direct
+
+
+def normalized(name):
+    return "".join(c for c in Path(name).stem.lower() if c.isalnum())
+
+
+def fill_gaps(scheme, scheme_dir, chosen, usable):
+    """Adds FILL, NAMES and then SIBLINGS picks to `chosen` for empty slots."""
+    events = scheme.get("events", {})
+    by_name = {}
+    for n in sorted(os.listdir(scheme_dir)):
+        if n.rsplit(".", 1)[-1].lower() in ACCEPTED:
+            by_name.setdefault(normalized(n), n)
+
+    def avoid(slot):
+        return {chosen[o][0].name for o in DISTINCT.get(slot, []) if o in chosen}
+
+    def from_scheme(slot, limit, avoiding):
+        for ev in FILL[slot][0]:
+            for fname in events.get(ev, []):
+                if fname in avoiding:
+                    continue
+                hit = usable(fname, limit)
+                if hit and hit[0].name not in avoiding:
+                    return hit + (ev,)
+        for exact in (True, False):
+            for hint in NAMES.get(slot, []):
+                for key, fname in by_name.items():
+                    match = key == hint if exact else (len(hint) >= 5 and key.startswith(hint))
+                    if match and fname not in avoiding:
+                        hit = usable(fname, limit)
+                        if hit:
+                            return hit + (f"name:{fname}",)
+        return None
+
+    for slot, (_, limit) in FILL.items():
+        if slot not in chosen:
+            pick = from_scheme(slot, limit, avoid(slot)) or from_scheme(slot, limit, set())
+            if pick:
+                chosen[slot] = pick
+    lenders = {k: v for k, v in chosen.items() if not str(v[4]).startswith("same as ")}
+    for slot, (_, limit) in FILL.items():
+        if slot in chosen:
+            continue
+        for other in SIBLINGS.get(slot, []):
+            if other in lenders and lenders[other][3] <= limit:
+                chosen[slot] = lenders[other][:4] + (f"same as {other}",)
                 break
-    return chosen
 
 
 def sources_from_manifest(path):
@@ -441,6 +657,8 @@ def main():
     ap.add_argument("--min-slots", type=int, default=3)
     ap.add_argument("--no-verify", action="store_true", help="skip the final download of every URL")
     ap.add_argument("--jobs", type=int, default=8)
+    ap.add_argument("--no-fill", action="store_true",
+                    help="direct matches only: leave events with no direct match empty")
     args = ap.parse_args()
 
     net = Net(args.cache)
@@ -464,23 +682,23 @@ def main():
 
     def work(item):
         d, s = item
-        return d, s, plan(s, d, remote)
+        return d, s, plan(s, d, remote, args.no_fill)
 
     with cf.ThreadPoolExecutor(args.jobs) as pool:
         planned = list(pool.map(work, schemes))
 
     packs, seen, dropped = [], {}, []
-    for d, s, chosen in planned:
+    for d, s, (chosen, direct) in planned:
         group, name = group_and_name(s)
-        if len(chosen) < args.min_slots:
-            dropped.append(f"{name} ({len(chosen)})")
+        if len(direct) < args.min_slots:
+            dropped.append(f"{name} ({len(direct)})")
             continue
         files = []
         for slot, (local, url, page, secs, ev) in sorted(chosen.items()):
             data = local.read_bytes()
             files.append({"event": slot, "url": url, "bytes": len(data),
                           "sha256": hashlib.sha256(data).hexdigest()})
-        signature = tuple(sorted((f["event"], f["sha256"]) for f in files))
+        signature = tuple(sorted((f["event"], f["sha256"]) for f in files if f["event"] in direct))
         if signature in seen:
             say(f"  {name}: same sounds as {seen[signature]}, left out")
             continue
@@ -492,15 +710,18 @@ def main():
             "sources": pages,
             "bytes": sum(f["bytes"] for f in files),
             "files": files,
+            "_direct": len(direct),
         })
 
     # Two schemes with the same display name: keep the one with more sounds.
     by_name = {}
     for p in packs:
         k = p["name"].lower()
-        if k not in by_name or len(p["files"]) > len(by_name[k]["files"]):
+        if k not in by_name or p["_direct"] > by_name[k]["_direct"]:
             by_name[k] = p
     packs = [p for p in packs if by_name[p["name"].lower()] is p]
+    for p in packs:
+        del p["_direct"]
 
     if not args.no_verify:
         everything = [f for p in packs for f in p["files"]]
