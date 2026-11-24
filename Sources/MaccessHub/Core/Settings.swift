@@ -66,6 +66,8 @@ struct EventSoundSettings: Codable {
     var fillMissingFromClassic = true
     /// Event IDs the user switched on or off. Absent → the event's default.
     var eventStates: [String: Bool] = [:]
+    /// Folders whose added, removed, renamed and changed items make a sound.
+    var watchedFolders: [WatchedFolder] = []
 
     init() {}
     init(from decoder: Decoder) throws {
@@ -75,9 +77,33 @@ struct EventSoundSettings: Codable {
         volume = c.value(.volume, default: 1.0)
         fillMissingFromClassic = c.value(.fillMissingFromClassic, default: true)
         eventStates = c.value(.eventStates, default: [:])
+        watchedFolders = c.value(.watchedFolders, default: [])
     }
 
     func isEnabled(_ event: SoundEvent) -> Bool { eventStates[event.id] ?? event.defaultEnabled }
+}
+
+/// A folder picked on the Event Sounds tab.
+struct WatchedFolder: Codable, Equatable, Identifiable {
+    /// As chosen; may start with ~.
+    var path: String
+    /// Also report items inside the folder's subfolders.
+    var includeSubfolders = false
+    /// Say what changed (names and counts) as well as playing the sound.
+    var speakChanges = false
+
+    var id: String { path }
+    var expandedPath: String { (path as NSString).expandingTildeInPath }
+    /// The name Finder shows, such as Downloads.
+    var displayName: String { FileManager.default.displayName(atPath: expandedPath) }
+
+    init(path: String) { self.path = path }
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        path = try c.decode(String.self, forKey: .path)
+        includeSubfolders = c.value(.includeSubfolders, default: false)
+        speakChanges = c.value(.speakChanges, default: false)
+    }
 }
 
 struct KeyClickSettings: Codable {

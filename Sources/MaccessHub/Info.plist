@@ -28,14 +28,24 @@
 	<string>MaccessHub asks VoiceOver to speak messages, and reads what VoiceOver last said to keep a speech history.</string>
 	<key>NSBluetoothAlwaysUsageDescription</key>
 	<string>MaccessHub plays a sound when Bluetooth devices connect or disconnect.</string>
+	<key>NSDesktopFolderUsageDescription</key>
+	<string>MaccessHub plays a sound when items change in folders you choose to watch, and reads nothing else there.</string>
+	<key>NSDocumentsFolderUsageDescription</key>
+	<string>MaccessHub plays a sound when items change in folders you choose to watch, and reads nothing else there.</string>
+	<key>NSDownloadsFolderUsageDescription</key>
+	<string>MaccessHub plays a sound when items change in folders you choose to watch, and reads nothing else there.</string>
 	<key>NSHumanReadableCopyright</key>
 	<string>MIT</string>
 	<key>NSLocationUsageDescription</key>
 	<string>macOS only reveals the name of the Wi-Fi network to apps with Location access. MaccessHub uses it for the network report and nothing else.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>macOS only reveals the name of the Wi-Fi network to apps with Location access. MaccessHub uses it for the network report and nothing else.</string>
+	<key>NSNetworkVolumesUsageDescription</key>
+	<string>MaccessHub plays a sound when items change in folders you choose to watch, and reads nothing else there.</string>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
+	<key>NSRemovableVolumesUsageDescription</key>
+	<string>MaccessHub plays a sound when items change in folders you choose to watch, and reads nothing else there.</string>
 	<key>SUFeedURL</key>
 	<string>https://raw.githubusercontent.com/masonasons/MaccessHub/main/appcast.xml</string>
 	<key>SUPublicEDKey</key>

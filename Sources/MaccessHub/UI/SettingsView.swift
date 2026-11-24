@@ -280,6 +280,7 @@ struct EventSoundsSettingsView: View {
             }
             ForEach(SoundGroup.eventGroups) { group in
                 Section(group.title) {
+                    if group == .folders { WatchedFoldersList(store: store) }
                     ForEach(SoundEvent.events(in: group)) { event in
                         SoundEventRow(event: event, store: store, library: library)
                     }
@@ -297,6 +298,65 @@ struct EventSoundsSettingsView: View {
         var states = store.data.eventSounds.eventStates.filter { ids.contains($0.key) }
         for id in ids { states[id] = on }
         store.data.eventSounds.eventStates = states
+    }
+}
+
+/// The folders whose items make a sound, at the top of the Watched Folders section.
+struct WatchedFoldersList: View {
+    @Bindable var store: SettingsStore
+
+    var body: some View {
+        Text("Plays a sound when items are added to, removed from, renamed in or changed in the folders below. Nothing is watched until you add a folder.")
+            .font(.callout).foregroundStyle(.secondary)
+        ForEach($store.data.eventSounds.watchedFolders) { $folder in
+            let name = folder.displayName
+            VStack(alignment: .leading, spacing: 4) {
+                HStack(alignment: .firstTextBaseline) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(name)
+                        Text(folder.path).font(.caption).foregroundStyle(.secondary)
+                    }
+                    .accessibilityElement(children: .combine)
+                    Spacer()
+                    Button("Stop Watching") { remove(folder) }
+                        .accessibilityLabel("Stop watching \(name)")
+                }
+                Toggle("Include items in subfolders", isOn: $folder.includeSubfolders)
+                    .accessibilityLabel("Include items in subfolders of \(name)")
+                Toggle("Also say what changed", isOn: $folder.speakChanges)
+                    .accessibilityLabel("Also say what changed in \(name)")
+                    .help("Speaks the item's name, or how many items, after the sound.")
+            }
+        }
+        Button("Add Folder…") { addFolders() }
+            .accessibilityHint("Choose one or more folders to hear changes in.")
+    }
+
+    private func remove(_ folder: WatchedFolder) {
+        store.data.eventSounds.watchedFolders.removeAll { $0.id == folder.id }
+        announce("Stopped watching \(folder.displayName)")
+    }
+
+    private func addFolders() {
+        let panel = NSOpenPanel()
+        panel.title = "Choose folders to watch"
+        panel.prompt = "Watch"
+        panel.canChooseDirectories = true
+        panel.canChooseFiles = false
+        panel.allowsMultipleSelection = true
+        guard panel.runModal() == .OK else { return }
+        let home = NSHomeDirectory()
+        var added: [String] = []
+        for url in panel.urls {
+            var path = url.path
+            if path == home || path.hasPrefix(home + "/") { path = "~" + path.dropFirst(home.count) }
+            guard !store.data.eventSounds.watchedFolders.contains(where: { $0.expandedPath == url.path }) else { continue }
+            let folder = WatchedFolder(path: path)
+            store.data.eventSounds.watchedFolders.append(folder)
+            added.append(folder.displayName)
+        }
+        if added.isEmpty { announce("Already watching that folder") }
+        else { announce("Watching \(added.joined(separator: ", "))") }
     }
 }
 

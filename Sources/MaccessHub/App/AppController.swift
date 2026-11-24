@@ -48,6 +48,7 @@ final class AppController {
     private var activationObserver: NSObjectProtocol?
 
     private let workspaceMonitor = WorkspaceMonitor()
+    private let folderMonitor = FolderMonitor()
     private let eventMonitors: [EventMonitor]
     private var monitorsRunning = false
     /// Bluetooth and USB sounds stay quiet until this uptime. Devices drop and
@@ -85,7 +86,7 @@ final class AppController {
         speechHistory = SpeechHistoryFeature(speaker: speaker)
         diskSounds = DiskSoundsFeature(engine: engine)
         eventMonitors = [workspaceMonitor, PowerMonitor(), NetworkMonitor(), USBMonitor(),
-                         BluetoothMonitor(), UIEventMonitor()]
+                         BluetoothMonitor(), UIEventMonitor(), folderMonitor]
 
         for monitor in eventMonitors {
             monitor.onEvent = { [weak self] id in self?.handleEvent(id) }
@@ -96,6 +97,11 @@ final class AppController {
                   settings.data.eventSounds.enabled, settings.data.isEnabled(event), scheme.url(for: event) != nil
             else { return }
             Thread.sleep(forTimeInterval: 1.5)
+        }
+        folderMonitor.onChanges = { [weak self] folder, changes in self?.handleFolderChanges(folder, changes) }
+        folderMonitor.onUnreadable = { [weak self] folder in
+            self?.speaker.speak("MaccessHub can't read \(folder.displayName), so it can't play sounds for it. "
+                + "Allow it in System Settings, Privacy & Security, Files and Folders.")
         }
         keyClicks.onKey = { [weak self] category in
             DispatchQueue.main.async { self?.handleKey(category) }
@@ -228,6 +234,7 @@ final class AppController {
             keyClicks.stop()
         }
 
+        folderMonitor.folders = data.eventSounds.watchedFolders
         if data.eventSounds.enabled, !monitorsRunning {
             eventMonitors.forEach { $0.start() }
             monitorsRunning = true
@@ -308,6 +315,23 @@ final class AppController {
         if id.hasPrefix("network."),
            now - lastWake < networkSettleAfterWake { return }
         play(id, ignoreEnabledState: false)
+    }
+
+    /// One sound per batch, for the first kind of change that is switched on
+    /// (added, removed, renamed, changed), and the details spoken if the
+    /// folder asks for that.
+    private func handleFolderChanges(_ folder: WatchedFolder, _ changes: FolderChanges) {
+        let data = settings.data
+        guard data.eventSounds.enabled, !isAsleep else { return }
+        let kinds = FolderChanges.Kind.allCases.filter { kind in
+            guard changes.count(kind) > 0, let event = SoundEvent.byID[kind.eventID] else { return false }
+            return data.isEnabled(event)
+        }
+        guard let first = kinds.first else { return }
+        play(first.eventID, ignoreEnabledState: false)
+        if folder.speakChanges, let message = changes.summary(folder: folder.displayName, kinds: Set(kinds)) {
+            speaker.speak(message)
+        }
     }
 
     private func handleFocus(_ slot: String, element: AXElement?, frame: CGRect?) {

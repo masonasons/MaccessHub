@@ -12,7 +12,7 @@ VoiceOver it falls back to the system voice.
 
 | Feature | Spoon it replaces | Default shortcuts |
 |---------|-------------------|-------------------|
-| **Event sounds** – plays a sound when apps launch or quit, the Mac sleeps or wakes, disks mount, USB and Bluetooth devices come and go, Wi-Fi and Ethernet connect, power source or battery state changes, spaces change, windows open, menus open and close, rows expand, and Music plays or pauses. | EventSounds | – |
+| **Event sounds** – plays a sound when apps launch or quit, the Mac sleeps or wakes, disks mount, USB and Bluetooth devices come and go, Wi-Fi and Ethernet connect, power source or battery state changes, spaces change, windows open, menus open and close, rows expand, Music plays or pauses, and items change in folders you pick (see [Watched folders](#watched-folders)). | EventSounds | – |
 | **Focus sounds** – like the Unspoken add-on for NVDA: a distinct sound when focus lands on a button, checkbox, radio button, pop-up, text field, link, list row, outline row, menu item, tab, slider, image or progress indicator. Uses the Unspoken-ng default theme (GPL-2, see the pack's CREDITS.txt). Follows keyboard focus, menu highlighting, row selection, and (optionally) the VoiceOver cursor itself, by polling VoiceOver for its cursor bounds and hit-testing the item beneath. Optionally rendered with HRTF at the control's screen position, with a choice of room reverb. | – | – |
 | **Progress bars** – NVDA-style: rising beeps (110 Hz at 0 % doubling every 25 %) and/or speech every N percent as bars fill, optionally for background windows and apps. Beeps can come from the bar's place on screen, a fixed pan, or move left to right (or right to left) as the bar fills. An optional Pleasant beep sound, inspired by the [Pleasant Progress Bar](https://github.com/c469591/Pleasant-Progress-Bar) add-on for NVDA, offers a choice of wave shape (sine, square, triangle, sawtooth, pulse, white noise), a smooth or bell fade, beep length (40 to 100 ms) and the pitch at 0 and 100 percent. Play Sample, Test Beeps and Hear in Context let you try the settings. | – | Optional, unassigned: switch between Classic and Pleasant beeps |
 | **Key clicks** – a click for every key while typing in a text field, with different sounds for lowercase, uppercase, digits, punctuation, space, return, tab, delete, arrows and function keys. | KeyClicks | – |
@@ -114,6 +114,30 @@ bar menu turns the sounds on and off.
 
 If you used Plattersong, quit it (or clear its shortcut) so ⌃⇧K isn't claimed
 twice.
+
+## Watched folders
+
+**Settings → Event Sounds → Watched Folders** plays a sound when items are
+added to, removed from, renamed in or changed in folders you pick, such as
+Downloads or a shared folder. Nothing is watched until you add a folder.
+
+- **Add Folder…** picks one or more folders; **Stop Watching** removes one.
+- **Include items in subfolders** reports changes anywhere inside the folder,
+  not only its own items.
+- **Also say what changed** speaks after the sound: "New file in Downloads:
+  invoice.pdf", "Renamed in Notes: draft.txt to final.txt", "Removed from
+  Downloads: invoice.pdf", "Changed in Notes: todo.txt". Two or three items
+  are named, more are counted ("12 items added to Downloads"). A folder copied
+  in is one item, not one per file inside it.
+- Changes are gathered for a second after things go quiet, so copying twenty
+  files is one sound. A file still being written, such as a download, is
+  reported once it's finished. Browsers' partial download files (`.crdownload`,
+  `.part`, `.download`), hidden files and Office's `~$` lock files are skipped.
+- "Item changed" is off to begin with, because some apps save often.
+- A folder on a disk that isn't connected starts being watched when the disk is.
+  For Desktop, Documents, Downloads, and folders on external or network disks,
+  macOS asks once whether MaccessHub may read them. If you say no, MaccessHub
+  tells you it can't read the folder.
 
 ## Improvements over the spoons
 
@@ -252,6 +276,8 @@ MaccessHub.app/Contents/MacOS/MaccessHub --report
   both; if speech history stays empty, check System Settings → Privacy &
   Security → Automation → MaccessHub → VoiceOver.
 - **Bluetooth** – asked when Bluetooth sounds are active.
+- **Files and Folders** – asked the first time a watched folder is in Desktop,
+  Documents, Downloads, or on an external or network disk.
 
 The app is not sandboxed, because global shortcuts, the key-click event tap and
 accessibility queries against other apps all need direct access.
