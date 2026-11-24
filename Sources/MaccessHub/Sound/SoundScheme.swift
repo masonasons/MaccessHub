@@ -1,7 +1,8 @@
 import Foundation
 
 /// Resolves an event to the file that should play, honouring user overrides,
-/// the selected pack, fallback categories, and the Classic pack as a last resort.
+/// the selected pack, fallback categories, optionally the pack's sound for a
+/// related event, and the Classic pack as a last resort.
 struct SoundScheme {
     var settings: SettingsData
     var library: SoundpackLibrary
@@ -54,6 +55,14 @@ struct SoundScheme {
         }
     }
 
+    private func fillsFromRelated(_ event: SoundEvent) -> Bool {
+        switch event.group {
+        case .keys: return settings.keyClicks.fillFromRelated
+        case .focus: return settings.focusSounds.fillFromRelated
+        default: return settings.eventSounds.fillFromRelated
+        }
+    }
+
     func source(for event: SoundEvent) -> Source? {
         if let path = settings.soundOverrides[event.id] {
             let url = URL(fileURLWithPath: path)
@@ -66,6 +75,10 @@ struct SoundScheme {
                 if !urls.isEmpty {
                     return id == event.id ? .pack(urls, pack) : .fallback(urls, pack, viaEvent: id)
                 }
+            }
+            if fillsFromRelated(event),
+               let id = SoundEvent.relatedStandIn(for: event.id, has: { !pack.urls(for: $0).isEmpty }) {
+                return .fallback(pack.urls(for: id), pack, viaEvent: id)
             }
         }
         if fillsMissing(event), let classic = library.classic, classic.id != pack(for: event)?.id {
