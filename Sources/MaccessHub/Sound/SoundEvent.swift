@@ -2,7 +2,7 @@ import Foundation
 
 /// A category of sounds in a soundpack. Every event belongs to exactly one group.
 enum SoundGroup: String, CaseIterable, Identifiable {
-    case application, system, power, storage, usb, bluetooth, network, window, ui, media, audio, focus, keys
+    case application, system, power, storage, trash, usb, bluetooth, network, window, ui, media, audio, focus, keys
 
     var id: String { rawValue }
 
@@ -12,6 +12,7 @@ enum SoundGroup: String, CaseIterable, Identifiable {
         case .system: return "System"
         case .power: return "Power & Battery"
         case .storage: return "Disks"
+        case .trash: return "Trash"
         case .usb: return "USB"
         case .bluetooth: return "Bluetooth"
         case .network: return "Network"
@@ -87,6 +88,12 @@ struct SoundEvent: Identifiable, Hashable {
         SoundEvent("storage.willUnmount", "Disk about to be ejected", .storage),
         SoundEvent("storage.unmounted", "Disk ejected", .storage),
         SoundEvent("storage.renamed", "Disk renamed", .storage),
+
+        // Trash
+        SoundEvent("trash.added", "Item moved to the Trash", .trash, defaultEnabled: false,
+                   note: "Finder also plays its own sound for this when sound effects are on."),
+        SoundEvent("trash.emptied", "Trash emptied", .trash, defaultEnabled: false,
+                   note: "Finder also plays its own sound for this when sound effects are on."),
 
         // USB
         SoundEvent("usb.connected", "USB device connected", .usb),
