@@ -55,3 +55,6 @@ check:
 	swiftc -Onone -parse-as-library -o $(BUILD)/disk-click-check Tests/DiskClickCheck.swift \
 	  Sources/MaccessHub/Features/DiskSounds/DiskClick.swift
 	$(BUILD)/disk-click-check
+	swiftc -Onone -parse-as-library -o $(BUILD)/related-sounds-check Tests/RelatedSoundsCheck.swift \
+	  Sources/MaccessHub/Sound/SoundEvent.swift
+	$(BUILD)/related-sounds-check

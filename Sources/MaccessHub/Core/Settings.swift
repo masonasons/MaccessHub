@@ -64,6 +64,9 @@ struct EventSoundSettings: Codable {
     var volume = 1.0
     /// Use the Classic pack's file when the chosen pack has none for an event.
     var fillMissingFromClassic = true
+    /// Before falling back to Classic, use the chosen pack's own sound for a
+    /// related event (SoundEvent.related). Off by default.
+    var fillFromRelated = false
     /// Event IDs the user switched on or off. Absent → the event's default.
     var eventStates: [String: Bool] = [:]
 
@@ -74,6 +77,7 @@ struct EventSoundSettings: Codable {
         packID = c.value(.packID, default: Soundpack.builtInClassicID)
         volume = c.value(.volume, default: 1.0)
         fillMissingFromClassic = c.value(.fillMissingFromClassic, default: true)
+        fillFromRelated = c.value(.fillFromRelated, default: false)
         eventStates = c.value(.eventStates, default: [:])
     }
 
@@ -93,6 +97,7 @@ struct KeyClickSettings: Codable {
     /// do not reveal what kind of character was typed.
     var maskSecureFields = true
     var fillMissingFromClassic = true
+    var fillFromRelated = false
     var eventStates: [String: Bool] = [:]
 
     init() {}
@@ -108,6 +113,7 @@ struct KeyClickSettings: Codable {
         ignoreWithOption = c.value(.ignoreWithOption, default: false)
         maskSecureFields = c.value(.maskSecureFields, default: true)
         fillMissingFromClassic = c.value(.fillMissingFromClassic, default: true)
+        fillFromRelated = c.value(.fillFromRelated, default: false)
         eventStates = c.value(.eventStates, default: [:])
     }
 
@@ -262,6 +268,7 @@ struct FocusSoundSettings: Codable {
     var reverbAmount = 0.5
     var packID = Soundpack.builtInClassicID
     var fillMissingFromClassic = true
+    var fillFromRelated = false
     var eventStates: [String: Bool] = [:]
 
     init() {}
@@ -278,6 +285,7 @@ struct FocusSoundSettings: Codable {
         reverbAmount = c.value(.reverbAmount, default: 0.5)
         packID = c.value(.packID, default: Soundpack.builtInClassicID)
         fillMissingFromClassic = c.value(.fillMissingFromClassic, default: true)
+        fillFromRelated = c.value(.fillFromRelated, default: false)
         eventStates = c.value(.eventStates, default: [:])
     }
 

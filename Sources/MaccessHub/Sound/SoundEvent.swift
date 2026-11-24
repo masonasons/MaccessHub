@@ -164,5 +164,91 @@ struct SoundEvent: Identifiable, Hashable {
 
     static let byID: [String: SoundEvent] = Dictionary(uniqueKeysWithValues: all.map { ($0.id, $0) })
 
+    /// Events whose sound can stand in when a pack has nothing for this one,
+    /// best first. Used only when "Fill gaps with this pack's similar sounds"
+    /// is on, and only with files the same pack really has: a related event
+    /// that is itself empty is skipped, never followed further, so one sound
+    /// can't spread across events it doesn't fit. Every entry stays inside its
+    /// own kind of pack (system events, key clicks or focus sounds).
+    static let related: [String: [String]] = [
+        "application.launching": ["application.launched", "window.created"],
+        "application.launched": ["application.launching", "window.created", "window.restored"],
+        "application.terminated": ["window.minimized", "media.stopped"],
+        "application.activated": ["window.focused", "window.restored", "system.spaceChanged"],
+        "system.login": ["system.didWake", "system.screenUnlocked"],
+        "system.logout": ["system.willSleep", "system.screenLocked"],
+        "system.willSleep": ["system.logout", "system.screenLocked"],
+        "system.didWake": ["system.login", "system.screenUnlocked"],
+        "system.screenLocked": ["system.willSleep", "system.logout"],
+        "system.screenUnlocked": ["system.didWake", "system.login"],
+        "system.spaceChanged": ["window.focused", "application.activated", "ui.selectedRowChanged"],
+        "display.connected": ["usb.connected", "storage.mounted", "bluetooth.connected"],
+        "display.disconnected": ["usb.disconnected", "storage.unmounted", "bluetooth.disconnected"],
+        "power.acPower": ["power.charging", "usb.connected"],
+        "power.batteryPower": ["power.upsPower", "usb.disconnected"],
+        "power.upsPower": ["power.batteryPower"],
+        "power.charging": ["power.acPower"],
+        "power.charged": ["power.charging", "power.acPower"],
+        "power.battery20Minutes": ["power.battery10Minutes", "power.battery5Minutes"],
+        "power.battery10Minutes": ["power.battery20Minutes", "power.battery5Minutes"],
+        "power.battery5Minutes": ["power.battery10Minutes", "power.battery20Minutes"],
+        "storage.mounted": ["usb.connected", "display.connected"],
+        "storage.willUnmount": ["storage.unmounted", "usb.disconnected"],
+        "storage.unmounted": ["usb.disconnected", "display.disconnected"],
+        "storage.renamed": ["ui.menuItemSelected"],
+        "usb.connected": ["storage.mounted", "bluetooth.connected", "display.connected"],
+        "usb.disconnected": ["storage.unmounted", "bluetooth.disconnected", "display.disconnected"],
+        "bluetooth.connected": ["usb.connected", "storage.mounted", "display.connected"],
+        "bluetooth.disconnected": ["usb.disconnected", "storage.unmounted", "display.disconnected"],
+        "network.wifiConnected": ["network.ethernetConnected", "network.ipv4Acquired"],
+        "network.wifiDisconnected": ["network.ethernetDisconnected", "network.ipv4Released"],
+        "network.ethernetConnected": ["network.wifiConnected", "network.ipv4Acquired"],
+        "network.ethernetDisconnected": ["network.wifiDisconnected", "network.ipv4Released"],
+        "network.ipv4Acquired": ["network.wifiConnected", "network.ethernetConnected"],
+        "network.ipv4Released": ["network.wifiDisconnected", "network.ethernetDisconnected"],
+        "window.created": ["window.restored", "application.launched"],
+        "window.focused": ["application.activated", "window.restored", "system.spaceChanged"],
+        "window.minimized": ["application.terminated", "media.paused"],
+        "window.restored": ["window.created", "media.playing"],
+        "window.dialogOpened": ["ui.menuOpened", "window.created"],
+        "ui.menuOpened": ["ui.rowExpanded"],
+        "ui.menuClosed": ["ui.rowCollapsed", "window.minimized"],
+        "ui.menuItemSelected": ["ui.selectedRowChanged", "system.spaceChanged"],
+        "ui.rowExpanded": ["ui.menuOpened", "window.restored"],
+        "ui.rowCollapsed": ["ui.menuClosed", "window.minimized"],
+        "ui.selectedRowChanged": ["system.spaceChanged", "ui.menuItemSelected"],
+        "media.playing": ["window.restored", "audio.inputUnmuted"],
+        "media.paused": ["window.minimized", "audio.inputMuted"],
+        "media.stopped": ["media.paused", "application.terminated"],
+        "media.trackChanged": ["ui.selectedRowChanged", "system.spaceChanged", "ui.menuItemSelected"],
+        "audio.inputUnmuted": ["media.playing", "window.restored"],
+        "audio.inputMuted": ["media.paused", "window.minimized"],
+
+        "focus.treeItem": ["focus.listItem"],
+        "focus.listItem": ["focus.treeItem"],
+        "focus.menuItem": ["focus.listItem"],
+        "focus.splitButton": ["focus.comboBox", "focus.button"],
+        "focus.comboBox": ["focus.splitButton", "focus.button"],
+        "focus.radioButton": ["focus.checkbox"],
+        "focus.checkbox": ["focus.radioButton"],
+        "focus.tab": ["focus.button"],
+        "focus.link": ["focus.button"],
+        "focus.slider": ["focus.clock"],
+        "focus.clock": ["focus.slider"],
+
+        "key.lower": ["key.other"],
+        "key.other": ["key.lower"],
+        "key.navigation": ["key.other", "key.lower"],
+        "key.function": ["key.other", "key.lower"],
+        "key.space": ["key.other", "key.lower"],
+        "key.enter": ["key.other", "key.lower"],
+        "key.delete": ["key.other", "key.lower"],
+    ]
+
+    /// The first related event `has` says the pack has a sound for.
+    static func relatedStandIn(for id: String, has: (String) -> Bool) -> String? {
+        related[id]?.first(where: has)
+    }
+
     static func events(in group: SoundGroup) -> [SoundEvent] { all.filter { $0.group == group } }
 }

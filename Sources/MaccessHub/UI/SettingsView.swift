@@ -259,6 +259,8 @@ struct EventSoundsSettingsView: View {
                 SoundpackPicker(title: "Soundpack", packID: $store.data.eventSounds.packID, library: library)
                 Slider(value: $store.data.eventSounds.volume, in: 0...1) { Text("Volume") }
                     .accessibilityValue("\(Int(store.data.eventSounds.volume * 100)) percent")
+                Toggle("Fill gaps with this pack's similar sounds", isOn: $store.data.eventSounds.fillFromRelated)
+                    .help("When this pack has no sound for something, use its own sound for something close, before the Classic sound. Off by default.")
                 Toggle("Use the Classic sound when this pack has none", isOn: $store.data.eventSounds.fillMissingFromClassic)
                 HStack {
                     Button("Turn All On") {
@@ -313,6 +315,8 @@ struct KeyClicksSettingsView: View {
                 SoundpackPicker(title: "Soundpack", packID: $store.data.keyClicks.packID, library: library)
                 Slider(value: $store.data.keyClicks.volume, in: 0...1) { Text("Volume") }
                     .accessibilityValue("\(Int(store.data.keyClicks.volume * 100)) percent")
+                Toggle("Fill gaps with this pack's similar sounds", isOn: $store.data.keyClicks.fillFromRelated)
+                    .help("When this pack has no sound for something, use its own sound for something close, before the Classic sound. Off by default.")
                 Toggle("Use the Classic sound when this pack has none", isOn: $store.data.keyClicks.fillMissingFromClassic)
                 Button("Preview Typing") { AppController.shared.previewTyping() }
                     .help("Plays the pack as if you typed a short phrase. Press again to stop.")
@@ -369,6 +373,8 @@ struct FocusSoundsSettingsView: View {
                 SoundpackPicker(title: "Soundpack", packID: $store.data.focusSounds.packID, library: library)
                 Slider(value: $store.data.focusSounds.volume, in: 0...1) { Text("Volume") }
                     .accessibilityValue("\(Int(store.data.focusSounds.volume * 100)) percent")
+                Toggle("Fill gaps with this pack's similar sounds", isOn: $store.data.focusSounds.fillFromRelated)
+                    .help("When this pack has no sound for something, use its own sound for something close, before the Classic sound. Off by default.")
                 Toggle("Use the Classic sound when this pack has none", isOn: $store.data.focusSounds.fillMissingFromClassic)
                 Button("Preview Focus Sounds") { AppController.shared.previewFocusSounds() }
                     .help("Plays each control's sound in turn. Press again to stop.")
