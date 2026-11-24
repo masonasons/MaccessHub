@@ -53,6 +53,11 @@ targets:
         NSHumanReadableCopyright: MIT
         NSAppleEventsUsageDescription: MaccessHub asks VoiceOver to speak messages, and reads what VoiceOver last said to keep a speech history.
         NSBluetoothAlwaysUsageDescription: MaccessHub plays a sound when Bluetooth devices connect or disconnect.
+        NSDesktopFolderUsageDescription: MaccessHub plays a sound when items change in folders you choose to watch, and reads nothing else there.
+        NSDocumentsFolderUsageDescription: MaccessHub plays a sound when items change in folders you choose to watch, and reads nothing else there.
+        NSDownloadsFolderUsageDescription: MaccessHub plays a sound when items change in folders you choose to watch, and reads nothing else there.
+        NSRemovableVolumesUsageDescription: MaccessHub plays a sound when items change in folders you choose to watch, and reads nothing else there.
+        NSNetworkVolumesUsageDescription: MaccessHub plays a sound when items change in folders you choose to watch, and reads nothing else there.
         NSLocationWhenInUseUsageDescription: macOS only reveals the name of the Wi-Fi network to apps with Location access. MaccessHub uses it for the network report and nothing else.
         NSLocationUsageDescription: macOS only reveals the name of the Wi-Fi network to apps with Location access. MaccessHub uses it for the network report and nothing else.
         NSPrincipalClass: NSApplication

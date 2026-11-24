@@ -55,3 +55,6 @@ check:
 	swiftc -Onone -parse-as-library -o $(BUILD)/disk-click-check Tests/DiskClickCheck.swift \
 	  Sources/MaccessHub/Features/DiskSounds/DiskClick.swift
 	$(BUILD)/disk-click-check
+	swiftc -Onone -parse-as-library -o $(BUILD)/folder-watch-check Tests/FolderWatchCheck.swift \
+	  Sources/MaccessHub/Features/EventSounds/FolderChanges.swift
+	$(BUILD)/folder-watch-check
