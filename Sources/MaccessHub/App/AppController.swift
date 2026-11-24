@@ -85,7 +85,7 @@ final class AppController {
         speechHistory = SpeechHistoryFeature(speaker: speaker)
         diskSounds = DiskSoundsFeature(engine: engine)
         eventMonitors = [workspaceMonitor, PowerMonitor(), NetworkMonitor(), USBMonitor(),
-                         BluetoothMonitor(), UIEventMonitor()]
+                         BluetoothMonitor(), UIEventMonitor(), TrashMonitor()]
 
         for monitor in eventMonitors {
             monitor.onEvent = { [weak self] id in self?.handleEvent(id) }
