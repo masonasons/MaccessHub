@@ -4,7 +4,7 @@ BUILD    = build
 CONFIG  ?= Debug
 PRODUCT  = $(BUILD)/Build/Products/$(CONFIG)/$(APP).app
 
-.PHONY: all gen build run install clean check
+.PHONY: all gen build run install clean check check-catalog-download
 
 all: build
 
@@ -55,3 +55,17 @@ check:
 	swiftc -Onone -parse-as-library -o $(BUILD)/disk-click-check Tests/DiskClickCheck.swift \
 	  Sources/MaccessHub/Features/DiskSounds/DiskClick.swift
 	$(BUILD)/disk-click-check
+	$(MAKE) $(BUILD)/sound-catalog-check
+	$(BUILD)/sound-catalog-check
+
+CATALOG_CHECK_SOURCES = Tests/SoundCatalogCheck.swift Sources/MaccessHub/Sound/SoundCatalog.swift \
+  Sources/MaccessHub/Sound/Soundpack.swift Sources/MaccessHub/Sound/SoundEvent.swift \
+  Sources/MaccessHub/Sound/NavSoundsImporter.swift
+
+$(BUILD)/sound-catalog-check: $(CATALOG_CHECK_SOURCES)
+	mkdir -p $(BUILD)
+	swiftc -Onone -parse-as-library -o $@ $(CATALOG_CHECK_SOURCES)
+
+# Downloads the smallest catalog packs into a scratch folder (needs the network).
+check-catalog-download: $(BUILD)/sound-catalog-check
+	$(BUILD)/sound-catalog-check Resources/SoundCatalog/catalog.json --download
